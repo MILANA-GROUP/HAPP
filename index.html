@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happ — Быстрый и безопасный клиент</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+        }
+        .glow-effect {
+            box-shadow: 0 0 50px -10px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <header class="fixed top-0 left-0 right-0 z-50 bg-[#0b0f19]/80 backdrop-blur-md border-b border-gray-800">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center font-bold text-lg text-white">H</div>
+                <span class="font-bold text-xl tracking-tight">Happ</span>
+            </div>
+            <nav class="hidden md:flex items-center space-x-8 text-sm text-gray-400 font-medium">
+                <a href="#features" class="hover:text-white transition">Возможности</a>
+                <a href="#download" class="hover:text-white transition">Скачать</a>
+                <a href="#faq" class="hover:text-white transition">FAQ</a>
+            </nav>
+            <a href="#download" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-lg shadow-indigo-600/20">
+                Установить
+            </a>
+        </div>
+    </header>
+
+    <section class="pt-32 pb-20 md:pt-44 md:pb-32 px-6 relative overflow-hidden">
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <div class="inline-flex items-center space-x-2 bg-indigo-950/60 border border-indigo-800/50 text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+                <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                <span>Версия 1.0 уже доступна</span>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight mb-6">
+                Свободный интернет <br>в одно касание с <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Happ</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10">
+                Современный, быстрый и полностью конфиденциальный клиент с поддержкой передовых протоколов маршрутизации. Работает на всех устройствах.
+            </p>
+            
+            <div id="download" class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="#" class="w-full sm:w-auto flex items-center justify-center space-x-3 bg-gray-900 hover:bg-gray-800 border border-gray-700 px-6 py-3.5 rounded-2xl transition group">
+                    <i data-lucide="apple" class="w-6 h-6 text-white group-hover:scale-110 transition-transform"></i>
+                    <div class="text-left">
+                        <div class="text-[10px] text-gray-400 uppercase tracking-wider">Загрузить в</div>
+                        <div class="text-sm font-semibold text-white">App Store</div>
+                    </div>
+                </a>
+                <a href="#" class="w-full sm:w-auto flex items-center justify-center space-x-3 bg-gray-900 hover:bg-gray-800 border border-gray-700 px-6 py-3.5 rounded-2xl transition group">
+                    <i data-lucide="smartphone" class="w-6 h-6 text-white group-hover:scale-110 transition-transform"></i>
+                    <div class="text-left">
+                        <div class="text-[10px] text-gray-400 uppercase tracking-wider">Скачать для</div>
+                        <div class="text-sm font-semibold text-white">Android (APK)</div>
+                    </div>
+                </a>
+                <a href="https://github.com" target="_blank" class="w-full sm:w-auto flex items-center justify-center space-x-3 bg-gray-900 hover:bg-gray-800 border border-gray-700 px-6 py-3.5 rounded-2xl transition group">
+                    <i data-lucide="github" class="w-6 h-6 text-white group-hover:scale-110 transition-transform"></i>
+                    <div class="text-left">
+                        <div class="text-[10px] text-gray-400 uppercase tracking-wider">Исходный код</div>
+                        <div class="text-sm font-semibold text-white">GitHub</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-20 bg-[#070a12] border-t border-gray-900">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <h2 class="text-3xl font-bold tracking-tight mb-4">Почему выбирают Happ</h2>
+                <p class="text-gray-400">Мы создали инструмент, который сочетает в себе максимальную скорость и простоту настройки.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-[#0b0f19] border border-gray-800/80 p-8 rounded-3xl hover:border-indigo-500/50 transition">
+                    <div class="w-12 h-12 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-400 mb-6">
+                        <i data-lucide="zap" class="w-6 h-6"></i>
+                        </div>
+                    <h3 class="text-xl font-semibold mb-3">Максимальная скорость</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Оптимизированное сетевое ядро и современные протоколы обеспечивают минимальный пинг и отсутствие задержек.
+                    </p>
+                </div>
+
+                <div class="bg-[#0b0f19] border border-gray-800/80 p-8 rounded-3xl hover:border-indigo-500/50 transition">
+                    <div class="w-12 h-12 bg-purple-600/10 border border-purple-500/20 rounded-2xl flex items-center justify-center text-purple-400 mb-6">
+                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Полная приватность</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Приложение работает локально на вашем устройстве, не собирает логи и не передает данные третьим лицам.
+                    </p>
+                </div>
+
+                <div class="bg-[#0b0f19] border border-gray-800/80 p-8 rounded-3xl hover:border-indigo-500/50 transition">
+                    <div class="w-12 h-12 bg-blue-600/10 border border-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 mb-6">
+                        <i data-lucide="sliders" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Умная маршрутизация</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Настраивайте правила обхода блокировок точечно: для конкретных сайтов или приложений, экономя трафик.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq" class="py-20 border-t border-gray-900">
+        <div class="max-w-3xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold tracking-tight mb-4">Частые вопросы</h2>
+                <p class="text-gray-400">Всё, что вам нужно знать перед началом использования.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-[#070a12] border border-gray-800 p-6 rounded-2xl">
+                    <h3 class="font-semibold text-lg mb-2">Где взять сервер или подписку?</h3>
+                    <p class="text-gray-400 text-sm">Happ — это только клиент (оболочка). Для его работы вам понадобится конфигурация (ссылка вида `vless://`) от вашего личного сервера или доверенного провайдера.</p>
+                </div>
+                <div class="bg-[#070a12] border border-gray-800 p-6 rounded-2xl">
+                    <h3 class="font-semibold text-lg mb-2">Это бесплатно?</h3>
+                    <p class="text-gray-400 text-sm">Да, само приложение полностью бесплатное и с открытым исходным кодом.</p>
+                </div>
+                <div class="bg-[#070a12] border border-gray-800 p-6 rounded-2xl">
+                    <h3 class="font-semibold text-lg mb-2">Как начать пользоваться?</h3>
+                    <p class="text-gray-400 text-sm">Скачайте приложение, скопируйте вашу ссылку-подписку в буфер обмена и нажмите кнопку добавления в приложении. Затем нажмите «Старт».</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-10 border-t border-gray-900 bg-[#070a12] text-center text-sm text-gray-500">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-2">
+                <div class="w-6 h-6 bg-indigo-600 rounded-md flex items-center justify-center font-bold text-xs text-white">H</div>
+                <span class="font-semibold text-gray-300">Happ Project</span>
+            </div>
+            <div>
+                &copy; 2026 Все права защищены.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
