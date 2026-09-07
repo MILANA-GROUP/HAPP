@@ -3,40 +3,35 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>Карта · Liquid Glass</title>
+<title>Карта · iOS 26 Liquid Glass</title>
 
 <style>
   /* ============================================================
-     ТОКЕНЫ ОФОРМЛЕНИЯ
+     ТОКЕНЫ / ПЕРЕМЕННЫЕ ОФОРМЛЕНИЯ
      ============================================================ */
   :root {
     --glass-bg: rgba(255, 255, 255, 0.55);
-    --glass-bg-strong: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.62);
-    --glass-blur: 26px;
+    --glass-bg-strong: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.65);
+    --glass-blur: 32px;
     --glass-saturate: 180%;
 
     --ink: #1c1c1e;
     --ink-soft: rgba(28, 28, 30, 0.55);
-    --hairline: rgba(60, 60, 67, 0.14);
+    --hairline: rgba(60, 60, 67, 0.12);
 
     --accent: #0a84ff;
     --danger: #ff453a;
     --success: #30d158;
 
-    --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.10), 0 1px 2px rgba(0, 0, 0, 0.06);
-    --shadow-lifted: 0 20px 60px rgba(0, 0, 0, 0.20), 0 2px 6px rgba(0, 0, 0, 0.08);
+    --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-lifted: 0 24px 64px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.08);
 
-    --radius-huge: 32px;
+    --radius-huge: 36px;
     --radius-pill: 999px;
 
     --spring: cubic-bezier(0.34, 1.35, 0.4, 1);
     --spring-fast: cubic-bezier(0.32, 1.1, 0.4, 1);
-
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --safe-left: env(safe-area-inset-left, 0px);
-    --safe-right: env(safe-area-inset-right, 0px);
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -47,14 +42,13 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    overscroll-behavior: none;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--ink);
     background: #eef0f2;
   }
 
   /* ============================================================
-     КАРТА
+     КАРТА — на весь экран
      ============================================================ */
   #map {
     position: fixed;
@@ -68,16 +62,16 @@
   #map-fallback-note {
     position: fixed;
     left: 50%;
-    bottom: calc(18px + var(--safe-bottom));
+    bottom: 24px;
     transform: translateX(-50%);
-    z-index: 1;
-    font-size: 12.5px;
+    z-index: 100;
+    font-size: 13px;
     color: var(--ink-soft);
     background: var(--glass-bg);
     -webkit-backdrop-filter: blur(var(--glass-blur));
     backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    padding: 8px 14px;
+    padding: 10px 16px;
     border-radius: var(--radius-pill);
     box-shadow: var(--shadow-soft);
     display: none;
@@ -86,55 +80,40 @@
   }
 
   /* ============================================================
-     ОБЩИЙ "СТЕКЛЯННЫЙ" МИКСИН (через один класс)
+     1 & 12. ГЛАВНАЯ ВЕРТИКАЛЬНАЯ СТЕКЛЯННАЯ ПАНЕЛЬ (СЛЕВА)
      ============================================================ */
-  .glass-surface {
+  .panel-wrap {
+    position: fixed;
+    top: max(18px, env(safe-area-inset-top));
+    left: 18px;
+    z-index: 10;
+  }
+
+  .glass-panel {
+    position: relative;
     background: var(--glass-bg);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
     border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-soft);
-  }
-
-  /* ============================================================
-     ГЛАВНАЯ ПАНЕЛЬ — ВЕРТИКАЛЬНАЯ, СЛЕВА
-     Один и тот же элемент морфится компакт → развёрнутый
-     ============================================================ */
-  .panel-wrap {
-    position: fixed;
-    left: calc(16px + var(--safe-left));
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 20;
-    transition: opacity 260ms ease, transform 380ms var(--spring-fast);
-  }
-
-  .panel-wrap.is-hidden {
-    opacity: 0;
-    transform: translateY(-50%) translateX(-14px) scale(0.94);
-    pointer-events: none;
-  }
-
-  .glass-panel {
-    position: relative;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-huge);
     overflow: hidden;
     cursor: pointer;
 
+    /* Компактное состояние: вертикальная узкая и высокая панель */
     width: 56px;
-    height: 184px;
-
+    height: 176px;
     transition:
-      width 560ms var(--spring),
-      height 560ms var(--spring),
-      border-radius 560ms var(--spring-fast),
-      box-shadow 560ms var(--spring-fast),
+      width 520ms var(--spring),
+      height 520ms var(--spring),
+      border-radius 520ms var(--spring-fast),
+      box-shadow 520ms var(--spring-fast),
       background 400ms ease;
   }
 
   .glass-panel.is-open {
-    width: 236px;
-    height: min(258px, 60vh);
+    width: min(320px, 86vw);
+    height: min(360px, 60vh);
     border-radius: var(--radius-huge);
     box-shadow: var(--shadow-lifted);
     cursor: default;
@@ -147,11 +126,11 @@
     inset: 0;
     border-radius: inherit;
     pointer-events: none;
-    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0) 42%);
+    background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 50%);
     opacity: 0.6;
   }
 
-  /* ---------- Компактное содержимое: 3 иконки в столбик ---------- */
+  /* ---------- Компактное вертикальное содержимое ---------- */
   .compact-col {
     position: absolute;
     inset: 0;
@@ -159,10 +138,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 14px;
-    padding: 14px 0;
+    gap: 8px;
+    padding: 8px 0;
     opacity: 1;
-    transition: opacity 220ms ease;
+    transition: opacity 200ms ease;
   }
 
   .glass-panel.is-open .compact-col {
@@ -170,16 +149,23 @@
     pointer-events: none;
   }
 
-  /* ---------- Развёрнутое содержимое ---------- */
+  .compact-divider {
+    width: 24px;
+    height: 1px;
+    background: var(--hairline);
+    margin: 2px 0;
+  }
+
+  /* ---------- Развёрнутое содержимое панели ---------- */
   .expanded-content {
     position: absolute;
     inset: 0;
     display: flex;
     flex-direction: column;
     opacity: 0;
-    transform: scale(0.96);
+    transform: scale(0.97);
     pointer-events: none;
-    transition: opacity 320ms ease 90ms, transform 420ms var(--spring-fast) 90ms;
+    transition: opacity 300ms ease 80ms, transform 400ms var(--spring-fast) 80ms;
   }
 
   .glass-panel.is-open .expanded-content {
@@ -191,70 +177,70 @@
   .expanded-header {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding: 12px 12px 4px 12px;
+    justify-content: space-between;
+    padding: 16px 18px 8px 18px;
     flex-shrink: 0;
   }
 
-  .expanded-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 2px 10px 14px 10px;
-    overflow-y: auto;
+  .expanded-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
   }
 
   /* ============================================================
-     КНОПКИ — единый круглый "стеклянный" стиль
+     ОБЩИЕ КНОПКИ И ИКОНКИ
      ============================================================ */
   .icon-btn {
     -webkit-appearance: none;
     appearance: none;
     border: none;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--ink);
     cursor: pointer;
-    transition: transform 220ms var(--spring-fast), background 180ms ease, box-shadow 180ms ease, color 180ms ease;
-    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+    transition: transform 200ms var(--spring-fast), background 180ms ease, box-shadow 180ms ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   }
 
-  .icon-btn svg { width: 18px; height: 18px; display: block; }
-  .icon-btn:hover { background: rgba(255, 255, 255, 0.74); }
+  .icon-btn svg { width: 19px; height: 19px; display: block; }
+
+  .icon-btn:hover { background: rgba(255, 255, 255, 0.8); }
   .icon-btn:active { transform: scale(0.88); }
-
-  .icon-btn.small { width: 30px; height: 30px; min-width: 30px; }
-  .icon-btn.small svg { width: 14px; height: 14px; }
-
-  .icon-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
+  .icon-btn.small { width: 32px; height: 32px; min-width: 32px; }
+  .icon-btn.small svg { width: 15px; height: 15px; }
 
   /* ============================================================
-     СТРОКИ СПИСКА (в развёрнутой панели)
+     СПИСОК ПУНКТОВ МЕНЮ В ПАНЕЛИ
      ============================================================ */
+  .expanded-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 14px 16px 14px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .expanded-body::-webkit-scrollbar { width: 0; height: 0; }
+
   .control-list {
-    background: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(255,255,255,0.5);
-    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(255,255,255,0.55);
+    border-radius: 22px;
     overflow: hidden;
   }
 
   .control-row {
     display: flex;
     align-items: center;
-    gap: 11px;
-    padding: 12px 13px;
+    gap: 12px;
+    padding: 13px 14px;
     cursor: pointer;
     transition: background 150ms ease;
     position: relative;
@@ -263,19 +249,19 @@
   .control-row:not(:last-child)::after {
     content: "";
     position: absolute;
-    left: 45px;
+    left: 52px;
     right: 0;
     bottom: 0;
     height: 1px;
     background: var(--hairline);
   }
 
-  .control-row:hover { background: rgba(255,255,255,0.35); }
-  .control-row:active { background: rgba(255,255,255,0.55); }
+  .control-row:hover { background: rgba(255,255,255,0.4); }
+  .control-row:active { background: rgba(255,255,255,0.6); }
 
   .row-icon {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -284,15 +270,17 @@
     flex-shrink: 0;
   }
   .row-icon svg { width: 15px; height: 15px; }
+
   .row-icon.blue { background: #0a84ff; }
   .row-icon.purple { background: #bf5af2; }
   .row-icon.gray { background: #8e8e93; }
 
-  .row-text { font-size: 14.5px; flex: 1; line-height: 1.25; }
+  .row-text { font-size: 15px; font-weight: 500; flex: 1; }
 
+  /* Переключатель ON/OFF */
   .toggle {
-    width: 42px;
-    height: 25px;
+    width: 44px;
+    height: 26px;
     border-radius: var(--radius-pill);
     background: rgba(120, 120, 128, 0.32);
     position: relative;
@@ -304,287 +292,268 @@
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 21px;
-    height: 21px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: #fff;
     box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     transition: transform 260ms var(--spring-fast);
   }
-  .toggle.on { background: var(--success); }
-  .toggle.on::after { transform: translateX(17px); }
+  .toggle.on { background: #30d158; }
+  .toggle.on::after { transform: translateX(18px); }
+
 
   /* ============================================================
-     КНОПКА ГЕОЛОКАЦИИ — отдельно, справа снизу
+     2. КНОПКА МЕСТОПОЛОЖЕНИЯ (В ПРАВОМ НИЖНЕМ УГЛУ)
      ============================================================ */
   .locate-fab {
-    -webkit-appearance: none;
-    appearance: none;
     position: fixed;
-    right: calc(18px + var(--safe-right));
-    bottom: calc(22px + var(--safe-bottom));
-    z-index: 20;
-    width: 54px;
-    height: 54px;
+    right: 20px;
+    bottom: max(24px, env(safe-area-inset-bottom));
+    z-index: 10;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    border: none;
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-soft);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--accent);
     cursor: pointer;
-    transition: transform 220ms var(--spring-fast), opacity 260ms ease, box-shadow 200ms ease;
+    transition: transform 200ms var(--spring-fast), background 180ms ease, box-shadow 180ms ease;
   }
-  .locate-fab svg { width: 24px; height: 24px; }
-  .locate-fab:active { transform: scale(0.88); }
-  .locate-fab.is-busy svg { animation: spin 900ms linear infinite; }
-  .locate-fab.is-hidden {
-    opacity: 0;
-    transform: scale(0.8);
-    pointer-events: none;
-  }
+  .locate-fab svg { width: 22px; height: 22px; display: block; }
+  .locate-fab:hover { background: rgba(255,255,255,0.8); box-shadow: var(--shadow-lifted); }
+  .locate-fab:active { transform: scale(0.86); }
 
-  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ============================================================
-     РЕЖИМ ДОБАВЛЕНИЯ МЕТКИ: ПРИЦЕЛ
+     5. ПРИЦЕЛ В ЦЕНТРЕ КАРТЫ (ДЛЯ РЕЖИМА ДОБАВЛЕНИЯ)
      ============================================================ */
-  .crosshair {
+  .map-crosshair {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.5);
-    z-index: 15;
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
+    z-index: 8;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 260ms ease, transform 420ms var(--spring);
+    transition: opacity 300ms ease, transform 400ms var(--spring);
   }
-  .crosshair.is-visible {
+  .map-crosshair.active {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
-  .crosshair .ring {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.4);
-    border: 1px solid rgba(255,255,255,0.65);
-    box-shadow: var(--shadow-soft);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-  }
-  .crosshair svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    color: var(--ink);
-  }
-  /* небольшая точка-тень под прицелом, обозначающая точку на земле */
-  .crosshair::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    bottom: -3px;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.16);
-    filter: blur(1px);
-  }
+  .map-crosshair svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
+
 
   /* ============================================================
-     ОВАЛЬНАЯ КНОПКА «ДОБАВИТЬ»
+     6. КНОПКА «ДОБАВИТЬ» СНИЗУ В РЕЖИМЕ ВЫБОРА
      ============================================================ */
-  .add-confirm {
-    -webkit-appearance: none;
-    appearance: none;
+  .add-action-bar {
     position: fixed;
+    bottom: max(32px, env(safe-area-inset-bottom));
     left: 50%;
-    bottom: calc(28px + var(--safe-bottom));
-    transform: translate(-50%, 24px) scale(0.92);
-    z-index: 16;
-    padding: 15px 40px;
+    transform: translateX(-50%) translateY(120px) scale(0.9);
+    z-index: 12;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 450ms var(--spring), opacity 300ms ease;
+    width: calc(100% - 40px);
+    max-width: 340px;
+  }
+  .add-action-bar.active {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .add-action-btn {
+    width: 100%;
+    height: 56px;
     border-radius: var(--radius-pill);
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+    box-shadow: var(--shadow-lifted);
+    color: var(--ink);
     font-size: 16px;
     font-weight: 600;
-    color: #fff;
-    background: rgba(10, 132, 255, 0.82);
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid rgba(255,255,255,0.35);
-    box-shadow: var(--shadow-lifted);
+    font-family: inherit;
     cursor: pointer;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 300ms ease, transform 460ms var(--spring);
-  }
-  .add-confirm.is-visible {
-    opacity: 1;
-    transform: translate(-50%, 0) scale(1);
-    pointer-events: auto;
-  }
-  .add-confirm:active { transform: translate(-50%, 0) scale(0.94); }
-
-  /* контейнер для пылевых частиц (создаётся динамически, стили общие) */
-  .dust-particle {
-    position: fixed;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 25;
-    will-change: transform, opacity;
-  }
-
-  /* ============================================================
-     МЕТКА НА КАРТЕ (кастомный HTML-маркер)
-     ============================================================ */
-  .map-pin {
-    width: 40px;
-    height: 52px;
-    transform: translate(-50%, -100%) scale(0.3);
-    opacity: 0;
-    transition: transform 520ms var(--spring), opacity 260ms ease;
-    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.28));
-  }
-  .map-pin.is-placed {
-    transform: translate(-50%, -100%) scale(1);
-    opacity: 1;
-  }
-
-  /* ============================================================
-     ТОСТ-УВЕДОМЛЕНИЯ
-     ============================================================ */
-  .toast-stack {
-    position: fixed;
-    top: calc(16px + var(--safe-top));
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 40;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-    pointer-events: none;
-  }
-  .toast {
-    max-width: 86vw;
-    padding: 12px 18px;
-    border-radius: var(--radius-pill);
-    font-size: 13.5px;
-    color: var(--ink);
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    opacity: 0;
-    transform: translateY(-14px) scale(0.95);
-    transition: opacity 280ms ease, transform 360ms var(--spring-fast);
+    transition: transform 180ms var(--spring-fast), background 180ms ease;
   }
-  .toast.is-visible { opacity: 1; transform: translateY(0) scale(1); }
-  .toast svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--danger); }
+  .add-action-btn:hover { background: rgba(255,255,255,0.9); }
+  .add-action-btn:active { transform: scale(0.95); }
+  .add-action-btn svg { width: 20px; height: 20px; color: var(--accent); }
+
 
   /* ============================================================
-     МОДАЛЬНОЕ ОКНО НАСТРОЕК
+     8. КАНВАС ДЛЯ ЭФФЕКТА ПЫЛИ / ЧАСТИЦ
      ============================================================ */
-  .modal-backdrop {
+  #particleCanvas {
     position: fixed;
     inset: 0;
-    z-index: 30;
-    background: rgba(0,0,0,0.12);
-    opacity: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 15;
     pointer-events: none;
-    transition: opacity 280ms ease;
   }
-  .modal-backdrop.is-visible { opacity: 1; pointer-events: auto; }
 
-  .settings-modal {
+
+  /* ============================================================
+     11. ПАНЕЛЬ НАСТРОЙКЙ
+     ============================================================ */
+  .settings-overlay {
     position: fixed;
-    left: 50%;
-    top: 50%;
-    z-index: 31;
-    width: min(320px, 88vw);
-    border-radius: var(--radius-huge);
-    padding: 6px;
-    transform: translate(-50%, -50%) scale(0.9);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 300ms ease, transform 420ms var(--spring);
-    background: var(--glass-bg-strong);
+    transition: opacity 300ms ease;
+    padding: 20px;
   }
-  .settings-modal.is-visible {
+  .settings-overlay.active {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
     pointer-events: auto;
   }
 
+  .settings-modal {
+    width: 100%;
+    max-width: 360px;
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-huge);
+    box-shadow: var(--shadow-lifted);
+    padding: 20px;
+    transform: scale(0.92) translateY(20px);
+    transition: transform 400ms var(--spring);
+  }
+  .settings-overlay.active .settings-modal {
+    transform: scale(1) translateY(0);
+  }
   .settings-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 14px 8px;
+    margin-bottom: 16px;
   }
-  .settings-title { font-size: 16px; font-weight: 600; }
-  .settings-body { padding: 4px 10px 14px; }
+  .settings-title { font-size: 18px; font-weight: 700; }
+
+
+  /* ============================================================
+     КРАСИВЫЕ ТОСТ-УВЕДОМЛЕНИЯ (вместо alert)
+     ============================================================ */
+  .toast-container {
+    position: fixed;
+    top: max(20px, env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%) translateY(-30px);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 350ms var(--spring), opacity 250ms ease;
+    width: max-content;
+    max-width: 90vw;
+  }
+  .toast-container.active {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  .toast-body {
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-lifted);
+    padding: 12px 18px;
+    border-radius: var(--radius-pill);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    text-align: center;
+  }
+
 
   /* ============================================================
      АДАПТИВНОСТЬ
      ============================================================ */
   @media (max-width: 480px) {
-    .glass-panel.is-open {
-      width: min(236px, calc(100vw - 88px));
-      height: min(248px, 56vh);
-    }
-    .add-confirm { padding: 14px 34px; font-size: 15px; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .glass-panel, .expanded-content, .compact-col, .crosshair, .add-confirm, .map-pin, .toast, .settings-modal {
-      transition: none !important;
-    }
+    .panel-wrap { left: 14px; }
+    .glass-panel.is-open { width: calc(100vw - 28px); max-width: 340px; }
   }
 </style>
 </head>
 <body>
 
-  <!-- ============================================================
-       КАРТА
-       ============================================================ -->
+  <!-- КАРТА -->
   <div id="map"></div>
-  <div id="map-fallback-note">Не удалось загрузить Яндекс Карты. Проверьте соединение или ключ API.</div>
+  <div id="map-fallback-note">
+    Не удалось загрузить Яндекс Карту. Проверьте подключение и API-ключ.
+  </div>
+
+  <!-- КАНВАС ДЛЯ ЭФФЕКТА ПЫЛИ/ЧАСТИЦ -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- ТОСТ УВЕДОМЛЕНИЯ -->
+  <div class="toast-container" id="toastContainer">
+    <div class="toast-body" id="toastText">Уведомление</div>
+  </div>
+
 
   <!-- ============================================================
-       ГЛАВНАЯ ПАНЕЛЬ (вертикальная, слева)
+       1 & 12. ГЛАВНАЯ ВЕРТИКАЛЬНАЯ ПАНЕЛЬ (СЛЕВА)
        ============================================================ -->
-  <div class="panel-wrap" id="panelWrap">
-    <div class="glass-panel glass-surface" id="panel">
+  <div class="panel-wrap">
+    <div class="glass-panel" id="panel">
 
-      <!-- Компактное состояние: 3 иконки в столбик -->
+      <!-- Компактное состояние: вертикальная планка -->
       <div class="compact-col" id="compactCol">
-        <button class="icon-btn accent" id="addPinCompactIcon" title="Добавить метку" tabindex="-1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 21s-6.5-5.7-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.3-6.5 11-6.5 11Z"></path>
-            <path d="M12 7.5v4M10 9.5h4"></path>
+        <button class="icon-btn accent" id="compactAddBtn" title="Добавить метку">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 8v8M8 12h8"></path>
           </svg>
         </button>
-        <button class="icon-btn" id="satelliteCompactIcon" title="Спутник" tabindex="-1">
+        <div class="compact-divider"></div>
+        <button class="icon-btn" id="compactSatelliteBtn" title="Спутник">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 3 2 8l10 5 10-5-10-5Z"></path>
             <path d="m2 13 10 5 10-5"></path>
           </svg>
         </button>
-        <button class="icon-btn" id="settingsCompactIcon" title="Настройки" tabindex="-1">
+        <div class="compact-divider"></div>
+        <button class="icon-btn" id="compactSettingsBtn" title="Настройки">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
           </svg>
         </button>
       </div>
 
-      <!-- Развёрнутое состояние -->
+      <!-- Развёрнутое содержимое панели -->
       <div class="expanded-content" id="expandedContent">
         <div class="expanded-header">
+          <div class="expanded-title">Меню</div>
           <button class="icon-btn small" id="collapseBtn" title="Свернуть">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 6 6 18M6 6l12 12"></path>
@@ -594,38 +563,28 @@
 
         <div class="expanded-body">
           <div class="control-list">
-
-            <div class="control-row" id="addPinRow">
+            <!-- 3 & 4. Добавить метку -->
+            <div class="control-row" id="addMarkRow">
               <div class="row-icon blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 21s-6.5-5.7-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.3-6.5 11-6.5 11Z"></path>
-                  <path d="M12 7.5v4M10 9.5h4"></path>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg>
               </div>
               <div class="row-text">Добавить метку</div>
             </div>
-
+            <!-- 3 & 10. Спутник -->
             <div class="control-row" id="satelliteRow">
               <div class="row-icon purple">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 3 2 8l10 5 10-5-10-5Z"></path>
-                  <path d="m2 13 10 5 10-5"></path>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"></path><path d="m2 13 10 5 10-5"></path></svg>
               </div>
               <div class="row-text">Спутник</div>
               <div class="toggle" id="satelliteToggle"></div>
             </div>
-
+            <!-- 3 & 11. Настройки -->
             <div class="control-row" id="settingsRow">
               <div class="row-icon gray">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="3"></circle>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
               </div>
               <div class="row-text">Настройки</div>
             </div>
-
           </div>
         </div>
       </div>
@@ -633,452 +592,372 @@
     </div>
   </div>
 
+
   <!-- ============================================================
-       КНОПКА ГЕОЛОКАЦИИ (справа снизу, независимая от панели)
+       2. КНОПКА ОПРЕДЕЛЕНИЯ МЕСТОПОЛОЖЕНИЯ (ПРАВЫЙ НИЖНИЙ УГОЛ)
        ============================================================ -->
-  <button class="locate-fab glass-surface" id="locateFab" title="Моё местоположение">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3.4"></circle>
-      <path d="M12 2v3.4M12 18.6V22M2 12h3.4M18.6 12H22"></path>
+  <button class="locate-fab" id="locateFab" title="Моё местоположение">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3.2"></circle>
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
     </svg>
   </button>
 
+
   <!-- ============================================================
-       ПРИЦЕЛ (режим добавления метки)
+       5. ПРИЦЕЛ В ЦЕНТРЕ КАРТЫ
        ============================================================ -->
-  <div class="crosshair" id="crosshair">
-    <div class="ring"></div>
-    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-      <circle cx="32" cy="32" r="7"></circle>
-      <circle cx="32" cy="32" r="1.6" fill="currentColor" stroke="none"></circle>
-      <path d="M32 6v10M32 48v10M6 32h10M48 32h10"></path>
+  <div class="map-crosshair" id="mapCrosshair">
+    <svg viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="18" stroke="#0a84ff" stroke-width="2" stroke-dasharray="4 4" opacity="0.8"/>
+      <circle cx="24" cy="24" r="5" fill="#0a84ff" fill-opacity="0.2" stroke="#0a84ff" stroke-width="2"/>
+      <line x1="24" y1="2" x2="24" y2="12" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="24" y1="36" x2="24" y2="46" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="2" y1="24" x2="12" y2="24" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="36" y1="24" x2="46" y2="24" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round"/>
     </svg>
   </div>
 
-  <!-- ============================================================
-       КНОПКА «ДОБАВИТЬ»
-       ============================================================ -->
-  <button class="add-confirm" id="addConfirmBtn">Добавить</button>
 
   <!-- ============================================================
-       ТОСТЫ
+       6. КНОПКА «ДОБАВИТЬ» СНИЗУ В РЕЖИМЕ ВЫБОРА
        ============================================================ -->
-  <div class="toast-stack" id="toastStack"></div>
+  <div class="add-action-bar" id="addActionbar">
+    <button class="add-action-btn" id="confirmAddBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 9 17l-5-5"></path>
+      </svg>
+      Добавить
+    </button>
+  </div>
+
 
   <!-- ============================================================
-       МОДАЛЬНОЕ ОКНО НАСТРОЕК
+       11. МОДАЛЬНОЕ ОКНО НАСТРОЕК
        ============================================================ -->
-  <div class="modal-backdrop" id="modalBackdrop"></div>
-  <div class="settings-modal glass-surface" id="settingsModal">
-    <div class="settings-header">
-      <div class="settings-title">Настройки карты</div>
-      <button class="icon-btn small" id="settingsCloseBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 6 6 18M6 6l12 12"></path>
-        </svg>
-      </button>
-    </div>
-    <div class="settings-body">
-      <div class="control-list">
-        <div class="control-row">
-          <div class="row-icon gray">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="4"></circle>
-              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
-            </svg>
-          </div>
-          <div class="row-text">Тёмная карта ночью</div>
-          <div class="toggle" id="nightModeToggle"></div>
-        </div>
-        <div class="control-row">
-          <div class="row-icon gray">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 12h18M3 6h18M3 18h18"></path>
-            </svg>
-          </div>
-          <div class="row-text">Названия улиц</div>
-          <div class="toggle on" id="labelsToggle"></div>
-        </div>
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <div class="settings-title">Настройки</div>
+        <button class="icon-btn small" id="closeSettingsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
       </div>
-      <p style="font-size:12.5px;color:var(--ink-soft);padding:12px 6px 2px;line-height:1.4;">
-        Этот экран — заготовка. Здесь можно добавить больше параметров карты.
-      </p>
+      <div style="font-size: 14px; color: var(--ink-soft); line-height: 1.5;">
+        Интерфейс работает в режиме iOS 26 Liquid Glass. В дальнейшем здесь можно будет настроить отображение слоев, единицы измерения и параметры аккаунта.
+      </div>
     </div>
   </div>
 
-<!-- Яндекс Карты JS API 3.0 — официальная схема подключения:
-     статический тег-модуль с ключом, загружается до основного скрипта. -->
-<script src="https://api-maps.yandex.ru/v3/?apikey=c4c9c06e-50f2-4329-8382-fa43037efcb4&lang=ru_RU" type="module"></script>
 
-<script type="module">
-  /* Этот скрипт тоже type="module": модули выполняются по порядку
-     появления в документе, один за другим, после полной загрузки
-     каждого предыдущего (как defer). Поэтому к моменту запуска
-     кода ниже глобальная переменная window.ymaps3, которую создаёт
-     скрипт API выше, уже гарантированно существует.
-
-     ============================================================
-     ОБЩИЕ УТИЛИТЫ: ТОСТЫ
+<script>
+  /* ============================================================
+     КОНФИГУРАЦИЯ ЯНДЕКС КАРТ
      ============================================================ */
-  const toastStack = document.getElementById("toastStack");
+  const YANDEX_API_KEY = "c4c9c06e-50f2-4329-8382-fa43037efcb4";
 
-  function showToast(message, timeout = 3200) {
-    const el = document.createElement("div");
-    el.className = "toast glass-surface";
-    el.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="9"></circle>
-        <path d="M12 8v5M12 16h.01"></path>
-      </svg>
-      <span>${message}</span>
-    `;
-    toastStack.appendChild(el);
-    requestAnimationFrame(() => el.classList.add("is-visible"));
-    setTimeout(() => {
-      el.classList.remove("is-visible");
-      setTimeout(() => el.remove(), 380);
-    }, timeout);
+  let map = null;
+  let userPlacemark = null;
+  let isAddingMode = false;
+
+  function loadYandexMaps() {
+    const script = document.createElement("script");
+    script.src = `https://api-maps.yandex.ru/2.1/?apikey=${YANDEX_API_KEY}&lang=ru_RU`;
+    script.onload = () => ymaps.ready(initMap);
+    script.onerror = () => {
+      document.getElementById("map-fallback-note").style.display = "block";
+    };
+    document.head.appendChild(script);
+  }
+
+  function initMap() {
+    map = new ymaps.Map("map", {
+      center: [45.035470, 38.975313], // Краснодар по умолчанию
+      zoom: 13,
+      controls: []
+    });
   }
 
   /* ============================================================
-     ЭФФЕКТ «ПЫЛИ»: элемент рассыпается на частицы
+     ТОСТ-УВЕДОМЛЕНИЯ
      ============================================================ */
-  function disintegrate(el, { particleCount = 34, duration = 650 } = {}) {
-    const rect = el.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
-
-    const layer = document.createElement("div");
-    layer.style.position = "fixed";
-    layer.style.left = "0";
-    layer.style.top = "0";
-    layer.style.width = "100%";
-    layer.style.height = "100%";
-    layer.style.pointerEvents = "none";
-    layer.style.zIndex = "25";
-    document.body.appendChild(layer);
-
-    // Скрываем оригинальный элемент сразу — вместо него "пылят" частицы
-    el.style.visibility = "hidden";
-
-    const colors = ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.7)", "rgba(28,28,30,0.35)", "rgba(10,132,255,0.55)"];
-
-    for (let i = 0; i < particleCount; i++) {
-      const p = document.createElement("div");
-      p.className = "dust-particle";
-      const size = 3 + Math.random() * 6;
-      const startX = rect.left + Math.random() * rect.width;
-      const startY = rect.top + Math.random() * rect.height;
-
-      p.style.width = size + "px";
-      p.style.height = size + "px";
-      p.style.left = startX + "px";
-      p.style.top = startY + "px";
-      p.style.background = colors[Math.floor(Math.random() * colors.length)];
-      p.style.opacity = "1";
-      p.style.transform = "translate(0,0) scale(1)";
-      p.style.transition = `transform ${duration}ms cubic-bezier(0.2,0.7,0.3,1), opacity ${duration}ms ease`;
-      layer.appendChild(p);
-
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 26 + Math.random() * 70;
-      const dx = Math.cos(angle) * dist;
-      const dy = Math.sin(angle) * dist - 14; // лёгкий подъём вверх, как невесомая пыль
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          p.style.transform = `translate(${dx}px, ${dy}px) scale(0.2)`;
-          p.style.opacity = "0";
-        });
-      });
-    }
-
-    setTimeout(() => layer.remove(), duration + 60);
+  let toastTimer = null;
+  function showToast(message) {
+    const container = document.getElementById("toastContainer");
+    const textEl = document.getElementById("toastText");
+    textEl.textContent = message;
+    container.classList.add("active");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      container.classList.remove("active");
+    }, 3200);
   }
 
+
   /* ============================================================
-     ГЛАВНАЯ ПАНЕЛЬ: раскрытие / сворачивание
+     УПРАВЛЕНИЕ ГЛАВНОЙ ПАНЕЛЬЮ
      ============================================================ */
-  const panelWrap = document.getElementById("panelWrap");
   const panel = document.getElementById("panel");
   const compactCol = document.getElementById("compactCol");
 
-  function openPanel() { panel.classList.add("is-open"); }
-  function closePanel() { panel.classList.remove("is-open"); }
-  function togglePanel() { panel.classList.contains("is-open") ? closePanel() : openPanel(); }
+  function openPanel() {
+    panel.classList.add("is-open");
+  }
 
-  compactCol.addEventListener("click", togglePanel);
+  function closePanel() {
+    panel.classList.remove("is-open");
+  }
+
+  compactCol.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    if (btn.id === "compactAddBtn") {
+      startAddMode();
+    } else if (btn.id === "compactSatelliteBtn") {
+      toggleSatelliteState();
+    } else if (btn.id === "compactSettingsBtn") {
+      openSettings();
+    }
+  });
+
   document.getElementById("collapseBtn").addEventListener("click", (e) => {
     e.stopPropagation();
     closePanel();
   });
-  // клики внутри развёрнутой панели не должны "проваливаться" дальше
-  panel.addEventListener("click", (e) => {
-    if (panel.classList.contains("is-open")) e.stopPropagation();
-  });
 
-  function hideMainControls() {
-    panelWrap.classList.add("is-hidden");
-    locateFab.classList.add("is-hidden");
-  }
-  function showMainControls() {
-    panelWrap.classList.remove("is-hidden");
-    locateFab.classList.remove("is-hidden");
-  }
 
   /* ============================================================
-     СПУТНИК
+     2. КНОПКА МЕСТОПОЛОЖЕНИЯ
      ============================================================ */
-  let satelliteOn = false;
-  const satelliteToggle = document.getElementById("satelliteToggle");
-
-  function toggleSatellite() {
-    satelliteOn = !satelliteOn;
-    satelliteToggle.classList.toggle("on", satelliteOn);
-    applySatelliteLayer(satelliteOn);
-  }
-  document.getElementById("satelliteRow").addEventListener("click", (e) => { e.stopPropagation(); toggleSatellite(); });
-  document.getElementById("satelliteCompactIcon").addEventListener("click", (e) => { e.stopPropagation(); openPanel(); });
-
-  /* ============================================================
-     НАСТРОЙКИ (модальное окно)
-     ============================================================ */
-  const modalBackdrop = document.getElementById("modalBackdrop");
-  const settingsModal = document.getElementById("settingsModal");
-
-  function openSettings() {
-    closePanel();
-    modalBackdrop.classList.add("is-visible");
-    settingsModal.classList.add("is-visible");
-  }
-  function closeSettings() {
-    modalBackdrop.classList.remove("is-visible");
-    settingsModal.classList.remove("is-visible");
-  }
-  document.getElementById("settingsRow").addEventListener("click", (e) => { e.stopPropagation(); openSettings(); });
-  document.getElementById("settingsCompactIcon").addEventListener("click", (e) => { e.stopPropagation(); openPanel(); });
-  document.getElementById("settingsCloseBtn").addEventListener("click", closeSettings);
-  modalBackdrop.addEventListener("click", closeSettings);
-  document.getElementById("nightModeToggle").addEventListener("click", (e) => e.currentTarget.classList.toggle("on"));
-  document.getElementById("labelsToggle").addEventListener("click", (e) => e.currentTarget.classList.toggle("on"));
-
-  /* ============================================================
-     РЕЖИМ «ДОБАВИТЬ МЕТКУ»
-     ============================================================ */
-  const crosshair = document.getElementById("crosshair");
-  const addConfirmBtn = document.getElementById("addConfirmBtn");
-  let addModeActive = false;
-
-  function enterAddMode() {
-    if (addModeActive) return;
-    addModeActive = true;
-    closePanel();
-    hideMainControls();
-    // небольшая задержка, чтобы морфинг панели успел начаться до появления прицела
-    setTimeout(() => {
-      crosshair.classList.add("is-visible");
-      addConfirmBtn.classList.add("is-visible");
-    }, 160);
-  }
-
-  function exitAddMode() {
-    addModeActive = false;
-    showMainControls();
-  }
-
-  document.getElementById("addPinRow").addEventListener("click", (e) => { e.stopPropagation(); enterAddMode(); });
-  document.getElementById("addPinCompactIcon").addEventListener("click", (e) => { e.stopPropagation(); enterAddMode(); });
-
-  addConfirmBtn.addEventListener("click", () => {
-    if (!addModeActive) return;
-    addConfirmBtn.disabled = true;
-
-    // координаты центра карты в момент нажатия
-    const coords = getMapCenterCoords();
-
-    // "пылевой" эффект и для кнопки, и для прицела одновременно
-    disintegrate(addConfirmBtn, { duration: 650 });
-    disintegrate(crosshair, { duration: 650 });
-
-    setTimeout(() => {
-      // приводим элементы в исходное скрытое состояние для следующего раза
-      // (disintegrate() выставил visibility:hidden — снимаем инлайн-стиль,
-      // а класс is-visible убираем, чтобы элементы вернулись к opacity:0)
-      addConfirmBtn.classList.remove("is-visible");
-      addConfirmBtn.style.removeProperty("visibility");
-      addConfirmBtn.disabled = false;
-
-      crosshair.classList.remove("is-visible");
-      crosshair.style.removeProperty("visibility");
-
-      placeCustomMarker(coords);
-      exitAddMode();
-    }, 700);
-  });
-
-  /* ============================================================
-     ТОСТ + ГЕОЛОКАЦИЯ («Моё местоположение»)
-     ============================================================ */
-  const locateFab = document.getElementById("locateFab");
-
-  locateFab.addEventListener("click", () => {
+  document.getElementById("locateFab").addEventListener("click", () => {
     if (!navigator.geolocation) {
-      showToast("Геолокация не поддерживается этим браузером");
+      showToast("Геолокация не поддерживается вашим браузером");
       return;
     }
-    locateFab.classList.add("is-busy");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        locateFab.classList.remove("is-busy");
-        const { latitude, longitude } = pos.coords;
-        flyToLocation(longitude, latitude);
-        showUserLocationDot(longitude, latitude);
+        const coords = [pos.coords.latitude, pos.coords.longitude];
+        if (map) {
+          map.setCenter(coords, 16, { duration: 500 });
+        }
+        if (ymaps) {
+          if (!userPlacemark) {
+            userPlacemark = new ymaps.Placemark(coords, {}, {
+              preset: "islands#blueCircleIconWithCircle"
+            });
+            map.geoObjects.add(userPlacemark);
+          } else {
+            userPlacemark.geometry.setCoordinates(coords);
+          }
+        }
+        showToast("Геолокация определена");
       },
       (err) => {
-        locateFab.classList.remove("is-busy");
-        if (err.code === err.PERMISSION_DENIED) {
-          showToast("Доступ к геолокации запрещён. Разрешите его в настройках браузера.");
-        } else {
-          showToast("Не удалось определить местоположение.");
-        }
+        showToast("Доступ к геолокации запрещён или недоступен");
       },
-      { enableHighAccuracy: true, timeout: 8000 }
+      { timeout: 10000, enableHighAccuracy: true }
     );
   });
 
+
   /* ============================================================
-     ЯНДЕКС КАРТЫ — JS API 3.0
+     10. СПУТНИК
      ============================================================ */
-  let map = null;
-  let ymaps3ref = null;
-  let schemeLayerEntity = null;
-  let satelliteLayerEntity = null;
-  let userDotMarker = null;
-
-  const DEFAULT_CENTER = [37.618423, 55.751244]; // [долгота, широта] — Москва
-
-  async function initMap() {
-    await ymaps3.ready;
-    ymaps3ref = ymaps3;
-    const { YMap, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer } = ymaps3ref;
-
-    map = new YMap(document.getElementById("map"), {
-      location: { center: DEFAULT_CENTER, zoom: 12 },
-    });
-
-    schemeLayerEntity = new YMapDefaultSchemeLayer();
-    map.addChild(schemeLayerEntity);
-    map.addChild(new YMapDefaultFeaturesLayer());
-  }
-
-  /* Простая CSS-заглушка вместо карты — показывается только если
-     инициализация реально не удалась (например, нет сети). */
-  function renderStaticFallback() {
-    const el = document.getElementById("map");
-    el.style.background =
-      "radial-gradient(circle at 30% 30%, #dfe7ef, #c9d3dc 60%), " +
-      "repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0 1px, transparent 1px 40px), " +
-      "repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0 1px, transparent 1px 40px)";
-  }
-
-  initMap().catch((err) => {
-    // Показываем честную причину, а не догадку — так проще диагностировать
-    // реальную проблему (сеть, блокировка домена, ошибка в самом API).
-    console.error("Ошибка инициализации Яндекс Карт:", err);
-    renderStaticFallback();
-    const note = document.getElementById("map-fallback-note");
-    note.textContent = "Не удалось загрузить карту: " + (err && err.message ? err.message : "неизвестная ошибка") + ". Проверьте соединение с интернетом.";
-    note.style.display = "block";
+  const satelliteToggle = document.getElementById("satelliteToggle");
+  document.getElementById("satelliteRow").addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleSatelliteState();
   });
 
-  function getMapCenterCoords() {
-    if (map && map.location && map.location.center) {
-      return map.location.center; // [lon, lat]
+  function toggleSatelliteState() {
+    const isOn = satelliteToggle.classList.toggle("on");
+    if (map) {
+      map.setType(isOn ? "yandex#satellite" : "yandex#map");
     }
-    return DEFAULT_CENTER;
+    showToast(isOn ? "Спутниковый режим включен" : "Обычная карта");
   }
 
-  function flyToLocation(lon, lat) {
-    if (!map) return;
-    try {
-      map.setLocation({ center: [lon, lat], zoom: 15, duration: 450, easing: "ease-in-out" });
-    } catch (e) {
-      console.warn("setLocation недоступен в этой версии API:", e);
-    }
-  }
-
-  function showUserLocationDot(lon, lat) {
-    if (!map || !ymaps3ref) return;
-    try {
-      const dotEl = document.createElement("div");
-      dotEl.style.width = "18px";
-      dotEl.style.height = "18px";
-      dotEl.style.borderRadius = "50%";
-      dotEl.style.background = "#0a84ff";
-      dotEl.style.border = "3px solid #fff";
-      dotEl.style.boxShadow = "0 0 0 2px rgba(10,132,255,0.35), 0 2px 8px rgba(0,0,0,0.3)";
-
-      if (userDotMarker) {
-        map.removeChild(userDotMarker);
-      }
-      userDotMarker = new ymaps3ref.YMapMarker({ coordinates: [lon, lat] }, dotEl);
-      map.addChild(userDotMarker);
-    } catch (e) {
-      console.warn("Не удалось разместить маркер местоположения:", e);
-    }
-  }
-
-  /* Переключение спутникового слоя.
-     Названия свойств могут отличаться в зависимости от версии API —
-     обёрнуто в try/catch, чтобы не ломать остальной интерфейс. */
-  function applySatelliteLayer(on) {
-    if (!map || !ymaps3ref) return;
-    try {
-      if (on) {
-        if (!satelliteLayerEntity) {
-          satelliteLayerEntity = new ymaps3ref.YMapLayer({ type: "satellite" });
-        }
-        map.addChild(satelliteLayerEntity);
-      } else if (satelliteLayerEntity) {
-        map.removeChild(satelliteLayerEntity);
-      }
-    } catch (e) {
-      console.warn("Спутниковый слой недоступен в этой версии API:", e);
-      showToast("Спутниковый слой временно недоступен");
-    }
-  }
 
   /* ============================================================
-     КАСТОМНАЯ SVG-МЕТКА
+     11. НАСТРОЙКИ
      ============================================================ */
-  function createPinElement() {
-    const wrap = document.createElement("div");
-    wrap.className = "map-pin";
-    wrap.innerHTML = `
-      <svg viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 1C9.5 1 1 9.4 1 19.7c0 13.6 16.4 29.6 18.1 31.2.5.5 1.3.5 1.8 0C22.6 49.3 39 33.3 39 19.7 39 9.4 30.5 1 20 1Z"
-              fill="#1c2733" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
-        <circle cx="20" cy="19.5" r="11" fill="#0a84ff"/>
-        <path d="M14.5 19.8l3.6 3.6 7.4-8" stroke="#ffffff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `;
-    return wrap;
+  const settingsOverlay = document.getElementById("settingsOverlay");
+  document.getElementById("settingsRow").addEventListener("click", () => {
+    closePanel();
+    openSettings();
+  });
+
+  function openSettings() {
+    settingsOverlay.classList.add("active");
   }
 
-  function placeCustomMarker(coords) {
-    if (!map || !ymaps3ref) return;
-    try {
-      const el = createPinElement();
-      const marker = new ymaps3ref.YMapMarker({ coordinates: coords }, el);
-      map.addChild(marker);
-      // запускаем "приземление" метки следующим кадром для анимации
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => el.classList.add("is-placed"));
-      });
-    } catch (e) {
-      console.error("Не удалось создать метку:", e);
-      showToast("Не удалось добавить метку");
-    }
+  document.getElementById("closeSettingsBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("active");
+  });
+  settingsOverlay.addEventListener("click", (e) => {
+    if (e.target === settingsOverlay) settingsOverlay.classList.remove("active");
+  });
+
+
+  /* ============================================================
+     5, 6, 7, 8, 9. РЕЖИМ ДОБАВЛЕНИЯ МЕТКИ И ЭФФЕКТ ПЫЛИ
+     ============================================================ */
+  const addMarkRow = document.getElementById("addMarkRow");
+  const mapCrosshair = document.getElementById("mapCrosshair");
+  const addActionbar = document.getElementById("addActionbar");
+
+  addMarkRow.addEventListener("click", () => {
+    closePanel();
+    startAddMode();
+  });
+
+  function startAddMode() {
+    isAddingMode = true;
+    mapCrosshair.classList.add("active");
+    addActionbar.classList.add("active");
+    showToast("Передвиньте карту, чтобы выбрать точку прицелом");
   }
+
+  function finishAddMode() {
+    isAddingMode = false;
+    mapCrosshair.classList.remove("active");
+    addActionbar.classList.remove("active");
+  }
+
+  document.getElementById("confirmAddBtn").addEventListener("click", (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const btnCenterX = rect.left + rect.width / 2;
+    const btnCenterY = rect.top + rect.height / 2;
+
+    // Получаем координаты центра карты
+    if (map) {
+      const centerCoords = map.getCenter();
+      createCustomPlacemark(centerCoords);
+    }
+
+    // Запускаем эффект пыли для кнопки и прицела
+    triggerDustEffect(btnCenterX, btnCenterY);
+    finishAddMode();
+  });
+
+  function createCustomPlacemark(coords) {
+    if (!ymaps || !map) return;
+
+    // Создаем профессиональную кастомную SVG-метку без эмодзи
+    const customSvgLayout = ymaps.templateLayoutFactory.createClass(
+      `<div style="position: relative; width: 36px; height: 36px; transform: translate(-50%, -100%);">
+        <div style="position: absolute; inset: 0; background: #0a84ff; border-radius: 50%; box-shadow: 0 4px 14px rgba(10,132,255,0.4); display: flex; align-items: center; justify-content: center; border: 2px solid #ffffff;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+        </div>
+      </div>`
+    );
+
+    const mark = new ymaps.Placemark(coords, {}, {
+      iconLayout: customSvgLayout,
+      iconShape: {
+        type: 'Circle',
+        coordinates: [0, 0],
+        radius: 18
+      }
+    });
+
+    map.geoObjects.add(mark);
+    showToast("Метка успешно добавлена на карту");
+  }
+
+
+  /* ============================================================
+     8. АНИМАЦИЯ РАССЫПАНИЯ НА ЧАСТИЦЫ / ПЫЛЬ (ДЛЯ КНОПКИ И ПРИЦЕЛА)
+     ============================================================ */
+  const canvas = document.getElementById("particleCanvas");
+  const ctx = canvas.getContext("2d");
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  function triggerDustEffect(originX, originY) {
+    const particles = [];
+    const count = 55;
+
+    // Координаты центра прицела
+    const crossX = window.innerWidth / 2;
+    const crossY = window.innerHeight / 2;
+
+    // Частицы от кнопки снизу
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.5 + Math.random() * 7;
+      particles.push({
+        x: originX,
+        y: originY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1.5,
+        size: 2 + Math.random() * 3.5,
+        alpha: 1,
+        decay: 0.015 + Math.random() * 0.02,
+        color: Math.random() > 0.4 ? '#0a84ff' : '#ffffff'
+      });
+    }
+
+    // Частицы от центрального прицела
+    for (let i = 0; i < 40; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 6;
+      particles.push({
+        x: crossX,
+        y: crossY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 1.5 + Math.random() * 3,
+        alpha: 1,
+        decay: 0.02 + Math.random() * 0.025,
+        color: '#0a84ff'
+      });
+    }
+
+    let startTime = performance.now();
+    function animateParticles(currentTime) {
+      let elapsed = currentTime - startTime;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      let activeCount = 0;
+      particles.forEach(p => {
+        if (p.alpha <= 0) return;
+        activeCount++;
+
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.12; // гравитация
+        p.alpha -= p.decay;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      if (activeCount > 0 && elapsed < 800) {
+        requestAnimationFrame(animateParticles);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    requestAnimationFrame(animateParticles);
+  }
+
+  // Запуск загрузки карт
+  loadYandexMaps();
 </script>
 
 </body>
