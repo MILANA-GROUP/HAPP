@@ -98,6 +98,7 @@
 
   /* ============================================================
      ГЛАВНАЯ ПАНЕЛЬ — ВЕРТИКАЛЬНАЯ, СЛЕВА
+     Один и тот же элемент морфится компакт → развёрнутый
      ============================================================ */
   .panel-wrap {
     position: fixed;
@@ -379,6 +380,7 @@
     height: 100%;
     color: var(--ink);
   }
+  /* небольшая точка-тень под прицелом, обозначающая точку на земле */
   .crosshair::after {
     content: "";
     position: absolute;
@@ -424,6 +426,7 @@
   }
   .add-confirm:active { transform: translate(-50%, 0) scale(0.94); }
 
+  /* контейнер для пылевых частиц (создаётся динамически, стили общие) */
   .dust-particle {
     position: fixed;
     border-radius: 50%;
@@ -433,7 +436,7 @@
   }
 
   /* ============================================================
-     МЕТКА НА КАРТЕ
+     МЕТКА НА КАРТЕ (кастомный HTML-маркер)
      ============================================================ */
   .map-pin {
     width: 40px;
@@ -614,7 +617,7 @@
               <div class="row-icon gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="3"></circle>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
                 </svg>
               </div>
               <div class="row-text">Настройки</div>
@@ -628,7 +631,7 @@
   </div>
 
   <!-- ============================================================
-       КНОПКА ГЕОЛОКАЦИИ (справа снизу)
+       КНОПКА ГЕОЛОКАЦИИ (справа снизу, независимая от панели)
        ============================================================ -->
   <button class="locate-fab glass-surface" id="locateFab" title="Моё местоположение">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -700,11 +703,18 @@
     </div>
   </div>
 
-<!-- СКРИПТЫ (Яндекс Карты подгружаются как ES-модуль с правильным импортом) -->
-<script type="module">
-  import * as ymaps3 from 'https://api-maps.yandex.ru/v3/?apikey=c4c9c06e-50f2-4329-8382-fa43037efcb4&lang=ru_RU';
+<!-- Яндекс Карты JS API 3.0 — подключается как ES-модуль, как того требует v3 -->
+<script src="https://api-maps.yandex.ru/v3/?apikey=c4c9c06e-50f2-4329-8382-fa43037efcb4&lang=ru_RU" type="module"></script>
 
-  /* ============================================================
+<script type="module">
+  /* Скрипт подключён как type="module", а не обычный <script>, —
+     это важно: модули выполняются по порядку появления в документе
+     ПОСЛЕ полной загрузки друг друга (как defer), поэтому к моменту
+     запуска этого кода глобальная переменная window.ymaps3 уже
+     гарантированно создана скриптом API выше. Обычный синхронный
+     <script> здесь бы выполнился раньше и упал с ReferenceError.
+
+     ============================================================
      ОБЩИЕ УТИЛИТЫ: ТОСТЫ
      ============================================================ */
   const toastStack = document.getElementById("toastStack");
@@ -728,7 +738,7 @@
   }
 
   /* ============================================================
-     ЭФФЕКТ «ПЫЛИ»
+     ЭФФЕКТ «ПЫЛИ»: элемент рассыпается на частицы
      ============================================================ */
   function disintegrate(el, { particleCount = 34, duration = 650 } = {}) {
     const rect = el.getBoundingClientRect();
@@ -744,7 +754,9 @@
     layer.style.zIndex = "25";
     document.body.appendChild(layer);
 
+    // Скрываем оригинальный элемент сразу — вместо него "пылят" частицы
     el.style.visibility = "hidden";
+
     const colors = ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.7)", "rgba(28,28,30,0.35)", "rgba(10,132,255,0.55)"];
 
     for (let i = 0; i < particleCount; i++) {
@@ -767,7 +779,7 @@
       const angle = Math.random() * Math.PI * 2;
       const dist = 26 + Math.random() * 70;
       const dx = Math.cos(angle) * dist;
-      const dy = Math.sin(angle) * dist - 14;
+      const dy = Math.sin(angle) * dist - 14; // лёгкий подъём вверх, как невесомая пыль
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -781,7 +793,7 @@
   }
 
   /* ============================================================
-     ГЛАВНАЯ ПАНЕЛЬ
+     ГЛАВНАЯ ПАНЕЛЬ: раскрытие / сворачивание
      ============================================================ */
   const panelWrap = document.getElementById("panelWrap");
   const panel = document.getElementById("panel");
@@ -796,6 +808,7 @@
     e.stopPropagation();
     closePanel();
   });
+  // клики внутри развёрнутой панели не должны "проваливаться" дальше
   panel.addEventListener("click", (e) => {
     if (panel.classList.contains("is-open")) e.stopPropagation();
   });
@@ -824,7 +837,7 @@
   document.getElementById("satelliteCompactIcon").addEventListener("click", (e) => { e.stopPropagation(); openPanel(); });
 
   /* ============================================================
-     НАСТРОЙКИ
+     НАСТРОЙКИ (модальное окно)
      ============================================================ */
   const modalBackdrop = document.getElementById("modalBackdrop");
   const settingsModal = document.getElementById("settingsModal");
@@ -857,6 +870,7 @@
     addModeActive = true;
     closePanel();
     hideMainControls();
+    // небольшая задержка, чтобы морфинг панели успел начаться до появления прицела
     setTimeout(() => {
       crosshair.classList.add("is-visible");
       addConfirmBtn.classList.add("is-visible");
@@ -875,12 +889,17 @@
     if (!addModeActive) return;
     addConfirmBtn.disabled = true;
 
+    // координаты центра карты в момент нажатия
     const coords = getMapCenterCoords();
 
+    // "пылевой" эффект и для кнопки, и для прицела одновременно
     disintegrate(addConfirmBtn, { duration: 650 });
     disintegrate(crosshair, { duration: 650 });
 
     setTimeout(() => {
+      // приводим элементы в исходное скрытое состояние для следующего раза
+      // (disintegrate() выставил visibility:hidden — снимаем инлайн-стиль,
+      // а класс is-visible убираем, чтобы элементы вернулись к opacity:0)
       addConfirmBtn.classList.remove("is-visible");
       addConfirmBtn.style.removeProperty("visibility");
       addConfirmBtn.disabled = false;
@@ -894,7 +913,7 @@
   });
 
   /* ============================================================
-     ГЕОЛОКАЦИЯ
+     ТОСТ + ГЕОЛОКАЦИЯ («Моё местоположение»)
      ============================================================ */
   const locateFab = document.getElementById("locateFab");
 
@@ -926,15 +945,19 @@
   /* ============================================================
      ЯНДЕКС КАРТЫ — JS API 3.0
      ============================================================ */
+  const YANDEX_API_KEY = "c4c9c06e-50f2-4329-8382-fa43037efcb4";
+
   let map = null;
+  let ymaps3ref = null;
   let schemeLayerEntity = null;
   let satelliteLayerEntity = null;
   let userDotMarker = null;
 
-  const DEFAULT_CENTER = [37.618423, 55.751244];
+  const DEFAULT_CENTER = [37.618423, 55.751244]; // [долгота, широта] — Москва
 
   async function initMap() {
     await ymaps3.ready;
+    ymaps3ref = ymaps3;
     const { YMap, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer } = ymaps3;
 
     map = new YMap(document.getElementById("map"), {
@@ -953,7 +976,7 @@
 
   function getMapCenterCoords() {
     if (map && map.location && map.location.center) {
-      return map.location.center;
+      return map.location.center; // [lon, lat]
     }
     return DEFAULT_CENTER;
   }
@@ -963,12 +986,12 @@
     try {
       map.setLocation({ center: [lon, lat], zoom: 15, duration: 450, easing: "ease-in-out" });
     } catch (e) {
-      console.warn("setLocation недоступен:", e);
+      console.warn("setLocation недоступен в этой версии API:", e);
     }
   }
 
   function showUserLocationDot(lon, lat) {
-    if (!map) return;
+    if (!map || !ymaps3ref) return;
     try {
       const dotEl = document.createElement("div");
       dotEl.style.width = "18px";
@@ -981,30 +1004,36 @@
       if (userDotMarker) {
         map.removeChild(userDotMarker);
       }
-      userDotMarker = new ymaps3.YMapMarker({ coordinates: [lon, lat] }, dotEl);
+      userDotMarker = new ymaps3ref.YMapMarker({ coordinates: [lon, lat] }, dotEl);
       map.addChild(userDotMarker);
     } catch (e) {
       console.warn("Не удалось разместить маркер местоположения:", e);
     }
   }
 
+  /* Переключение спутникового слоя.
+     Названия свойств могут отличаться в зависимости от версии API —
+     обёрнуто в try/catch, чтобы не ломать остальной интерфейс. */
   function applySatelliteLayer(on) {
-    if (!map) return;
+    if (!map || !ymaps3ref) return;
     try {
       if (on) {
         if (!satelliteLayerEntity) {
-          satelliteLayerEntity = new ymaps3.YMapLayer({ type: "satellite" });
+          satelliteLayerEntity = new ymaps3ref.YMapLayer({ type: "satellite" });
         }
         map.addChild(satelliteLayerEntity);
       } else if (satelliteLayerEntity) {
         map.removeChild(satelliteLayerEntity);
       }
     } catch (e) {
-      console.warn("Спутниковый слой недоступен:", e);
+      console.warn("Спутниковый слой недоступен в этой версии API:", e);
       showToast("Спутниковый слой временно недоступен");
     }
   }
 
+  /* ============================================================
+     КАСТОМНАЯ SVG-МЕТКА
+     ============================================================ */
   function createPinElement() {
     const wrap = document.createElement("div");
     wrap.className = "map-pin";
@@ -1020,11 +1049,12 @@
   }
 
   function placeCustomMarker(coords) {
-    if (!map) return;
+    if (!map || !ymaps3ref) return;
     try {
       const el = createPinElement();
-      const marker = new ymaps3.YMapMarker({ coordinates: coords }, el);
+      const marker = new ymaps3ref.YMapMarker({ coordinates: coords }, el);
       map.addChild(marker);
+      // запускаем "приземление" метки следующим кадром для анимации
       requestAnimationFrame(() => {
         requestAnimationFrame(() => el.classList.add("is-placed"));
       });
