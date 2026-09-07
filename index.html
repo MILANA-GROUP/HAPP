@@ -617,7 +617,7 @@
               <div class="row-icon gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="3"></circle>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
                 </svg>
               </div>
               <div class="row-text">Настройки</div>
@@ -703,18 +703,8 @@
     </div>
   </div>
 
-<!-- Яндекс Карты JS API 3.0 — подключается как ES-модуль, как того требует v3 -->
-<script src="https://api-maps.yandex.ru/v3/?apikey=c4c9c06e-50f2-4329-8382-fa43037efcb4&lang=ru_RU" type="module"></script>
-
 <script type="module">
-  /* Скрипт подключён как type="module", а не обычный <script>, —
-     это важно: модули выполняются по порядку появления в документе
-     ПОСЛЕ полной загрузки друг друга (как defer), поэтому к моменту
-     запуска этого кода глобальная переменная window.ymaps3 уже
-     гарантированно создана скриптом API выше. Обычный синхронный
-     <script> здесь бы выполнился раньше и упал с ReferenceError.
-
-     ============================================================
+  /* ============================================================
      ОБЩИЕ УТИЛИТЫ: ТОСТЫ
      ============================================================ */
   const toastStack = document.getElementById("toastStack");
@@ -754,7 +744,6 @@
     layer.style.zIndex = "25";
     document.body.appendChild(layer);
 
-    // Скрываем оригинальный элемент сразу — вместо него "пылят" частицы
     el.style.visibility = "hidden";
 
     const colors = ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.7)", "rgba(28,28,30,0.35)", "rgba(10,132,255,0.55)"];
@@ -779,7 +768,7 @@
       const angle = Math.random() * Math.PI * 2;
       const dist = 26 + Math.random() * 70;
       const dx = Math.cos(angle) * dist;
-      const dy = Math.sin(angle) * dist - 14; // лёгкий подъём вверх, как невесомая пыль
+      const dy = Math.sin(angle) * dist - 14;
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -808,7 +797,6 @@
     e.stopPropagation();
     closePanel();
   });
-  // клики внутри развёрнутой панели не должны "проваливаться" дальше
   panel.addEventListener("click", (e) => {
     if (panel.classList.contains("is-open")) e.stopPropagation();
   });
@@ -870,7 +858,6 @@
     addModeActive = true;
     closePanel();
     hideMainControls();
-    // небольшая задержка, чтобы морфинг панели успел начаться до появления прицела
     setTimeout(() => {
       crosshair.classList.add("is-visible");
       addConfirmBtn.classList.add("is-visible");
@@ -889,17 +876,12 @@
     if (!addModeActive) return;
     addConfirmBtn.disabled = true;
 
-    // координаты центра карты в момент нажатия
     const coords = getMapCenterCoords();
 
-    // "пылевой" эффект и для кнопки, и для прицела одновременно
     disintegrate(addConfirmBtn, { duration: 650 });
     disintegrate(crosshair, { duration: 650 });
 
     setTimeout(() => {
-      // приводим элементы в исходное скрытое состояние для следующего раза
-      // (disintegrate() выставил visibility:hidden — снимаем инлайн-стиль,
-      // а класс is-visible убираем, чтобы элементы вернулись к opacity:0)
       addConfirmBtn.classList.remove("is-visible");
       addConfirmBtn.style.removeProperty("visibility");
       addConfirmBtn.disabled = false;
@@ -955,10 +937,26 @@
 
   const DEFAULT_CENTER = [37.618423, 55.751244]; // [долгота, широта] — Москва
 
+  function loadYmaps3() {
+    return new Promise((resolve, reject) => {
+      if (!YANDEX_API_KEY || YANDEX_API_KEY.includes("ВАШ_API_КЛЮЧ")) {
+        reject(new Error("API-ключ Яндекс Карт не указан"));
+        return;
+      }
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = `https://api-maps.yandex.ru/v3/?apikey=${YANDEX_API_KEY}&lang=ru_RU`;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Не удалось загрузить скрипт Яндекс Карт"));
+      document.head.appendChild(script);
+    });
+  }
+
   async function initMap() {
-    await ymaps3.ready;
-    ymaps3ref = ymaps3;
-    const { YMap, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer } = ymaps3;
+    await loadYmaps3();
+    await window.ymaps3.ready;
+    ymaps3ref = window.ymaps3;
+    const { YMap, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer } = ymaps3ref;
 
     map = new YMap(document.getElementById("map"), {
       location: { center: DEFAULT_CENTER, zoom: 12 },
@@ -969,14 +967,25 @@
     map.addChild(new YMapDefaultFeaturesLayer());
   }
 
+  function renderStaticFallback() {
+    const el = document.getElementById("map");
+    el.style.background =
+      "radial-gradient(circle at 30% 30%, #dfe7ef, #c9d3dc 60%), " +
+      "repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0 1px, transparent 1px 40px), " +
+      "repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0 1px, transparent 1px 40px)";
+  }
+
   initMap().catch((err) => {
     console.error("Ошибка инициализации Яндекс Карт:", err);
-    document.getElementById("map-fallback-note").style.display = "block";
+    renderStaticFallback();
+    const note = document.getElementById("map-fallback-note");
+    note.textContent = "Вставьте свой ключ Яндекс Карт в переменную YANDEX_API_KEY в начале скрипта, чтобы карта заработала.";
+    note.style.display = "block";
   });
 
   function getMapCenterCoords() {
     if (map && map.location && map.location.center) {
-      return map.location.center; // [lon, lat]
+      return map.location.center;
     }
     return DEFAULT_CENTER;
   }
@@ -1011,9 +1020,6 @@
     }
   }
 
-  /* Переключение спутникового слоя.
-     Названия свойств могут отличаться в зависимости от версии API —
-     обёрнуто в try/catch, чтобы не ломать остальной интерфейс. */
   function applySatelliteLayer(on) {
     if (!map || !ymaps3ref) return;
     try {
@@ -1026,7 +1032,7 @@
         map.removeChild(satelliteLayerEntity);
       }
     } catch (e) {
-      console.warn("Спутниковый слой временно недоступен в этой версии API:", e);
+      console.warn("Спутниковый слой недоступен в этой версии API:", e);
       showToast("Спутниковый слой временно недоступен");
     }
   }
@@ -1054,10 +1060,8 @@
       const el = createPinElement();
       const marker = new ymaps3ref.YMapMarker({ coordinates: coords }, el);
       map.addChild(marker);
-      // запускаем "приземление" метки следующим кадром для анимации
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => el.classList.is-placed = true); // исправлено на classList.add
-        el.classList.add("is-placed");
+        requestAnimationFrame(() => el.classList.add("is-placed"));
       });
     } catch (e) {
       console.error("Не удалось создать метку:", e);
