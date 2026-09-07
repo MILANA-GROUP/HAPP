@@ -318,6 +318,8 @@
      КНОПКА ГЕОЛОКАЦИИ — отдельно, справа снизу
      ============================================================ */
   .locate-fab {
+    -webkit-appearance: none;
+    appearance: none;
     position: fixed;
     right: calc(18px + var(--safe-right));
     bottom: calc(22px + var(--safe-bottom));
@@ -398,13 +400,14 @@
      ОВАЛЬНАЯ КНОПКА «ДОБАВИТЬ»
      ============================================================ */
   .add-confirm {
+    -webkit-appearance: none;
+    appearance: none;
     position: fixed;
     left: 50%;
     bottom: calc(28px + var(--safe-bottom));
     transform: translate(-50%, 24px) scale(0.92);
     z-index: 16;
     padding: 15px 40px;
-    border: none;
     border-radius: var(--radius-pill);
     font-size: 16px;
     font-weight: 600;
@@ -703,19 +706,16 @@
     </div>
   </div>
 
-<!-- Яндекс Карты JS API 3.0 подключаются динамически из JS ниже,
-     после того как вы впишете свой ключ в переменную YANDEX_API_KEY —
-     см. функцию loadYmaps3() в конце файла. Отдельного тега для
-     подключения API здесь больше нет — ключ живёт только в одной
-     понятной переменной. -->
+<!-- Яндекс Карты JS API 3.0 — официальная схема подключения:
+     статический тег-модуль с ключом, загружается до основного скрипта. -->
+<script src="https://api-maps.yandex.ru/v3/?apikey=c4c9c06e-50f2-4329-8382-fa43037efcb4&lang=ru_RU" type="module"></script>
 
 <script type="module">
-  /* Скрипт подключён как type="module", а не обычный <script>, —
-     это важно: модули выполняются по порядку появления в документе
-     ПОСЛЕ полной загрузки друг друга (как defer), поэтому к моменту
-     запуска этого кода глобальная переменная window.ymaps3 уже
-     гарантированно создана скриптом API выше. Обычный синхронный
-     <script> здесь бы выполнился раньше и упал с ReferenceError.
+  /* Этот скрипт тоже type="module": модули выполняются по порядку
+     появления в документе, один за другим, после полной загрузки
+     каждого предыдущего (как defer). Поэтому к моменту запуска
+     кода ниже глобальная переменная window.ymaps3, которую создаёт
+     скрипт API выше, уже гарантированно существует.
 
      ============================================================
      ОБЩИЕ УТИЛИТЫ: ТОСТЫ
@@ -947,11 +947,7 @@
 
   /* ============================================================
      ЯНДЕКС КАРТЫ — JS API 3.0
-     Вставьте свой ключ вместо строки ниже — это единственное место,
-     где нужно его указать.
      ============================================================ */
-  const YANDEX_API_KEY = "c4c9c06e-50f2-4329-8382-fa43037efcb4";
-
   let map = null;
   let ymaps3ref = null;
   let schemeLayerEntity = null;
@@ -960,27 +956,9 @@
 
   const DEFAULT_CENTER = [37.618423, 55.751244]; // [долгота, широта] — Москва
 
-  /* Динамически подключаем скрипт API Яндекс Карт (v3, как ES-модуль).
-     Если ключ не вставлен — сразу показываем подсказку и не грузим скрипт. */
-  function loadYmaps3() {
-    return new Promise((resolve, reject) => {
-      if (!YANDEX_API_KEY || YANDEX_API_KEY.includes("ВАШ_API_КЛЮЧ")) {
-        reject(new Error("API-ключ Яндекс Карт не указан"));
-        return;
-      }
-      const script = document.createElement("script");
-      script.type = "module";
-      script.src = `https://api-maps.yandex.ru/v3/?apikey=${YANDEX_API_KEY}&lang=ru_RU`;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Не удалось загрузить скрипт Яндекс Карт"));
-      document.head.appendChild(script);
-    });
-  }
-
   async function initMap() {
-    await loadYmaps3();
-    await window.ymaps3.ready;
-    ymaps3ref = window.ymaps3;
+    await ymaps3.ready;
+    ymaps3ref = ymaps3;
     const { YMap, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer } = ymaps3ref;
 
     map = new YMap(document.getElementById("map"), {
@@ -992,8 +970,8 @@
     map.addChild(new YMapDefaultFeaturesLayer());
   }
 
-  /* Простая CSS-заглушка вместо карты, пока ключ не вставлен —
-     чтобы страница не выглядела пустой/сломанной. */
+  /* Простая CSS-заглушка вместо карты — показывается только если
+     инициализация реально не удалась (например, нет сети). */
   function renderStaticFallback() {
     const el = document.getElementById("map");
     el.style.background =
@@ -1003,10 +981,12 @@
   }
 
   initMap().catch((err) => {
+    // Показываем честную причину, а не догадку — так проще диагностировать
+    // реальную проблему (сеть, блокировка домена, ошибка в самом API).
     console.error("Ошибка инициализации Яндекс Карт:", err);
     renderStaticFallback();
     const note = document.getElementById("map-fallback-note");
-    note.textContent = "Вставьте свой ключ Яндекс Карт в переменную YANDEX_API_KEY в начале скрипта, чтобы карта заработала.";
+    note.textContent = "Не удалось загрузить карту: " + (err && err.message ? err.message : "неизвестная ошибка") + ". Проверьте соединение с интернетом.";
     note.style.display = "block";
   });
 
