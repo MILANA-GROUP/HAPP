@@ -1,84 +1,59 @@
 const express = require('express');
 const { Pool } = require('pg');
-const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 3000;
+app.use(express.json());
+app.use(express.static('.')); // Чтобы раздавать index.html
 
+// Подключение к PostgreSQL через переменную окружения Railway
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: {
+    rejectUnauthorized: false // Требуется для внешних подключений к базам на Railway
+  }
 });
 
-app.use(express.json());
-app.use(express.static(__dirname));
-
-async function initDB() {
+// Создание таблицы для маркеров/данных при запуске, если её еще нет
+async function initDb() {
   try {
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS marks (
+      CREATE TABLE IF NOT EXISTS markers (
         id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
-        lat DOUBLE PRECISION NOT NULL,
-        lng DOUBLE PRECISION NOT NULL,
+        data JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log("База данных успешно инициализирована.");
+    console.log("Таблица успешно проверена/создана в PostgreSQL");
   } catch (err) {
-    console.error("Ошибка инициализации БД:", err);
+    console.error("Ошибка при создании таблицы:", err);
   }
 }
-initDB();
+initDb();
 
-app.get('/api/marks', async (req, res) => {
+// Пример API для получения данных
+app.get('/api/data', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, title, lat, lng FROM marks ORDER BY id ASC');
-    const marks = result.rows.map(row => ({
-      id: row.id,
-      title: row.title,
-      coords: [row.lat, row.lng]
-    }));
-    res.json(marks);
+    const result = await pool.query('SELECT * FROM markers ORDER BY id DESC');
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Ошибка сервера" });
+    res.status(500).send("Ошибка сервера при получении данных");
   }
 });
 
-app.post('/api/marks', async (req, res) => {
+// Пример API для сохранения данных
+app.post('/api/data', async (req, res) => {
   try {
-    const { title, coords } = req.body;
-    if (!title || !coords || coords.length !== 2) {
-      return res.status(400).json({ error: "Неверные данные" });
-    }
-    const result = await pool.query(
-      'INSERT INTO marks (title, lat, lng) VALUES ($1, $2, $3) RETURNING id, title, lat, lng',
-      [title, coords[0], coords[1]]
-    );
-    const row = result.rows[0];
-    res.json({
-      id: row.id,
-      title: row.title,
-      coords: [row.lat, row.lng]
-    });
+    const { data } = req.body;
+    await pool.query('INSERT INTO markers (data) VALUES ($1)', [data]);
+    res.status(200).send("Успешно сохранено");
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Ошибка сервера" });
+    res.status(500).send("Ошибка сервера при сохранении");
   }
 });
 
-app.delete('/api/marks/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    await pool.query('DELETE FROM marks WHERE id = $1', [id]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Ошибка сервера" });
-  }
-});
-
-app.listen(port, () => {
-  console.log(`Сервер запущен на порту ${port}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Сервер запущен на порту ${PORT}`);
 });
