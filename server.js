@@ -12,19 +12,17 @@ const bot = new TelegramBot(token, { polling: true });
 const users = {};       // chatId -> phone / data
 const userMarks = {};   // chatId -> [ marks ]
 
-// === НАСТРОЙКА КАРТИНОК ===
-// Сюда можно подставить file_id из Telegram (например, "AgACAgIAAxkBA...") 
-// либо прямые ссылки / локальные пути к вашим изображениям
-const welcomePhoto = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb'; // Картинка для /start
-const authPhoto = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb';    // Картинка для раздела авторизации/входа
-
 // Обработка команды /start
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const caption = "ПРИВЕТ! ЗДЕСЬ ТЫ МОЖЕШЬ УВИДЕТЬ ТО, ЧТО ТЕБЕ НЕ ЗАХОЧЕТСЯ УВИДЕТЬ НА ДОРОГАХ).\nПользуйся нашим сервисом пока он бесплатный.";
+    
+    // Точный путь к файлу welcome_photo в корне репозитория (если он в папке, поменяйте на path.join(__dirname, 'папка', 'welcome_photo.jpg'))
+    // Проверьте расширение: .jpg, .jpeg или .png
+    const photoPath = path.join(__dirname, 'welcome_photo.jpg');
 
     try {
-        await bot.sendPhoto(chatId, welcomePhoto, {
+        await bot.sendPhoto(chatId, photoPath, {
             caption: caption,
             reply_markup: {
                 inline_keyboard: [
@@ -33,7 +31,8 @@ bot.onText(/\/start/, async (msg) => {
             }
         });
     } catch (e) {
-        console.error("Ошибка отправки welcomePhoto:", e.message);
+        console.error("Ошибка отправки welcome_photo:", e.message);
+        // Если путь не совпадет, бот пришлет текст с кнопкой, но не упадет
         await bot.sendMessage(chatId, caption, {
             reply_markup: {
                 inline_keyboard: [
@@ -51,17 +50,25 @@ bot.on('callback_query', async (query) => {
 
     if (data === 'register') {
         const authCaption = "Для входа и регистрации перейдите на сайт сервиса:";
+        const authPhotoPath = path.join(__dirname, 'auth_photo.jpg'); // Путь ко второму файлу
+
         try {
-            await bot.sendPhoto(chatId, authPhoto, {
+            await bot.sendPhoto(chatId, authPhotoPath, {
                 caption: authCaption,
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: '🌐 Открыть сайт', url: 'https://milana-group.github.io' }] // Замените на ссылку вашего сайта, если нужно
+                        [{ text: '🌐 Открыть сайт', url: 'https://milana-group.github.io' }]
                     ]
                 }
             });
         } catch (e) {
-            await bot.sendMessage(chatId, authCaption);
+            await bot.sendMessage(chatId, authCaption, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '🌐 Открыть сайт', url: 'https://milana-group.github.io' }]
+                    ]
+                }
+            });
         }
     }
     
