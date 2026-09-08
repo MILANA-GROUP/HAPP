@@ -113,7 +113,7 @@
     cursor: pointer;
 
     width: 56px;
-    height: 290px; /* Увеличена высота для новой кнопки лупы */
+    height: 290px;
     transition:
       width 520ms var(--spring),
       height 520ms var(--spring),
@@ -439,46 +439,6 @@
   .route-btn:active { transform: scale(0.96); }
 
   /* ============================================================
-     ЗАГЛУШКА АВТОРИЗАЦИИ
-     ============================================================ */
-  #auth-plug {
-    position: fixed;
-    inset: 0;
-    background: var(--bg-color, #eef0f2);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
-    text-align: center;
-    gap: 20px;
-  }
-  body.dark #auth-plug { background: #121214; }
-  #auth-plug h2 {
-    font-size: 22px;
-    font-weight: 700;
-    max-width: 320px;
-    line-height: 1.3;
-    letter-spacing: -0.3px;
-  }
-  .tg-bot-btn {
-    background-color: #0088cc;
-    color: white;
-    padding: 15px 30px;
-    border-radius: var(--radius-pill);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: var(--shadow-lifted);
-    transition: transform 150ms ease;
-  }
-  .tg-bot-btn:active { transform: scale(0.95); }
-
-  /* ============================================================
      ОСТАЛЬНЫЕ ЭЛЕМЕНТЫ ИНТЕРФЕЙСА
      ============================================================ */
   .locate-fab {
@@ -728,14 +688,6 @@
 </head>
 <body>
 
-  <!-- Заглушка авторизации -->
-  <div id="auth-plug">
-    <h2>Регистрация / вход строго через Telegram бот</h2>
-    <a href="https://t.me/RyadomDPS_Bot" target="_blank" class="tg-bot-btn">
-      <span>🤖 Перейти в Telegram бот</span>
-    </a>
-  </div>
-
   <div id="map"></div>
   <div id="map-fallback-note">
     Не удалось загрузить Яндекс Карту. Проверьте подключение и API-ключ.
@@ -861,7 +813,7 @@
         <option value="crosshair">Крестик</option>
       </select>
     </div>
-    <button class="delete-btn" onclick="deleteAccount()">Удалить аккаунт</button>
+    <button class="delete-btn" onclick="deleteAccount()">Сбросить настройки</button>
   </div>
 
   <button class="locate-fab" id="locateFab" title="Моё местоположение">
@@ -904,23 +856,6 @@
   </div>
 
 <script>
-  // Проверка авторизации при загрузке
-  const urlParams = new URLSearchParams(window.location.search);
-  const chatId = urlParams.get('id') || localStorage.getItem('tg_chat_id');
-
-  if (chatId) {
-    fetch(`/api/auth-status/${chatId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.authorized) {
-          document.getElementById('auth-plug').style.display = 'none';
-          document.getElementById('acc-name').innerText = data.user.first_name;
-          document.getElementById('acc-phone').innerText = data.user.phone;
-          localStorage.setItem('tg_chat_id', chatId);
-        }
-      });
-  }
-
   // Управление панелью маршрутов (1/3 экрана)
   function toggleRoutePanel() {
     const panel = document.getElementById('routePanel');
@@ -967,10 +902,10 @@
     document.body.style.cursor = val;
   }
 
-  // Удаление аккаунта
+  // Сброс локальных данных
   function deleteAccount() {
-    if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
-      localStorage.removeItem('tg_chat_id');
+    if (confirm("Сбросить сохраненные настройки?")) {
+      localStorage.clear();
       location.reload();
     }
   }
@@ -1366,3 +1301,4 @@
 
 </body>
 </html>
+
