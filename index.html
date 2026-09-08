@@ -651,11 +651,6 @@
 <script>
   const YANDEX_API_KEY = "c4c9c06e-50f2-4329-8382-fa43037efcb4";
 
-  // Используем публичный бесплатный bin для хранения точек общей карты
-  // Инструкция: можете создать свой пустой bin на jsonbin.io и вставить сюда ID и ключ
-  const JSONBIN_ID = "66f38bacacd3cb34a88bc3b7"; 
-  const JSONBIN_KEY = "$2a$10$EXAMPLE_KEY_REPLACE_IF_NEEDED"; 
-
   let map = null;
   let userPlacemark = null;
   let userMarks = []; 
@@ -679,11 +674,11 @@
       controls: []
     });
 
-    // Загружаем общие метки из облака при старте
-    fetchMarksFromCloud();
+    // Загружаем общие метки из PostgreSQL бэкенда на Railway при старте
+    fetchMarksFromServer();
     
     // Периодически обновляем метки (раз в 6 секунд) для синхронизации у всех пользователей
-    setInterval(fetchMarksFromCloud, 6000);
+    setInterval(fetchMarksFromServer, 6000);
   }
 
   let toastTimer = null;
@@ -773,59 +768,67 @@
   });
 
   // ============================================================
-  // СИНХРОНИЗАЦИЯ С ОБЛАКОМ ДЛЯ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ
+  // СИНХРОНИЗАЦИЯ С СЕРВЕРОМ NODE.JS + POSTGRESQL НА RAILWAY
   // ============================================================
-  async function saveMarksToCloud() {
-    const dataToSave = userMarks.map(m => ({
-      id: m.id,
-      title: m.title,
-      coords: m.coords
-    }));
-
+  async function saveMarkToServer(markData) {
     try {
-      await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
-        method: 'PUT',
+      const response = await fetch('/api/data', {
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': JSONBIN_KEY
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ marks: dataToSave, nextId: nextMarkId })
+        body: JSON.stringify({ data: markData })
       });
+      if (!response.ok) throw new Error('Ошибка сохранения');
+      // Перезагружаем метки для получения актуального id из базы
+      fetchMarksFromServer();
     } catch (err) {
-      console.error("Ошибка синхронизации с облаком", err);
+      console.error("Ошибка сохранения на сервер", err);
+      showToast("Не удалось сохранить метку на сервер");
     }
   }
 
-  async function fetchMarksFromCloud() {
+  async function deleteMarkFromServer(id) {
     try {
-      const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
-        headers: {
-          'X-Master-Key': JSONBIN_KEY
+      const response = await fetch(`/api/data/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Ошибка удаления');
+      fetchMarksFromServer();
+    } catch (err) {
+      console.error("Ошибка удаления на сервере", err);
+      showToast("Не удалось удалить метку с сервера");
+    }
+  }
+
+  async function fetchMarksFromServer() {
+    try {
+      const response = await fetch('/api/data');
+      if (!response.ok) return;
+      const rows = await response.json();
+
+      // Очищаем старые привязки с карты перед рендером актуальных с сервера
+      userMarks.forEach(m => {
+        if (m.placemark && map) map.geoObjects.remove(m.placemark);
+      });
+      userMarks = [];
+
+      rows.forEach(row => {
+        const payload = row.data; // Объект { id, title, coords }
+        if (payload && payload.coords) {
+          const markId = row.id; // ID из базы PostgreSQL
+          const title = payload.title || `Метка`;
+          
+          createRedCustomPlacemark(payload.coords, title, markId, false);
+          
+          // Синхронизируем счетчик номеров
+          const numMatch = title.match(/\d+/);
+          if (numMatch) {
+            const parsedNum = parseInt(numMatch[0], 10);
+            if (parsedNum >= nextMarkId) nextMarkId = parsedNum + 1;
+          }
         }
       });
-      const result = await response.json();
-      const cloudData = result.record;
-
-      if (cloudData && Array.isArray(cloudData.marks)) {
-        if (cloudData.nextId) nextMarkId = cloudData.nextId;
-
-        // Синхронизируем массив с облаком, не удаляя ссылки на объекты карт
-        cloudData.marks.forEach(cloudItem => {
-          const exists = userMarks.find(m => m.id === cloudItem.id);
-          if (!exists) {
-            createRedCustomPlacemark(cloudItem.coords, cloudItem.title, cloudItem.id, false);
-          }
-        });
-
-        // Удаляем локальные метки, которых уже нет в облаке (если удалил кто-то другой)
-        userMarks.forEach((localItem, index) => {
-          const stillExists = cloudData.marks.find(m => m.id === localItem.id);
-          if (!stillExists) {
-            if (localItem.placemark && map) map.geoObjects.remove(localItem.placemark);
-            userMarks.splice(index, 1);
-          }
-        });
-      }
     } catch (err) {
       // Тихий сбой при потере сети
     }
@@ -897,17 +900,8 @@
   }
 
   function removeMark(id) {
-    const index = userMarks.findIndex(m => m.id === id);
-    if (index !== -1) {
-      const markObj = userMarks[index];
-      if (markObj && markObj.placemark && map) {
-        map.geoObjects.remove(markObj.placemark);
-      }
-      userMarks.splice(index, 1);
-      saveMarksToCloud();
-      renderMarksList();
-      showToast("Метка удалена у всех");
-    }
+    deleteMarkFromServer(id);
+    showToast("Метка удалена у всех");
   }
 
   const addMarkRow = document.getElementById("addMarkRow");
@@ -940,7 +934,13 @@
     if (map) {
       const centerCoords = map.getCenter();
       const title = `Метка ${nextMarkId++}`;
-      createRedCustomPlacemark(centerCoords, title, Date.now() + Math.random(), true);
+      
+      // Отправляем на сервер Node.js + PostgreSQL
+      saveMarkToServer({
+        title: title,
+        coords: centerCoords
+      });
+      showToast(`Метка «${title}» добавлена для всех!`);
     }
 
     triggerDustEffect(btnCenterX, btnCenterY);
@@ -969,18 +969,13 @@
     map.geoObjects.add(mark);
 
     const markObj = {
-      id: id || (Date.now() + Math.random()),
+      id: id,
       title: title,
       coords: coords,
       placemark: mark
     };
 
     userMarks.push(markObj);
-
-    if (save) {
-      saveMarksToCloud();
-      showToast(`Метка «${title}» добавлена для всех!`);
-    }
   }
 
   const canvas = document.getElementById("particleCanvas");
