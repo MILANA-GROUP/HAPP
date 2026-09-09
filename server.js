@@ -173,19 +173,45 @@ bot.on('message', async (msg) => {
     const photo = msg.photo ? msg.photo[msg.photo.length - 1].file_id : null;
     const markText = text || msg.caption || "";
 
-    // Обновляем метку в общей базе данных SQLite
-    db.run(
-      `UPDATE marks SET photo = ?, text = ? WHERE id = ?`,
-      [photo, markText, markId],
-      (err) => {
-        if (err) {
-          console.error("Ошибка сохранения метки в БД:", err);
-          bot.sendMessage(chatId, "Не удалось сохранить метку на сервере.");
-        } else {
-          bot.sendMessage(chatId, "Метка успешно обновлена!");
-        }
+    // Проверяем, существует ли уже такая метка в базе, если нет — создаем ее во время сохранения
+    db.get(`SELECT * FROM marks WHERE id = ?`, [markId], (err, row) => {
+      if (err) {
+        console.error("Ошибка чтения БД:", err);
+        bot.sendMessage(chatId, "Не удалось сохранить метку на сервере.");
+        delete waitingForMedia[chatId];
+        return;
       }
-    );
+
+      if (row) {
+        // Если метка уже есть, обновляем её
+        db.run(
+          `UPDATE marks SET photo = ?, text = ? WHERE id = ?`,
+          [photo, markText, markId],
+          (updateErr) => {
+            if (updateErr) {
+              console.error("Ошибка обновления метки в БД:", updateErr);
+              bot.sendMessage(chatId, "Не удалось сохранить метку на сервере.");
+            } else {
+              bot.sendMessage(chatId, "Метка успешно обновлена!");
+            }
+          }
+        );
+      } else {
+        // Если метки физически не было в базе (создаем новую общую)
+        db.run(
+          `INSERT INTO marks (id, creator_chat_id, title, photo, text) VALUES (?, ?, ?, ?, ?)`,
+          [markId, chatId, `Метка ${markId}`, photo, markText],
+          (insertErr) => {
+            if (insertErr) {
+              console.error("Ошибка создания метки в БД:", insertErr);
+              bot.sendMessage(chatId, "Не удалось сохранить метку на сервере.");
+            } else {
+              bot.sendMessage(chatId, "Метка успешно сохранена!");
+            }
+          }
+        );
+      }
+    });
 
     delete waitingForMedia[chatId];
     return;
