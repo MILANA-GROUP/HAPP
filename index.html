@@ -819,6 +819,8 @@
     .glass-panel.is-open { width: calc(100vw - 28px); max-width: 340px; }
   }
 </style>
+<!-- Подключение скрипта Telegram Web App SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
@@ -1060,6 +1062,50 @@
     });
   });
 
+  // Инициализация и интеграция с Telegram Web App
+  function initTelegramWebApp() {
+    const nameEl = document.getElementById('acc-name');
+    const usernameEl = document.getElementById('acc-username');
+    const tgidEl = document.getElementById('acc-tgid');
+    const photoWrap = document.getElementById('acc-photo-wrap');
+
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+      const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+      
+      // Имя (first_name / last_name)
+      const fullName = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || 'Не указано';
+      nameEl.textContent = 'Имя: ' + fullName;
+
+      // Юзернейм (username)
+      usernameEl.textContent = 'Username: ' + (tgUser.username ? '@' + tgUser.username : 'Не указано');
+
+      // Telegram ID (id)
+      tgidEl.textContent = tgUser.id || 'Не указано';
+
+      // Фото профиля (если доступно)
+      if (tgUser.photo_url) {
+        photoWrap.innerHTML = `<img src="${tgUser.photo_url}" alt="Фото профиля" style="width:100%; height:100%; object-fit:cover;">`;
+      } else {
+        photoWrap.innerHTML = '👤';
+      }
+
+      // Сохраняем в localStorage для удобства
+      localStorage.setItem('user_name', fullName);
+      localStorage.setItem('user_username', tgUser.username || '');
+      localStorage.setItem('user_tgid', tgUser.id || '');
+      if (tgUser.photo_url) localStorage.setItem('user_photo', tgUser.photo_url);
+
+      // Сообщаем Telegram, что WebApp полностью загружен
+      window.Telegram.WebApp.ready();
+    } else {
+      // Заглушки на случай, если страница открыта в обычном браузере
+      nameEl.textContent = 'Имя: Не в Telegram';
+      usernameEl.textContent = 'Username: Не в Telegram';
+      tgidEl.textContent = 'Не в Telegram';
+      photoWrap.innerHTML = '👤';
+    }
+  }
+
   // Загрузка и отображение данных профиля пользователя
   async function loadUserData(phone) {
     const phoneEl = document.getElementById('acc-phone');
@@ -1088,15 +1134,21 @@
       // Игнорируем ошибки сети при отсутствии эндпоинта
     }
 
+    // Если данные получены через Telegram WebApp, используем их приоритетно
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+      initTelegramWebApp();
+      return;
+    }
+
     // Фолбэк из локального хранилища, если данные уже сохранялись
     const cachedName = localStorage.getItem('user_name');
     const cachedUsername = localStorage.getItem('user_username');
     const cachedTgid = localStorage.getItem('user_tgid');
     const cachedPhoto = localStorage.getItem('user_photo');
 
-    nameEl.textContent = 'Имя: ' + (cachedName || 'Не указано');
-    usernameEl.textContent = 'Username: ' + (cachedUsername ? '@' + cachedUsername : 'Не указано');
-    tgidEl.textContent = cachedTgid || 'Не указано';
+    nameEl.textContent = 'Имя: ' + (cachedName || 'Не в Telegram');
+    usernameEl.textContent = 'Username: ' + (cachedUsername ? '@' + cachedUsername : 'Не в Telegram');
+    tgidEl.textContent = cachedTgid || 'Не в Telegram';
     if (cachedPhoto) {
       photoWrap.innerHTML = `<img src="${cachedPhoto}" alt="Фото профиля" style="width:100%; height:100%; object-fit:cover;">`;
     } else {
@@ -1156,8 +1208,9 @@
     }
   }
 
-  // Автоматический пропуск авторизации при повторном визите
+  // Автоматический пропуск авторизации при повторном визите и инициализация Telegram Web App
   window.addEventListener('DOMContentLoaded', () => {
+    initTelegramWebApp();
     const savedPhone = localStorage.getItem('user_phone');
     if (savedPhone) {
       document.getElementById('authScreen').classList.add('hidden');
