@@ -76,13 +76,8 @@ function initDatabaseDefaults() {
   });
 }
 
-const waitingForMedia = {}; // chatId -> markId
-
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
-  // на всякий случай сбрасываем "режим ожидания", если пользователь перезапустил бота
-  delete waitingForMedia[chatId];
-
   const caption = "ПРИВЕТ! ЗДЕСЬ ТЫ МОЖЕШЬ УВИДЕТЬ ТО, ЧТО ТЕБЕ НЕ ЗАХОЧЕТСЯ УВИДЕТЬ на дорогах).\nПользуйся нашим сервисом пока он бесплатный.";
 
   try {
@@ -144,23 +139,6 @@ bot.on('callback_query', async (query) => {
         try { await bot.deleteMessage(chatId, messageId); } catch (e) {}
         bot.sendMessage(chatId, "Вы вышли из аккаунта. Введите /start для повторного входа.");
       });
-    } else if (query.data.startsWith('select_mark_')) {
-      const markId = query.data.replace('select_mark_', '');
-
-      // Проверяем, что метка действительно существует, прежде чем ждать медиа от пользователя
-      db.get(`SELECT id FROM marks WHERE id = ?`, [markId], (err, row) => {
-        if (err) {
-          console.error('Ошибка проверки метки:', err.message);
-          bot.sendMessage(chatId, "Произошла ошибка при выборе метки. Попробуйте ещё раз.");
-          return;
-        }
-        if (!row) {
-          bot.sendMessage(chatId, "Такой метки не существует.");
-          return;
-        }
-        waitingForMedia[chatId] = markId;
-        bot.sendMessage(chatId, "Отправьте фото и текст для этой метки:");
-      });
     }
 
     // Обязательно отвечаем на callback, иначе кнопка будет "крутиться" у пользователя
@@ -207,7 +185,6 @@ bot.on('message', async (msg) => {
     }
 
     if (text === '👤 АККАУНТ') {
-      delete waitingForMedia[chatId];
       db.get(`SELECT * FROM users WHERE telegram_id = ?`, [chatId], (err, user) => {
         if (err) {
           console.error('Ошибка получения пользователя:', err.message);
@@ -230,7 +207,6 @@ bot.on('message', async (msg) => {
     }
 
     if (text === '📍 Метки') {
-      delete waitingForMedia[chatId];
       db.all(`SELECT * FROM marks`, [], (err, marks) => {
         if (err) {
           console.error('Ошибка получения меток:', err.message);
@@ -241,48 +217,9 @@ bot.on('message', async (msg) => {
           bot.sendMessage(chatId, "В системе пока нет сохраненных меток.");
           return;
         }
-        const inlineKeyboard = marks.map(m => [{ text: `📍 ${m.title}`, callback_data: `select_mark_${m.id}` }]);
-        bot.sendMessage(chatId, "Все метки:", {
-          reply_markup: { inline_keyboard: inlineKeyboard }
-        });
+        const markListText = marks.map(m => `📍 ${m.title}${m.text ? ' — ' + m.text : ''}`).join('\n');
+        bot.sendMessage(chatId, `Все метки в базе:\n\n${markListText}`);
       });
-      return;
-    }
-
-    if (waitingForMedia[chatId]) {
-      const markId = waitingForMedia[chatId];
-      const photo = (msg.photo && msg.photo.length > 0)
-        ? msg.photo[msg.photo.length - 1].file_id
-        : null;
-      const markText = text || msg.caption || null;
-
-      if (!photo && !markText) {
-        bot.sendMessage(chatId, "Пришлите фото и/или текст для метки.");
-        return;
-      }
-
-      // UPSERT с COALESCE: если фото/текст в этом сообщении не пришли,
-      // сохраняем то, что уже было записано ранее, вместо затирания NULL'ом.
-      const query = `
-        INSERT INTO marks (id, creator_chat_id, title, photo, text)
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT(id)
-        DO UPDATE SET
-          creator_chat_id = excluded.creator_chat_id,
-          photo = COALESCE(excluded.photo, marks.photo),
-          text = COALESCE(excluded.text, marks.text)
-      `;
-
-      db.run(query, [markId, chatId, `Метка ${markId}`, photo, markText], function (err) {
-        if (err) {
-          console.error("Ошибка сохранения метки в БД:", err.message);
-          bot.sendMessage(chatId, "Не удалось сохранить метку на сервере: " + err.message);
-        } else {
-          bot.sendMessage(chatId, "Метка успешно сохранена!");
-        }
-      });
-
-      delete waitingForMedia[chatId];
       return;
     }
   } catch (e) {
