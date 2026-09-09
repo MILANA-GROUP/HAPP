@@ -13,25 +13,38 @@ const bot = new TelegramBot(token, { polling: true });
 // Инициализация базы данных SQLite (файл database.db сохранится на сервере Railway)
 const db = new sqlite3.Database('./database.db', (err) => {
   if (err) console.error('Ошибка подключения к БД', err.message);
-  else console.log('Подключено к базе данных SQLite.');
+  else {
+    console.log('Подключено к базе данных SQLite.');
+    initDatabaseDefaults();
+  }
 });
 
-// Создаем таблицу пользователей, если ее еще нет
-db.run(`CREATE TABLE IF NOT EXISTS users (
-  telegram_id INTEGER PRIMARY KEY,
-  phone TEXT,
-  first_name TEXT,
-  username TEXT
-)`);
+// Функция создания таблиц и дефолтных данных
+function initDatabaseDefaults() {
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    telegram_id INTEGER PRIMARY KEY,
+    phone TEXT,
+    first_name TEXT,
+    username TEXT
+  )`);
 
-// Создаем таблицу меток, чтобы они были общими для всех пользователей и сохранялись в БД
-db.run(`CREATE TABLE IF NOT EXISTS marks (
-  id TEXT PRIMARY KEY,
-  creator_chat_id INTEGER,
-  title TEXT,
-  photo TEXT,
-  text TEXT
-)`);
+  db.run(`CREATE TABLE IF NOT EXISTS marks (
+    id TEXT PRIMARY KEY,
+    creator_chat_id INTEGER,
+    title TEXT,
+    photo TEXT,
+    text TEXT
+  )`, () => {
+    // Проверяем, есть ли хоть одна метка, если нет — создаем базовую, чтобы список не был пустым
+    db.get(`SELECT COUNT(*) as count FROM marks`, (err, row) => {
+      if (!err && row && row.count === 0) {
+        db.run(`INSERT INTO marks (id, creator_chat_id, title, photo, text) VALUES (?, ?, ?, ?, ?)`,
+          ['1', 0, 'Первая аварийная метка', null, 'Описание появится позже']
+        );
+      }
+    });
+  });
+}
 
 const waitingForMedia = {}; // chatId -> markId
 
@@ -90,7 +103,6 @@ bot.on('callback_query', async (query) => {
       });
     }
   } else if (query.data === 'logout') {
-    // Удаляем пользователя из базы данных при выходе
     db.run(`DELETE FROM users WHERE telegram_id = ?`, [chatId], async (err) => {
       try { await bot.deleteMessage(chatId, messageId); } catch (e) {}
       bot.sendMessage(chatId, "Вы вышли из аккаунта. Введите /start для повторного входа.");
@@ -111,7 +123,6 @@ bot.on('message', async (msg) => {
     const firstName = msg.from.first_name || 'Пользователь';
     const username = msg.from.username || '';
 
-    // Сохраняем или обновляем пользователя в базе данных
     const query = `
       INSERT INTO users (telegram_id, phone, first_name, username) 
       VALUES (?, ?, ?, ?)
@@ -154,7 +165,6 @@ bot.on('message', async (msg) => {
   }
 
   if (text === '📍 Метки') {
-    // Получаем ВСЕ метки из базы данных, чтобы они были общими для всех пользователей
     db.all(`SELECT * FROM marks`, [], (err, marks) => {
       if (err || !marks || marks.length === 0) {
         bot.sendMessage(chatId, "В системе пока нет сохраненных меток.");
@@ -173,43 +183,20 @@ bot.on('message', async (msg) => {
     const photo = msg.photo ? msg.photo[msg.photo.length - 1].file_id : null;
     const markText = text || msg.caption || "";
 
-    // Проверяем, существует ли уже такая метка в базе, если нет — создаем ее во время сохранения
-    db.get(`SELECT * FROM marks WHERE id = ?`, [markId], (err, row) => {
-      if (err) {
-        console.error("Ошибка чтения БД:", err);
-        bot.sendMessage(chatId, "Не удалось сохранить метку на сервере.");
-        delete waitingForMedia[chatId];
-        return;
-      }
+    // Используем UPSERT (INSERT с ON CONFLICT), что гарантирует успешную запись или обновление без ошибок
+    const query = `
+      INSERT INTO marks (id, creator_chat_id, title, photo, text) 
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(id) 
+      DO UPDATE SET photo = excluded.photo, text = excluded.text
+    `;
 
-      if (row) {
-        // Если метка уже есть, обновляем её
-        db.run(
-          `UPDATE marks SET photo = ?, text = ? WHERE id = ?`,
-          [photo, markText, markId],
-          (updateErr) => {
-            if (updateErr) {
-              console.error("Ошибка обновления метки в БД:", updateErr);
-              bot.sendMessage(chatId, "Не удалось сохранить метку на сервере.");
-            } else {
-              bot.sendMessage(chatId, "Метка успешно обновлена!");
-            }
-          }
-        );
+    db.run(query, [markId, chatId, `Метка ${markId}`, photo, markText], (err) => {
+      if (err) {
+        console.error("Ошибка сохранения метки в БД:", err);
+        bot.sendMessage(chatId, "Не удалось сохранить метку на сервере.");
       } else {
-        // Если метки физически не было в базе (создаем новую общую)
-        db.run(
-          `INSERT INTO marks (id, creator_chat_id, title, photo, text) VALUES (?, ?, ?, ?, ?)`,
-          [markId, chatId, `Метка ${markId}`, photo, markText],
-          (insertErr) => {
-            if (insertErr) {
-              console.error("Ошибка создания метки в БД:", insertErr);
-              bot.sendMessage(chatId, "Не удалось сохранить метку на сервере.");
-            } else {
-              bot.sendMessage(chatId, "Метка успешно сохранена!");
-            }
-          }
-        );
+        bot.sendMessage(chatId, "Метка успешно сохранена!");
       }
     });
 
