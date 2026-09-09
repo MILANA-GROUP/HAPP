@@ -60,7 +60,7 @@
   body.dark { background: #121214; }
 
   /* ============================================================
-     НАЧАЛЬНАЯ СТРАНИЦА (ВВОД ТЕЛЕФОНА)
+     ЭКРАН КАТАЛОГА ПРИЛОЖЕНИЙ (ВМЕСТО ВХОДА)
      ============================================================ */
   #authScreen {
     position: fixed;
@@ -87,7 +87,7 @@
     pointer-events: none;
   }
 
-  .auth-card {
+  .catalog-card {
     width: 100%;
     max-width: 440px;
     background: var(--glass-bg-strong);
@@ -103,67 +103,80 @@
     text-align: center;
   }
 
-  .auth-title {
+  .catalog-title {
     font-size: 22px;
     font-weight: 700;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
     letter-spacing: -0.4px;
   }
 
-  .auth-desc {
+  .catalog-desc {
     font-size: 14px;
     line-height: 1.5;
     color: var(--ink-soft);
-    margin-bottom: 28px;
-  }
-
-  .cubes-container {
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-    align-items: center;
     margin-bottom: 24px;
-    width: 100%;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding: 4px 0;
   }
 
-  .phone-cube {
-    width: 32px;
-    height: 44px;
-    border-radius: 10px;
-    border: 1.5px solid var(--glass-border);
-    background: rgba(255, 255, 255, 0.6);
-    font-size: 16px;
+  .apps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 24px;
+  }
+
+  .app-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid var(--glass-border);
+    padding: 14px 8px;
+    border-radius: 20px;
+    transition: transform 150ms ease, background 150ms ease;
+  }
+
+  body.dark .app-item {
+    background: rgba(45, 45, 50, 0.4);
+  }
+
+  .app-item:active {
+    transform: scale(0.92);
+  }
+
+  .app-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .app-icon.blue { background: #0a84ff; }
+  .app-icon.green { background: #30d158; }
+  .app-icon.purple { background: #bf5af2; }
+  .app-icon.orange { background: #ff9f0a; }
+  .app-icon.red { background: #ff453a; }
+  .app-icon.cyan { background: #32ade6; }
+
+  .app-icon svg { width: 24px; height: 24px; display: block; }
+
+  .app-name {
+    font-size: 12px;
     font-weight: 600;
     color: var(--ink);
-    text-align: center;
-    outline: none;
-    font-family: inherit;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
-    padding: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
   }
 
-  body.dark .phone-cube {
-    background: rgba(45, 45, 50, 0.6);
-  }
-
-  .phone-cube:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
-    background: rgba(255, 255, 255, 0.9);
-  }
-
-  .phone-cube.fixed-plus {
-    background: rgba(10, 132, 255, 0.12);
-    color: var(--accent);
-    border-color: rgba(10, 132, 255, 0.3);
-    cursor: default;
-  }
-
-  .auth-btn {
+  .catalog-close-btn {
     width: 100%;
     height: 50px;
     border-radius: var(--radius-pill);
@@ -181,16 +194,7 @@
     gap: 8px;
   }
 
-  .auth-btn:active { transform: scale(0.96); }
-  .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-  .auth-error {
-    color: var(--danger);
-    font-size: 13px;
-    margin-top: 12px;
-    min-height: 18px;
-    font-weight: 500;
-  }
+  .catalog-close-btn:active { transform: scale(0.96); }
 
   /* ============================================================
      КАРТА — на весь экран
@@ -824,29 +828,52 @@
 </head>
 <body>
 
-  <!-- Начальная страница авторизации по номеру телефона с 12 кубиками -->
+  <!-- Экран каталога приложений вместо экрана ввода телефона -->
   <div id="authScreen">
-    <div class="auth-card">
-      <div class="auth-title">Вход в систему</div>
-      <div class="auth-desc">
-        Введите тот же номер, что записан у вас в Телеграм. Это нужно для корректной работы телеграмм бота. Спасибо за понимание!
+    <div class="catalog-card">
+      <div class="catalog-title">Каталог приложений</div>
+      <div class="catalog-desc">
+        Выберите нужное приложение или сервис для быстрого запуска.
       </div>
-      <div class="cubes-container" id="cubesContainer">
-        <input type="text" class="phone-cube fixed-plus" value="+" readonly tabindex="-1">
-        <input type="text" class="phone-cube fixed-plus" value="7" readonly tabindex="-1">
-        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="0">
-        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="1">
-        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="2">
-        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="3">
-        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="4">
-        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="5">
-        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="6">
-        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="7">
-        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="8">
-        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="9">
+      <div class="apps-grid">
+        <div class="app-item" onclick="openApp('Карта')">
+          <div class="app-icon blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+          </div>
+          <div class="app-name">Карта</div>
+        </div>
+        <div class="app-item" onclick="openApp('Маршруты')">
+          <div class="app-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <div class="app-name">Маршруты</div>
+        </div>
+        <div class="app-item" onclick="openApp('Метки')">
+          <div class="app-icon red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </div>
+          <div class="app-name">Метки</div>
+        </div>
+        <div class="app-item" onclick="openApp('Профиль')">
+          <div class="app-icon purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <div class="app-name">Профиль</div>
+        </div>
+        <div class="app-item" onclick="openApp('Настройки')">
+          <div class="app-icon orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </div>
+          <div class="app-name">Настройки</div>
+        </div>
+        <div class="app-item" onclick="openApp('Спутник')">
+          <div class="app-icon cyan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"></path><path d="m2 13 10 5 10-5"></path></svg>
+          </div>
+          <div class="app-name">Спутник</div>
+        </div>
       </div>
-      <div class="auth-error" id="authError"></div>
-      <button class="auth-btn" id="authSubmitBtn" onclick="verifyPhoneNumber()">Проверить номер</button>
+      <button class="catalog-close-btn" onclick="closeCatalogScreen()">Открыть карту</button>
     </div>
   </div>
 
@@ -1028,39 +1055,25 @@
   </div>
 
 <script>
-  // Логика управления кубиками телефона
-  const cubeInputs = document.querySelectorAll('.cubes-container input.phone-cube:not(.fixed-plus)');
-  
-  cubeInputs.forEach((input, index) => {
-    input.addEventListener('input', (e) => {
-      const val = e.target.value.replace(/\D/g, '');
-      e.target.value = val;
-      if (val && index < cubeInputs.length - 1) {
-        cubeInputs[index + 1].focus();
-      }
-    });
+  // Логика работы каталога приложений
+  function openApp(appName) {
+    document.getElementById('authScreen').classList.add('hidden');
+    showToast(`Открыто приложение: ${appName}`);
+    if (appName === 'Маршруты') {
+      toggleRoutePanel();
+    } else if (appName === 'Метки') {
+      openMarksModal();
+    } else if (appName === 'Профиль') {
+      toggleAccountPanel();
+    } else if (appName === 'Спутник') {
+      toggleSatelliteState();
+    }
+  }
 
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace') {
-        if (!e.target.value && index > 0) {
-          cubeInputs[index - 1].focus();
-          cubeInputs[index - 1].value = '';
-          e.preventDefault();
-        }
-      }
-    });
-
-    input.addEventListener('paste', (e) => {
-      e.preventDefault();
-      const pasteData = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
-      let digits = pasteData.startsWith('7') ? pasteData.slice(1) : pasteData;
-      cubeInputs.forEach((inp, i) => {
-        inp.value = digits[i] || '';
-      });
-      const nextIndex = Math.min(digits.length, cubeInputs.length - 1);
-      cubeInputs[nextIndex].focus();
-    });
-  });
+  function closeCatalogScreen() {
+    document.getElementById('authScreen').classList.add('hidden');
+    showToast('Каталог закрыт');
+  }
 
   // Инициализация и интеграция с Telegram Web App
   function initTelegramWebApp() {
@@ -1156,64 +1169,11 @@
     }
   }
 
-  // Проверка телефона по базе данных / телеграм боту
-  async function verifyPhoneNumber() {
-    let phoneDigits = '';
-    cubeInputs.forEach(inp => { phoneDigits += inp.value; });
-
-    const errorEl = document.getElementById('authError');
-    const submitBtn = document.getElementById('authSubmitBtn');
-
-    if (phoneDigits.length < 10) {
-      errorEl.textContent = 'Пожалуйста, введите полный номер телефона.';
-      return;
-    }
-    errorEl.textContent = '';
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Проверка...';
-
-    const fullPhone = '+7' + phoneDigits;
-
-    try {
-      const response = await fetch('/api/verify-phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: fullPhone })
-      });
-      
-      const result = await response.json();
-
-      if (response.ok && result.registered) {
-        localStorage.setItem('user_phone', fullPhone);
-        if (result.name) localStorage.setItem('user_name', result.name);
-        if (result.username) localStorage.setItem('user_username', result.username);
-        if (result.telegram_id) localStorage.setItem('user_tgid', result.telegram_id);
-        if (result.photo_url) localStorage.setItem('user_photo', result.photo_url);
-
-        loadUserData(fullPhone);
-        document.getElementById('authScreen').classList.add('hidden');
-        showToast('Номер успешно подтверждён!');
-      } else {
-        errorEl.textContent = result.message || 'Номер не найден. Сначала отправьте контакт нашему Telegram-боту!';
-      }
-    } catch (err) {
-      // Фолбэк на случай если бэкенд еще настраивается или локальная среда
-      localStorage.setItem('user_phone', fullPhone);
-      loadUserData(fullPhone);
-      document.getElementById('authScreen').classList.add('hidden');
-      showToast('Авторизация успешна!');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Проверить номер';
-    }
-  }
-
-  // Автоматический пропуск авторизации при повторном визите и инициализация Telegram Web App
+  // Автоматическая инициализация Telegram WebApp
   window.addEventListener('DOMContentLoaded', () => {
     initTelegramWebApp();
     const savedPhone = localStorage.getItem('user_phone');
     if (savedPhone) {
-      document.getElementById('authScreen').classList.add('hidden');
       loadUserData(savedPhone);
     }
   });
