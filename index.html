@@ -452,7 +452,7 @@
      ============================================================ */
   .user-avatar-container {
     position: fixed;
-    top: max(78px, calc(env(safe-area-inset-top) + 63px));
+    top: max(324px, calc(env(safe-area-inset-top) + 308px));
     left: 18px;
     z-index: 10;
   }
@@ -821,7 +821,7 @@
 </head>
 <body>
 
-  <!-- Начальная страница авторизации по номеру телефона с 11 кубиками -->
+  <!-- Начальная страница авторизации по номеру телефона с 12 кубиками -->
   <div id="authScreen">
     <div class="auth-card">
       <div class="auth-title">Вход в систему</div>
@@ -840,6 +840,7 @@
         <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="6">
         <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="7">
         <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="8">
+        <input type="text" class="phone-cube" maxlength="1" inputmode="numeric" data-index="9">
       </div>
       <div class="auth-error" id="authError"></div>
       <button class="auth-btn" id="authSubmitBtn" onclick="verifyPhoneNumber()">Проверить номер</button>
@@ -933,9 +934,9 @@
     </div>
   </div>
 
-  <!-- Круглая аватарка под панелью слева -->
+  <!-- Круглая кнопка аккаунта (человечек) под панелью слева -->
   <div class="user-avatar-container">
-    <div class="user-avatar" id="userAvatar" onclick="toggleAccountPanel()">
+    <div class="user-avatar" id="userAvatar" onclick="toggleAccountPanel()" title="Аккаунт">
       👤
     </div>
   </div>
@@ -954,11 +955,21 @@
   <!-- Панель аккаунта (выдвигается снизу) -->
   <div class="account-panel" id="accountPanel">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-      <h3 id="acc-name" style="margin: 0; font-size: 20px;">Аккаунт</h3>
+      <h3 style="margin: 0; font-size: 20px;">АККАУНТ</h3>
       <span style="cursor:pointer; font-size:20px; padding: 4px;" onclick="toggleAccountPanel()">✕</span>
     </div>
-    <p id="acc-phone" style="color: var(--ink-soft); margin: 0 0 15px 0; font-size: 14px;"></p>
     
+    <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+      <div id="acc-photo-wrap" style="width: 56px; height: 56px; border-radius: 50%; background: var(--glass-bg); border: 1.5px solid var(--glass-border); display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 24px;">👤</div>
+      <div>
+        <div id="acc-name" style="font-weight: 600; font-size: 16px;">Имя: Загрузка...</div>
+        <div id="acc-username" style="color: var(--ink-soft); font-size: 13px; margin-top: 2px;">Username: Не указано</div>
+      </div>
+    </div>
+
+    <div style="font-size: 14px; margin-bottom: 8px;">Номер телефона: <span id="acc-phone" style="font-weight: 500;">Не указано</span></div>
+    <div style="font-size: 14px; margin-bottom: 16px;">Telegram ID: <span id="acc-tgid" style="font-weight: 500;">Не указано</span></div>
+
     <div class="setting-row">
       <span>Темная тема</span>
       <div class="toggle" id="themeToggle" onclick="toggleTheme()"></div>
@@ -1048,6 +1059,50 @@
     });
   });
 
+  // Загрузка и отображение данных профиля пользователя
+  async function loadUserData(phone) {
+    const phoneEl = document.getElementById('acc-phone');
+    const nameEl = document.getElementById('acc-name');
+    const usernameEl = document.getElementById('acc-username');
+    const tgidEl = document.getElementById('acc-tgid');
+    const photoWrap = document.getElementById('acc-photo-wrap');
+
+    phoneEl.textContent = phone || 'Не указано';
+
+    try {
+      const response = await fetch('/api/user-profile?phone=' + encodeURIComponent(phone));
+      if (response.ok) {
+        const user = await response.json();
+        nameEl.textContent = 'Имя: ' + (user.name || 'Не указано');
+        usernameEl.textContent = 'Username: ' + (user.username ? '@' + user.username : 'Не указано');
+        tgidEl.textContent = user.telegram_id || 'Не указано';
+        if (user.photo_url) {
+          photoWrap.innerHTML = `<img src="${user.photo_url}" alt="Фото профиля" style="width:100%; height:100%; object-fit:cover;">`;
+        } else {
+          photoWrap.innerHTML = '👤';
+        }
+        return;
+      }
+    } catch (e) {
+      // Игнорируем ошибки сети при отсутствии эндпоинта
+    }
+
+    // Фолбэк из локального хранилища, если данные уже сохранялись
+    const cachedName = localStorage.getItem('user_name');
+    const cachedUsername = localStorage.getItem('user_username');
+    const cachedTgid = localStorage.getItem('user_tgid');
+    const cachedPhoto = localStorage.getItem('user_photo');
+
+    nameEl.textContent = 'Имя: ' + (cachedName || 'Не указано');
+    usernameEl.textContent = 'Username: ' + (cachedUsername ? '@' + cachedUsername : 'Не указано');
+    tgidEl.textContent = cachedTgid || 'Не указано';
+    if (cachedPhoto) {
+      photoWrap.innerHTML = `<img src="${cachedPhoto}" alt="Фото профиля" style="width:100%; height:100%; object-fit:cover;">`;
+    } else {
+      photoWrap.innerHTML = '👤';
+    }
+  }
+
   // Проверка телефона по базе данных / телеграм боту
   async function verifyPhoneNumber() {
     let phoneDigits = '';
@@ -1056,7 +1111,7 @@
     const errorEl = document.getElementById('authError');
     const submitBtn = document.getElementById('authSubmitBtn');
 
-    if (phoneDigits.length < 9) {
+    if (phoneDigits.length < 10) {
       errorEl.textContent = 'Пожалуйста, введите полный номер телефона.';
       return;
     }
@@ -1077,7 +1132,12 @@
 
       if (response.ok && result.registered) {
         localStorage.setItem('user_phone', fullPhone);
-        document.getElementById('acc-phone').textContent = fullPhone;
+        if (result.name) localStorage.setItem('user_name', result.name);
+        if (result.username) localStorage.setItem('user_username', result.username);
+        if (result.telegram_id) localStorage.setItem('user_tgid', result.telegram_id);
+        if (result.photo_url) localStorage.setItem('user_photo', result.photo_url);
+
+        loadUserData(fullPhone);
         document.getElementById('authScreen').classList.add('hidden');
         showToast('Номер успешно подтверждён!');
       } else {
@@ -1086,7 +1146,7 @@
     } catch (err) {
       // Фолбэк на случай если бэкенд еще настраивается или локальная среда
       localStorage.setItem('user_phone', fullPhone);
-      document.getElementById('acc-phone').textContent = fullPhone;
+      loadUserData(fullPhone);
       document.getElementById('authScreen').classList.add('hidden');
       showToast('Авторизация успешна!');
     } finally {
@@ -1100,7 +1160,18 @@
     const savedPhone = localStorage.getItem('user_phone');
     if (savedPhone) {
       document.getElementById('authScreen').classList.add('hidden');
-      document.getElementById('acc-phone').textContent = savedPhone;
+      loadUserData(savedPhone);
+    }
+  });
+
+  // Закрытие панели аккаунта при клике вне окна
+  window.addEventListener('click', (e) => {
+    const accountPanel = document.getElementById('accountPanel');
+    const userAvatar = document.getElementById('userAvatar');
+    if (accountPanel.classList.contains('open')) {
+      if (!accountPanel.contains(e.target) && !userAvatar.contains(e.target)) {
+        accountPanel.classList.remove('open');
+      }
     }
   });
 
