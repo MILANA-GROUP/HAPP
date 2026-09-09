@@ -60,7 +60,7 @@
   body.dark { background: #121214; }
 
   /* ============================================================
-     ЭКРАН КАТАЛОГА ПРИЛОЖЕНИЙ (ВМЕСТО ВХОДА)
+     ЭКРАН КАТАЛОГА ПРИЛОЖЕНИЙ (СКРЫТ)
      ============================================================ */
   #authScreen {
     position: fixed;
@@ -75,6 +75,9 @@
     justify-content: center;
     padding: 24px;
     transition: opacity 400ms ease, visibility 400ms ease;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
 
   body.dark #authScreen {
@@ -828,8 +831,8 @@
 </head>
 <body>
 
-  <!-- Экран каталога приложений вместо экрана ввода телефона -->
-  <div id="authScreen">
+  <!-- Экран каталога приложений скрыт для мгновенного доступа к карте -->
+  <div id="authScreen" class="hidden">
     <div class="catalog-card">
       <div class="catalog-title">Каталог приложений</div>
       <div class="catalog-desc">
@@ -1075,41 +1078,62 @@
     showToast('Каталог закрыт');
   }
 
-  // Инициализация и интеграция с Telegram Web App
+  // Автоматическая инициализация и интеграция с Telegram Web App в фоновом режиме
   function initTelegramWebApp() {
     const nameEl = document.getElementById('acc-name');
     const usernameEl = document.getElementById('acc-username');
     const tgidEl = document.getElementById('acc-tgid');
     const photoWrap = document.getElementById('acc-photo-wrap');
+    const phoneEl = document.getElementById('acc-phone');
 
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-      const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+    if (window.Telegram && window.Telegram.WebApp) {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
       
-      // Имя (first_name / last_name)
-      const fullName = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || 'Не указано';
-      nameEl.textContent = 'Имя: ' + fullName;
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        const tgUser = tg.initDataUnsafe.user;
+        
+        // Имя (first_name / last_name)
+        const fullName = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || 'Не указано';
+        nameEl.textContent = 'Имя: ' + fullName;
 
-      // Юзернейм (username)
-      usernameEl.textContent = 'Username: ' + (tgUser.username ? '@' + tgUser.username : 'Не указано');
+        // Юзернейм (username)
+        usernameEl.textContent = 'Username: ' + (tgUser.username ? '@' + tgUser.username : 'Не указано');
 
-      // Telegram ID (id)
-      tgidEl.textContent = tgUser.id || 'Не указано';
+        // Telegram ID (id)
+        tgidEl.textContent = tgUser.id || 'Не указано';
 
-      // Фото профиля (если доступно)
-      if (tgUser.photo_url) {
-        photoWrap.innerHTML = `<img src="${tgUser.photo_url}" alt="Фото профиля" style="width:100%; height:100%; object-fit:cover;">`;
-      } else {
-        photoWrap.innerHTML = '👤';
+        // Фото профиля (если доступно)
+        if (tgUser.photo_url) {
+          photoWrap.innerHTML = `<img src="${tgUser.photo_url}" alt="Фото профиля" style="width:100%; height:100%; object-fit:cover;">`;
+        } else {
+          photoWrap.innerHTML = '👤';
+        }
+
+        // Сохраняем в localStorage для удобства
+        localStorage.setItem('user_name', fullName);
+        localStorage.setItem('user_username', tgUser.username || '');
+        localStorage.setItem('user_tgid', tgUser.id || '');
+        if (tgUser.photo_url) localStorage.setItem('user_photo', tgUser.photo_url);
       }
 
-      // Сохраняем в localStorage для удобства
-      localStorage.setItem('user_name', fullName);
-      localStorage.setItem('user_username', tgUser.username || '');
-      localStorage.setItem('user_tgid', tgUser.id || '');
-      if (tgUser.photo_url) localStorage.setItem('user_photo', tgUser.photo_url);
-
-      // Сообщаем Telegram, что WebApp полностью загружен
-      window.Telegram.WebApp.ready();
+      // Автоматическое получение номера телефона из Telegram WebApp (если доступен объект contact или запрашивался через requestContact)
+      if (tg.initDataUnsafe && tg.initDataUnsafe.phone) {
+        phoneEl.textContent = tg.initDataUnsafe.phone;
+        localStorage.setItem('user_phone', tg.initDataUnsafe.phone);
+      } else if (typeof tg.requestContact === 'function' && !localStorage.getItem('user_phone')) {
+        // Фоновый запрос контакта без назойливых модальных окон ввода (если поддерживается клиентом)
+        try {
+          tg.requestContact((shared, contact) => {
+            if (shared && contact && contact.phone_number) {
+              phoneEl.textContent = contact.phone_number;
+              localStorage.setItem('user_phone', contact.phone_number);
+            }
+          });
+        } catch (e) {
+          // Игнорируем, если среда не позволяет вызвать без явного клика
+        }
+      }
     } else {
       // Заглушки на случай, если страница открыта в обычном браузере
       nameEl.textContent = 'Имя: Не в Telegram';
@@ -1127,7 +1151,7 @@
     const tgidEl = document.getElementById('acc-tgid');
     const photoWrap = document.getElementById('acc-photo-wrap');
 
-    phoneEl.textContent = phone || 'Не указано';
+    phoneEl.textContent = phone || localStorage.getItem('user_phone') || 'Не указано';
 
     try {
       const response = await fetch('/api/user-profile?phone=' + encodeURIComponent(phone));
@@ -1158,10 +1182,12 @@
     const cachedUsername = localStorage.getItem('user_username');
     const cachedTgid = localStorage.getItem('user_tgid');
     const cachedPhoto = localStorage.getItem('user_photo');
+    const cachedPhone = localStorage.getItem('user_phone');
 
     nameEl.textContent = 'Имя: ' + (cachedName || 'Не в Telegram');
     usernameEl.textContent = 'Username: ' + (cachedUsername ? '@' + cachedUsername : 'Не в Telegram');
     tgidEl.textContent = cachedTgid || 'Не в Telegram';
+    if (cachedPhone) phoneEl.textContent = cachedPhone;
     if (cachedPhoto) {
       photoWrap.innerHTML = `<img src="${cachedPhoto}" alt="Фото профиля" style="width:100%; height:100%; object-fit:cover;">`;
     } else {
@@ -1169,12 +1195,14 @@
     }
   }
 
-  // Автоматическая инициализация Telegram WebApp
+  // Автоматическая инициализация Telegram WebApp сразу при загрузке
   window.addEventListener('DOMContentLoaded', () => {
     initTelegramWebApp();
     const savedPhone = localStorage.getItem('user_phone');
     if (savedPhone) {
       loadUserData(savedPhone);
+    } else {
+      loadUserData();
     }
   });
 
