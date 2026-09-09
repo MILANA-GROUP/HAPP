@@ -1,5 +1,6 @@
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
+const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
 const app = express();
@@ -9,7 +10,20 @@ app.use(express.static(path.join(__dirname)));
 const token = process.env.BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
-const users = {};       // chatId -> { phone, first_name, username }
+// Инициализация базы данных SQLite (файл database.db сохранится на сервере Railway)
+const db = new sqlite3.Database('./database.db', (err) => {
+  if (err) console.error('Ошибка подключения к БД', err.message);
+  else console.log('Подключено к базе данных SQLite.');
+});
+
+// Создаем таблицу пользователей, если ее еще нет
+db.run(`CREATE TABLE IF NOT EXISTS users (
+  telegram_id INTEGER PRIMARY KEY,
+  phone TEXT,
+  first_name TEXT,
+  username TEXT
+)`);
+
 const userMarks = {};   // chatId -> [ { id, title, coords, photo, text } ]
 const waitingForMedia = {}; // chatId -> markId
 
@@ -68,9 +82,11 @@ bot.on('callback_query', async (query) => {
       });
     }
   } else if (query.data === 'logout') {
-    delete users[chatId];
-    try { await bot.deleteMessage(chatId, messageId); } catch (e) {}
-    bot.sendMessage(chatId, "Вы вышли из аккаунта. Введите /start для повторного входа.");
+    // Удаляем пользователя из базы данных при выходе
+    db.run(`DELETE FROM users WHERE telegram_id = ?`, [chatId], async (err) => {
+      try { await bot.deleteMessage(chatId, messageId); } catch (e) {}
+      bot.sendMessage(chatId, "Вы вышли из аккаунта. Введите /start для повторного входа.");
+    });
   } else if (query.data.startsWith('select_mark_')) {
     const markId = query.data.replace('select_mark_', '');
     waitingForMedia[chatId] = markId;
@@ -83,10 +99,23 @@ bot.on('message', async (msg) => {
   const text = msg.text;
 
   if (msg.contact) {
-    users[chatId] = {
-      phone: msg.contact.phone_number,
-      first_name: msg.from.first_name || 'Пользователь'
-    };
+    const phone = msg.contact.phone_number;
+    const firstName = msg.from.first_name || 'Пользователь';
+    const username = msg.from.username || '';
+
+    // Сохраняем или обновляем пользователя в базе данных
+    const query = `
+      INSERT INTO users (telegram_id, phone, first_name, username) 
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(telegram_id) 
+      DO UPDATE SET phone=excluded.phone, first_name=excluded.first_name, username=excluded.username
+    `;
+
+    db.run(query, [chatId, phone, firstName, username], (err) => {
+      if (err) {
+        console.error('Ошибка сохранения контакта в БД:', err);
+      }
+    });
 
     bot.sendMessage(chatId, "Вы успешно авторизованы! Теперь сайт разблокирован.", {
       reply_markup: {
@@ -100,16 +129,18 @@ bot.on('message', async (msg) => {
   }
 
   if (text === '👤 АККАУНТ') {
-    if (!users[chatId]) {
-      bot.sendMessage(chatId, "Вы не авторизованы. Введите /start");
-      return;
-    }
-    bot.sendMessage(chatId, `Профиль: ${users[chatId].first_name}\nТелефон: ${users[chatId].phone}`, {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '🔴 Выйти из аккаунта', callback_data: 'logout' }]
-        ]
+    db.get(`SELECT * FROM users WHERE telegram_id = ?`, [chatId], (err, user) => {
+      if (!user) {
+        bot.sendMessage(chatId, "Вы не авторизованы. Введите /start");
+        return;
       }
+      bot.sendMessage(chatId, `Профиль: ${user.first_name}\nТелефон: ${user.phone}`, {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '🔴 Выйти из аккаунта', callback_data: 'logout' }]
+          ]
+        }
+      });
     });
     return;
   }
@@ -140,13 +171,20 @@ bot.on('message', async (msg) => {
   }
 });
 
+// Эндпоинт для проверки авторизации на сайте
 app.get('/api/auth-status/:chatId', (req, res) => {
   const chatId = req.params.chatId;
-  if (users[chatId]) {
-    res.json({ authorized: true, user: users[chatId] });
-  } else {
-    res.json({ authorized: false });
-  }
+  
+  db.get(`SELECT * FROM users WHERE telegram_id = ?`, [chatId], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (user) {
+      res.json({ authorized: true, user: { phone: user.phone, first_name: user.first_name, username: user.username } });
+    } else {
+      res.json({ authorized: false });
+    }
+  });
 });
 
 const PORT = process.env.PORT || 3000;
