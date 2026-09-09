@@ -453,7 +453,8 @@
   .user-avatar-container {
     position: fixed;
     top: max(324px, calc(env(safe-area-inset-top) + 308px));
-    left: 18px;
+    left: calc(18px + (56px / 2));
+    transform: translateX(-50%);
     z-index: 10;
   }
 
@@ -814,7 +815,7 @@
 
   @media (max-width: 480px) {
     .panel-wrap { left: 14px; }
-    .user-avatar-container { left: 14px; }
+    .user-avatar-container { left: calc(14px + (56px / 2)); }
     .glass-panel.is-open { width: calc(100vw - 28px); max-width: 340px; }
   }
 </style>
