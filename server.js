@@ -24,7 +24,15 @@ db.run(`CREATE TABLE IF NOT EXISTS users (
   username TEXT
 )`);
 
-const userMarks = {};   // chatId -> [ { id, title, coords, photo, text } ]
+// Создаем таблицу меток, чтобы они были общими для всех пользователей и сохранялись в БД
+db.run(`CREATE TABLE IF NOT EXISTS marks (
+  id TEXT PRIMARY KEY,
+  creator_chat_id INTEGER,
+  title TEXT,
+  photo TEXT,
+  text TEXT
+)`);
+
 const waitingForMedia = {}; // chatId -> markId
 
 bot.onText(/\/start/, async (msg) => {
@@ -146,28 +154,41 @@ bot.on('message', async (msg) => {
   }
 
   if (text === '📍 Метки') {
-    const marks = userMarks[chatId] || [];
-    if (marks.length === 0) {
-      bot.sendMessage(chatId, "У вас пока нет сохраненных меток.");
-      return;
-    }
-    const inlineKeyboard = marks.map(m => [{ text: `📍 ${m.title}`, callback_data: `select_mark_${m.id}` }]);
-    bot.sendMessage(chatId, "Ваши метки:", {
-      reply_markup: { inline_keyboard: inlineKeyboard }
+    // Получаем ВСЕ метки из базы данных, чтобы они были общими для всех пользователей
+    db.all(`SELECT * FROM marks`, [], (err, marks) => {
+      if (err || !marks || marks.length === 0) {
+        bot.sendMessage(chatId, "В системе пока нет сохраненных меток.");
+        return;
+      }
+      const inlineKeyboard = marks.map(m => [{ text: `📍 ${m.title}`, callback_data: `select_mark_${m.id}` }]);
+      bot.sendMessage(chatId, "Все метки:", {
+        reply_markup: { inline_keyboard: inlineKeyboard }
+      });
     });
     return;
   }
 
   if (waitingForMedia[chatId]) {
     const markId = waitingForMedia[chatId];
-    if (!userMarks[chatId]) userMarks[chatId] = [];
-    const mark = userMarks[chatId].find(m => m.id === markId);
-    if (mark) {
-      mark.photo = msg.photo ? msg.photo[msg.photo.length - 1].file_id : null;
-      mark.text = text || msg.caption || "";
-      bot.sendMessage(chatId, "Метка успешно обновлена!");
-    }
+    const photo = msg.photo ? msg.photo[msg.photo.length - 1].file_id : null;
+    const markText = text || msg.caption || "";
+
+    // Обновляем метку в общей базе данных SQLite
+    db.run(
+      `UPDATE marks SET photo = ?, text = ? WHERE id = ?`,
+      [photo, markText, markId],
+      (err) => {
+        if (err) {
+          console.error("Ошибка сохранения метки в БД:", err);
+          bot.sendMessage(chatId, "Не удалось сохранить метку на сервере.");
+        } else {
+          bot.sendMessage(chatId, "Метка успешно обновлена!");
+        }
+      }
+    );
+
     delete waitingForMedia[chatId];
+    return;
   }
 });
 
@@ -184,6 +205,16 @@ app.get('/api/auth-status/:chatId', (req, res) => {
     } else {
       res.json({ authorized: false });
     }
+  });
+});
+
+// Эндпоинт для получения всех общих меток на сайте
+app.get('/api/marks', (req, res) => {
+  db.all(`SELECT * FROM marks`, [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(rows);
   });
 });
 
