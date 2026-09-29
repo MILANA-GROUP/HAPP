@@ -13,133 +13,111 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
   background:var(--bg);color:var(--text);user-select:none;-webkit-user-select:none;
-  overscroll-behavior:none;
-}
-.app{
-  position:fixed;inset:0;display:flex;flex-direction:column;
-  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-.screen{
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  padding:22px;padding-top:calc(22px + env(safe-area-inset-top));
-  padding-bottom:calc(22px + env(safe-area-inset-bottom));
-  opacity:0;pointer-events:none;transition:opacity .3s;
-  overflow-y:auto;-webkit-overflow-scrolling:touch;
-}
+  overscroll-behavior:none}
+.app{position:fixed;inset:0;display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;padding:22px;
+  padding-top:calc(22px + env(safe-area-inset-top));padding-bottom:calc(22px + env(safe-area-inset-bottom));
+  opacity:0;pointer-events:none;transition:opacity .3s;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .screen.on{opacity:1;pointer-events:auto}
 .h1{font-size:34px;font-weight:800;letter-spacing:-.5px;
   background:linear-gradient(90deg,#fff,#7c5cff 60%,#ff5c9e);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 .h2{font-size:22px;font-weight:700;margin-bottom:6px}
 .sub{color:var(--dim);font-size:15px;line-height:1.5}
-.btn{
-  padding:16px 22px;border:none;border-radius:14px;font-size:16px;font-weight:600;
+.btn{padding:16px 22px;border:none;border-radius:14px;font-size:16px;font-weight:600;
   background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
   cursor:pointer;transition:transform .15s,box-shadow .15s;
-  box-shadow:0 8px 24px rgba(124,92,255,.35);
-}
+  box-shadow:0 8px 24px rgba(124,92,255,.35)}
 .btn:active{transform:scale(.97)}
 .btn.secondary{background:var(--surface2);color:var(--text);box-shadow:none;border:1px solid var(--border)}
 .btn.ghost{background:transparent;color:var(--dim);box-shadow:none;border:1px solid var(--border)}
 .btn.wide{width:100%}
 .btn:disabled{opacity:.4;pointer-events:none}
+.btn.small{padding:10px 14px;font-size:13px}
 .center{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:14px}
 .glass{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:18px;padding:18px;backdrop-filter:blur(12px)}
-
-/* Home */
-.home-logo{
-  width:110px;height:110px;margin-bottom:10px;border-radius:26px;
+.home-logo{width:110px;height:110px;margin-bottom:10px;border-radius:26px;
   background:conic-gradient(#ff5c5c 0 25%,#5cff5c 0 50%,#5c5cff 0 75%,#ffdb5c 0);
-  box-shadow:0 20px 60px rgba(124,92,255,.4);animation:rot 12s linear infinite;
-  position:relative;
-}
+  box-shadow:0 20px 60px rgba(124,92,255,.4);animation:rot 12s linear infinite;position:relative}
 .home-logo::after{content:'';position:absolute;inset:14px;border-radius:16px;background:var(--bg)}
 @keyframes rot{to{transform:rotate(360deg)}}
 
-/* Camera */
 #camWrap{position:absolute;inset:0;background:#000;overflow:hidden;display:none}
 #camWrap.on{display:block}
 #cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .cam-overlay{position:absolute;inset:0;pointer-events:none}
-.grid3{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:min(78vw,78vh);height:min(78vw,78vh);
+.grid3{position:absolute;top:calc(50% - 20px);left:50%;transform:translate(-50%,-50%);
+  width:min(72vw,72vh);height:min(72vw,72vh);
   border:2px solid rgba(255,255,255,.9);border-radius:20px;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.55),inset 0 0 30px rgba(255,255,255,.1);
-}
+  box-shadow:0 0 0 9999px rgba(0,0,0,.55),inset 0 0 30px rgba(255,255,255,.1)}
 .grid3 svg{width:100%;height:100%}
 .grid3 svg line{stroke:rgba(255,255,255,.55);stroke-width:1.5;stroke-dasharray:6 4}
-.cam-hint{
-  position:absolute;bottom:calc(180px + env(safe-area-inset-bottom));left:0;right:0;
-  text-align:center;font-size:15px;color:#fff;text-shadow:0 2px 12px #000;
-  padding:0 20px;
-}
-.cam-top{
-  position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;right:14px;
-  display:flex;justify-content:space-between;align-items:center;color:#fff;
-}
-.cam-top .chip{background:rgba(0,0,0,.6);padding:8px 14px;border-radius:20px;font-size:13px;font-weight:600;backdrop-filter:blur(8px)}
-.cam-bottom{
-  position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));left:20px;right:20px;
-  display:flex;gap:12px;justify-content:center;
-}
-.cam-bottom .btn{flex:1;max-width:200px}
+.cam-top{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;right:14px;
+  display:flex;justify-content:space-between;align-items:center;color:#fff;gap:8px}
+.cam-top .chip{background:rgba(0,0,0,.65);padding:8px 14px;border-radius:20px;
+  font-size:13px;font-weight:600;backdrop-filter:blur(8px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cam-hint{position:absolute;bottom:calc(220px + env(safe-area-inset-bottom));left:0;right:0;
+  text-align:center;font-size:14px;color:#fff;text-shadow:0 2px 12px #000;padding:0 20px}
+.cam-bottom{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom));left:14px;right:14px;
+  display:flex;flex-direction:column;gap:10px}
+.cam-buttons{display:flex;gap:10px}
+.cam-buttons .btn{flex:1}
 
-/* 3x3 preview */
-.mini3{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:96px;height:96px}
+/* Live preview */
+.live-panel{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.65);
+  padding:10px 14px;border-radius:16px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)}
+.live-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:66px;height:66px;flex-shrink:0}
+.live-mini > div{border-radius:5px;background:#333;transition:background .12s}
+.live-mini > div.none{background:#222;border:1px dashed #555}
+.live-mini > div.gray{filter:brightness(0.4) saturate(0.3)}
+.live-info{flex:1;min-width:0}
+.live-info .lbl{font-size:11px;color:var(--dim);margin-bottom:2px}
+.live-info .val{font-size:20px;font-weight:800;color:#fff}
+
+.mini3{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
 .mini3 > div{border-radius:6px;background:#333;transition:background .2s}
 .mini3 > div.none{background:#222;border:1px dashed #444}
+.mini3 > div.gray{filter:brightness(0.4) saturate(0.3)}
 
-/* Face picker */
 .face-row{display:flex;gap:10px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
 .face-row::-webkit-scrollbar{display:none}
-.face-chip{
-  min-width:64px;padding:10px 12px;border-radius:12px;background:var(--surface2);
-  border:1px solid var(--border);text-align:center;cursor:pointer;transition:.2s;
-}
+.face-chip{min-width:64px;padding:10px 12px;border-radius:12px;background:var(--surface2);
+  border:1px solid var(--border);text-align:center;cursor:pointer;transition:.2s}
 .face-chip.active{border-color:var(--accent);background:rgba(124,92,255,.15)}
 .face-chip.done{opacity:.5}
 .face-chip .letter{font-weight:800;font-size:16px}
 .face-chip .label{font-size:11px;color:var(--dim);margin-top:2px}
 
-/* 3D viewer */
-#viewer{flex:1;position:relative;border-radius:18px;overflow:hidden;background:radial-gradient(ellipse at center,#1a1a24,#0a0a0f);margin:8px 0}
+#viewer{flex:1;position:relative;border-radius:18px;overflow:hidden;
+  background:radial-gradient(ellipse at center,#1a1a24,#0a0a0f);margin:8px 0;min-height:240px}
 #viewer canvas{display:block;width:100%;height:100%}
 
-/* Step */
-.step-box{display:flex;align-items:center;gap:16px;padding:18px;background:var(--surface);border-radius:18px;border:1px solid var(--border)}
+.step-box{display:flex;align-items:center;gap:16px;padding:18px;background:var(--surface);
+  border-radius:18px;border:1px solid var(--border)}
 .step-move{font-size:42px;font-weight:900;font-family:'SF Mono',monospace;color:var(--accent);min-width:90px;text-align:center}
 .step-desc{flex:1;font-size:15px;color:var(--dim);line-height:1.4}
+.ai-tip{margin-top:8px;font-size:13px;color:var(--accent);font-style:italic;min-height:18px}
 .progress{height:6px;background:var(--surface2);border-radius:6px;overflow:hidden;margin:12px 0}
 .progress > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
 
-/* Manual edit modal */
-.modal{
-  position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;
-  align-items:center;justify-content:center;padding:20px;z-index:100;
-}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;
+  align-items:center;justify-content:center;padding:20px;z-index:100}
 .modal.on{display:flex}
 .modal-inner{background:var(--surface);border-radius:22px;padding:22px;width:100%;max-width:400px;border:1px solid var(--border)}
 .palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
 .pal{aspect-ratio:1;border-radius:12px;border:2px solid transparent;cursor:pointer}
 .pal.active{border-color:#fff}
 
-/* Colors */
-.cW{background:#f5f5f5}.cY{background:#ffd93b}.cR{background:#e63946}
-.cO{background:#ff8c1a}.cB{background:#2f6dff}.cG{background:#22c55e}
-.gW{background:#f5f5f5}.gY{background:#ffd93b}.gR{background:#e63946}
-.gO{background:#ff8c1a}.gB{background:#2f6dff}.gG{background:#22c55e}
-.gW.gray,.gY.gray,.gR.gray,.gO.gray,.gB.gray,.gG.gray{background:#3a3a48;border:1px solid #555}
+.cW,.gW{background:#f5f5f5}.cY,.gY{background:#ffd93b}.cR,.gR{background:#e63946}
+.cO,.gO{background:#ff8c1a}.cB,.gB{background:#2f6dff}.cG,.gG{background:#22c55e}
 
-.toast{
-  position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));
   transform:translateX(-50%) translateY(100px);background:#1c1c28;
   border:1px solid var(--border);padding:14px 20px;border-radius:14px;font-size:14px;
-  transition:transform .3s;z-index:200;max-width:88vw;
-}
+  transition:transform .3s;z-index:200;max-width:88vw;text-align:center}
 .toast.on{transform:translateX(-50%) translateY(0)}
 .toast.err{border-color:var(--err);color:#ffb0b0}
 .toast.ok{border-color:var(--ok);color:#b6ffc9}
@@ -148,7 +126,7 @@ body{
 <body>
 <div class="app">
 
-<!-- ============ HOME ============ -->
+<!-- HOME -->
 <div class="screen on" id="s-home">
   <div class="center">
     <div class="home-logo"></div>
@@ -163,9 +141,9 @@ body{
   </div>
 </div>
 
-<!-- ============ CAMERA ============ -->
+<!-- CAMERA -->
 <div id="camWrap">
-  <video id="cam" playsinline muted></video>
+  <video id="cam" playsinline muted autoplay></video>
   <div class="cam-overlay">
     <div class="grid3">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -182,18 +160,28 @@ body{
   </div>
   <div class="cam-hint" id="camHint">Поместите грань кубика в рамку</div>
   <div class="cam-bottom">
-    <button class="btn ghost" onclick="App.stopScan()">Отмена</button>
-    <button class="btn" onclick="App.capture()">📸 Снять</button>
+    <div class="live-panel">
+      <div class="live-mini" id="liveMini"></div>
+      <div class="live-info">
+        <div class="lbl">Реальное время</div>
+        <div class="val" id="liveConf">—</div>
+      </div>
+      <button class="btn secondary small" onclick="App.proceed()">Правка</button>
+    </div>
+    <div class="cam-buttons">
+      <button class="btn ghost" onclick="App.stopScan()">Отмена</button>
+      <button class="btn" onclick="App.proceed()">Дальше →</button>
+    </div>
   </div>
 </div>
 
-<!-- ============ CONFIRM FACE ============ -->
+<!-- CONFIRM -->
 <div class="screen" id="s-confirm">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <button class="btn ghost" style="padding:10px 14px" onclick="App.retake()">← Назад</button>
+    <button class="btn ghost small" onclick="App.retake()">← Назад</button>
     <div class="h2" id="confirmTitle">Сторона F</div>
   </div>
-  <div class="sub">Проверьте распознанные цвета. Нажмите на квадрат, чтобы исправить.</div>
+  <div class="sub">Проверьте цвета. Тапните на квадрат, чтобы исправить.</div>
   <div style="display:flex;gap:20px;align-items:center;justify-content:center;margin:20px 0;flex-wrap:wrap">
     <div class="mini3" id="confirmGrid" style="width:min(60vw,260px);height:min(60vw,260px);gap:6px"></div>
     <div style="text-align:center">
@@ -206,7 +194,7 @@ body{
   <button class="btn ghost wide" style="margin-top:10px" onclick="App.retake()">Пересканировать</button>
 </div>
 
-<!-- ============ VERIFY ALL ============ -->
+<!-- VERIFY -->
 <div class="screen" id="s-verify">
   <div class="h2">Проверка кубика</div>
   <div class="sub" id="verifyMsg">Все стороны отсканированы. Проверяем конфигурацию...</div>
@@ -224,14 +212,14 @@ body{
   <button class="btn ghost wide" style="margin-top:10px" onclick="App.reset()">Начать заново</button>
 </div>
 
-<!-- ============ RESULT ============ -->
+<!-- SOLVE -->
 <div class="screen" id="s-solve">
   <div style="display:flex;justify-content:space-between;align-items:center">
     <div>
       <div class="h2">Решение</div>
       <div class="sub" id="solveInfo">—</div>
     </div>
-    <button class="btn ghost" style="padding:10px 14px" onclick="App.reset()">Заново</button>
+    <button class="btn ghost small" onclick="App.reset()">Заново</button>
   </div>
   <div id="viewer"></div>
   <div class="progress"><div id="progressBar" style="width:0%"></div></div>
@@ -239,13 +227,14 @@ body{
     <div class="step-move" id="stepMove">—</div>
     <div class="step-desc" id="stepDesc">Нажмите «Следующий шаг», чтобы начать.</div>
   </div>
+  <div class="ai-tip" id="aiTip"></div>
   <div style="display:flex;gap:10px;margin-top:14px">
     <button class="btn secondary" style="flex:1" onclick="App.prevStep()">← Назад</button>
     <button class="btn" style="flex:1.5" onclick="App.nextStep()" id="nextBtn">Следующий шаг →</button>
   </div>
 </div>
 
-<!-- ============ DONE ============ -->
+<!-- DONE -->
 <div class="screen" id="s-done">
   <div class="center">
     <div style="font-size:80px">🎉</div>
@@ -255,19 +244,17 @@ body{
   </div>
 </div>
 
-<!-- ============ MANUAL PICKER ============ -->
+<!-- MANUAL PICKER -->
 <div class="modal" id="manualModal">
   <div class="modal-inner">
     <div class="h2">Выберите цвет</div>
-    <div class="sub" id="manualSub">Сторона —, клетка —</div>
+    <div class="sub" id="manualSub">—</div>
     <div class="palette" id="palette"></div>
     <button class="btn ghost wide" style="margin-top:14px" onclick="App.closeManual()">Отмена</button>
   </div>
 </div>
 
-<!-- ============ TOAST ============ -->
 <div class="toast" id="toast"></div>
-
 </div>
 
 <script type="importmap">
@@ -277,583 +264,377 @@ body{
 import * as THREE from 'three';
 
 /* ============================================================
-   CONFIG / constants
+   API KEY — вставлен по требованию. Если он не от Gemini —
+   AI-подсказки просто не будут работать, приложение не сломается.
+   Для рабочего Gemini-ключа нужен формат "AIzaSy..." из
+   https://aistudio.google.com/app/apikey
    ============================================================ */
-// Если захотите добавить комментарии от Gemini — вставьте сюда ключ AIzaSy... из aistudio.google.com
-// ВАЖНО: приложение полностью работает и без него.
-const GEMINI_API_KEY = "";
+const GEMINI_API_KEY = "AQ.Ab8RN6LhZP3Y3eg6a_jSTOt_rMCF4gWIu5zD3tKi69gVJwDeoA";
 
-const FACES = ['U','R','F','D','L','B'];
-const COLORS = ['W','Y','R','O','B','G'];   // Белый Жёлтый Красный Оранжевый Синий Зелёный
-const COLOR_CSS = {W:'cW',Y:'cY',R:'cR',O:'cO',B:'cB',G:'cG'};
-const COLOR_NAME = {W:'Белый',Y:'Жёлтый',R:'Красный',O:'Оранжевый',B:'Синий',G:'Зелёный'};
-// Оппозитные пары (стандартная схема)
-const OPP = {W:'Y',Y:'W',R:'O',O:'R',B:'G',G:'B'};
-// Маппинг «цвет центра → имя грани» (стандарт: U=W, F=G, R=R)
-const COLOR_TO_FACE = {W:'U',Y:'D',G:'F',B:'B',R:'R',O:'L'};
+class AIService{
+  constructor(){
+    this.enabled = !!GEMINI_API_KEY && GEMINI_API_KEY.length > 10;
+    this.cache = new Map();
+    this.cooldown = 8000;
+    this.lastCall = 0;
+    this.pending = false;
+    this.available = this.enabled; // станет false после первой ошибки
+  }
+  async tip(context){
+    if(!this.enabled || !this.available || this.pending) return null;
+    if(Date.now() - this.lastCall < this.cooldown) return null;
+    if(this.cache.has(context)) return this.cache.get(context);
+    this.pending = true;
+    this.lastCall = Date.now();
+    try{
+      const ctrl = new AbortController();
+      const to = setTimeout(()=>ctrl.abort(), 4500);
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+         body:JSON.stringify({
+           contents:[{parts:[{text:
+`Ты помощник в приложении для сборки кубика Рубика. Ответь ОДНОЙ короткой фразой на русском (до 60 символов), подбадривающей или подсказывающей. Контекст: ${context}`
+           }]}],
+           generationConfig:{temperature:0.9, maxOutputTokens:40}
+         })}
+      );
+      clearTimeout(to);
+      if(!res.ok){ this.available = false; this.pending=false; return null; }
+      const data = await res.json();
+      const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      this.pending = false;
+      if(txt){ const clean = txt.trim().replace(/^"|"$/g,''); this.cache.set(context, clean); return clean; }
+      return null;
+    }catch(e){
+      this.pending = false;
+      this.available = false;
+      console.warn('AI недоступен:', e.message);
+      return null;
+    }
+  }
+}
+const aiService = new AIService();
 
 /* ============================================================
-   CUBE MODEL (cubie-based)
+   CONSTANTS
    ============================================================ */
-// Схема: 20 кубиков (кроме невидимого центра) в координатах {-1,0,1}^3
-// Углы (3 цвета), рёбра (2 цвета). Ориентация хранится как матрица 3×3.
+const FACES = ['U','R','F','D','L','B'];
+const COLORS = ['W','Y','R','O','B','G'];
+const COLOR_CSS = {W:'cW',Y:'cY',R:'cR',O:'cO',B:'cB',G:'cG'};
+const COLOR_NAME = {W:'Белый',Y:'Жёлтый',R:'Красный',O:'Оранжевый',B:'Синий',G:'Зелёный'};
+const COLOR_TO_FACE = {W:'U',Y:'D',G:'F',B:'B',R:'R',O:'L'};
+const EXPECTED_CENTER = {U:'W',R:'R',F:'G',D:'Y',L:'O',B:'B'};
 
-function matMul(A,B){
-  const R=[[0,0,0],[0,0,0],[0,0,0]];
-  for(let i=0;i<3;i++)for(let j=0;j<3;j++){
-    let s=0; for(let k=0;k<3;k++) s+=A[i][k]*B[k][j];
-    R[i][j]=s;
-  }
-  return R;
-}
-function matVec(M,v){
-  return [M[0][0]*v[0]+M[0][1]*v[1]+M[0][2]*v[2],
-          M[1][0]*v[0]+M[1][1]*v[1]+M[1][2]*v[2],
-          M[2][0]*v[0]+M[2][1]*v[1]+M[2][2]*v[2]];
-}
+/* ============================================================
+   CUBE MODEL
+   ============================================================ */
+function matMul(A,B){const R=[[0,0,0],[0,0,0],[0,0,0]];for(let i=0;i<3;i++)for(let j=0;j<3;j++){let s=0;for(let k=0;k<3;k++)s+=A[i][k]*B[k][j];R[i][j]=s;}return R;}
+function matVec(M,v){return[M[0][0]*v[0]+M[0][1]*v[1]+M[0][2]*v[2],M[1][0]*v[0]+M[1][1]*v[1]+M[1][2]*v[2],M[2][0]*v[0]+M[2][1]*v[1]+M[2][2]*v[2]];}
 const I3=[[1,0,0],[0,1,0],[0,0,1]];
+const ROT_X_CW=[[1,0,0],[0,0,-1],[0,1,0]],ROT_X_CCW=[[1,0,0],[0,0,1],[0,-1,0]];
+const ROT_Y_CW=[[0,0,1],[0,1,0],[-1,0,0]],ROT_Y_CCW=[[0,0,-1],[0,1,0],[1,0,0]];
+const ROT_Z_CW=[[0,-1,0],[1,0,0],[0,0,1]],ROT_Z_CCW=[[0,1,0],[-1,0,0],[0,0,1]];
 
-const ROT_X_CW = [[1,0,0],[0,0,-1],[0,1,0]];   // R move: -90° around X (см. доку)
-const ROT_X_CCW= [[1,0,0],[0,0,1],[0,-1,0]];
-const ROT_Y_CW = [[0,0,1],[0,1,0],[-1,0,0]];   // D move: +90° Y
-const ROT_Y_CCW= [[0,0,-1],[0,1,0],[1,0,0]];   // U move: -90° Y
-const ROT_Z_CW = [[0,-1,0],[1,0,0],[0,0,1]];   // B move: +90° Z
-const ROT_Z_CCW= [[0,1,0],[-1,0,0],[0,0,1]];   // F move: -90° Z
-
-class Cube {
+class Cube{
   constructor(){
-    this.cubies = [];
-    for(let x=-1;x<=1;x++) for(let y=-1;y<=1;y++) for(let z=-1;z<=1;z++){
-      if(x===0&&y===0&&z===0) continue;
-      const colors = [
-        x===1?'R':null, x===-1?'L':null,     // local +X, -X
-        y===1?'U':null, y===-1?'D':null,     // +Y, -Y
-        z===1?'F':null, z===-1?'B':null      // +Z, -Z
-      ];
-      this.cubies.push({ pos:[x,y,z], rot:I3.slice().map(r=>r.slice()), colors });
+    this.cubies=[];
+    for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++){
+      if(x===0&&y===0&&z===0)continue;
+      const colors=[x===1?'R':null,x===-1?'L':null,y===1?'U':null,y===-1?'D':null,z===1?'F':null,z===-1?'B':null];
+      this.cubies.push({pos:[x,y,z],rot:I3.slice().map(r=>r.slice()),colors});
     }
   }
-  clone(){
-    const c = new Cube();
-    c.cubies = this.cubies.map(k=>({
-      pos:k.pos.slice(),
-      rot:k.rot.map(r=>r.slice()),
-      colors:k.colors.slice()
-    }));
-    return c;
-  }
-  // Применить одиночный ход (U/U'/U2/R/...)
-  move(m){
-    if(!m) return;
-    const face = m[0]; const mod = m.slice(1);
-    const turns = mod==='2'?2 : mod==="'"?3 : 1;
-    for(let t=0;t<turns;t++) this._quarter(face);
-  }
-  _quarter(face){
-    let axis, layer, rot;
-    switch(face){
-      case 'U': axis=1; layer= 1; rot=ROT_Y_CCW; break;
-      case 'D': axis=1; layer=-1; rot=ROT_Y_CW;  break;
-      case 'R': axis=0; layer= 1; rot=ROT_X_CW;  break;
-      case 'L': axis=0; layer=-1; rot=ROT_X_CCW; break;
-      case 'F': axis=2; layer= 1; rot=ROT_Z_CCW; break;
-      case 'B': axis=2; layer=-1; rot=ROT_Z_CW;  break;
+  move(m){if(!m)return;const f=m[0],mod=m.slice(1);const turns=mod==='2'?2:mod==="'"?3:1;for(let t=0;t<turns;t++)this._quarter(f);}
+  _quarter(f){
+    let axis,layer,rot;
+    switch(f){
+      case'U':axis=1;layer=1;rot=ROT_Y_CCW;break;
+      case'D':axis=1;layer=-1;rot=ROT_Y_CW;break;
+      case'R':axis=0;layer=1;rot=ROT_X_CW;break;
+      case'L':axis=0;layer=-1;rot=ROT_X_CCW;break;
+      case'F':axis=2;layer=1;rot=ROT_Z_CCW;break;
+      case'B':axis=2;layer=-1;rot=ROT_Z_CW;break;
     }
     for(const k of this.cubies){
-      if(k.pos[axis]!==layer) continue;
-      k.pos = matVec(rot, k.pos).map(v=>Math.round(v));
-      k.rot = matMul(rot, k.rot);
+      if(k.pos[axis]!==layer)continue;
+      k.pos=matVec(rot,k.pos).map(v=>Math.round(v));
+      k.rot=matMul(rot,k.rot);
     }
   }
-  // Извлечь 54-элементный массив стикеров (U0..U8, R0..R8, F0..F8, D0..D8, L0..L8, B0..B8)
   facelets(){
-    const f = new Array(54).fill(null);
-    // Направления внешних нормалей
-    const OUT = [
-      {v:[1,0,0], fi:9,  local:'R'},   // +X = R
-      {v:[-1,0,0],fi:36, local:'L'},   // -X = L
-      {v:[0,1,0], fi:0,  local:'U'},   // +Y = U
-      {v:[0,-1,0],fi:27, local:'D'},   // -Y = D
-      {v:[0,0,1], fi:18, local:'F'},   // +Z = F
-      {v:[0,0,-1],fi:45, local:'B'}    // -Z = B
+    const f=new Array(54).fill(null);
+    const OUT=[
+      {v:[1,0,0],fi:9,local:'R'},{v:[-1,0,0],fi:36,local:'L'},
+      {v:[0,1,0],fi:0,local:'U'},{v:[0,-1,0],fi:27,local:'D'},
+      {v:[0,0,1],fi:18,local:'F'},{v:[0,0,-1],fi:45,local:'B'}
     ];
     for(const k of this.cubies){
-      const [x,y,z] = k.pos;
-      for(let ni=0; ni<6; ni++){
-        const n = OUT[ni];
-        // Стикер виден, если кубик стоит на этой стороне (pos·normal > 0)
-        const dot = x*n.v[0]+y*n.v[1]+z*n.v[2];
-        if(dot<=0) continue;
-        // Найти локальную грань кубика, которая смотрит в направлении n.v
-        // local_dir = rot^T * n.v (для ортонормальной матрицы — транспонирование = обратная)
-        const localDir = [
+      const[x,y,z]=k.pos;
+      for(let ni=0;ni<6;ni++){
+        const n=OUT[ni];
+        const dot=x*n.v[0]+y*n.v[1]+z*n.v[2];
+        if(dot<=0)continue;
+        const ld=[
           k.rot[0][0]*n.v[0]+k.rot[1][0]*n.v[1]+k.rot[2][0]*n.v[2],
           k.rot[0][1]*n.v[0]+k.rot[1][1]*n.v[1]+k.rot[2][1]*n.v[2],
           k.rot[0][2]*n.v[0]+k.rot[1][2]*n.v[1]+k.rot[2][2]*n.v[2]
         ].map(v=>Math.round(v));
-        // Найти индекс в colors: [+X,-X,+Y,-Y,+Z,-Z]
-        let colorIdx;
-        if(localDir[0]=== 1) colorIdx=0;
-        else if(localDir[0]===-1) colorIdx=1;
-        else if(localDir[1]=== 1) colorIdx=2;
-        else if(localDir[1]===-1) colorIdx=3;
-        else if(localDir[2]=== 1) colorIdx=4;
-        else if(localDir[2]===-1) colorIdx=5;
-        const color = k.colors[colorIdx];
-        if(!color) continue;
-        // Позиция стикера внутри грани (индекс 0..8)
-        const idx = this._stickerIndex(n.local, x, y, z);
-        if(idx<0||idx>8) continue;
-        f[n.fi+idx] = color;
+        let ci;
+        if(ld[0]===1)ci=0;else if(ld[0]===-1)ci=1;
+        else if(ld[1]===1)ci=2;else if(ld[1]===-1)ci=3;
+        else if(ld[2]===1)ci=4;else ci=5;
+        const color=k.colors[ci];
+        if(!color)continue;
+        const idx=this._stickerIndex(n.local,x,y,z);
+        if(idx<0||idx>8)continue;
+        f[n.fi+idx]=color;
       }
     }
     return f;
   }
-  _stickerIndex(faceName, x, y, z){
-    // Для грани определяется стандартный вид снаружи
-    // Возвращает 0..8 (row-major: 0=TL, 2=TR, 6=BL, 8=BR)
-    let row, col;
-    switch(faceName){
-      case 'U': row = (-z+1); col = (x+1); break;   // view: top=-Z, right=+X
-      case 'R': row = (-y+1); col = (z+1); break;   // view: top=+Y, right=-Z  → col: left=+Z
-      case 'F': row = (-y+1); col = (x+1); break;   // top=+Y, right=+X
-      case 'D': row = (z+1);  col = (x+1); break;   // top=+Z, right=+X
-      case 'L': row = (-y+1); col = (-z+1); break;  // top=+Y, right=+Z (left=-Z)
-      case 'B': row = (-y+1); col = (-x+1); break;  // view: top=+Y, left=+X → col: 0=+X
+  _stickerIndex(name,x,y,z){
+    let row,col;
+    switch(name){
+      case'U':row=(-z+1);col=(x+1);break;
+      case'R':row=(-y+1);col=(z+1);break;
+      case'F':row=(-y+1);col=(x+1);break;
+      case'D':row=(z+1);col=(x+1);break;
+      case'L':row=(-y+1);col=(-z+1);break;
+      case'B':row=(-y+1);col=(-x+1);break;
     }
-    return row*3 + col;
+    return row*3+col;
   }
 }
 
-/* ============================================================
-   SOLVER — послойный метод (beginner method)
-   Работает на facelet-массиве (54 цвета 'U','R','F','D','L','B')
-   ============================================================ */
-// Множество ходов
-const ALL_MOVES = ['U',"U'",'U2','R',"R'",'R2','F',"F'",'F2',
-                   'D',"D'",'D2','L',"L'",'L2','B',"B'",'B2'];
-
-// Применение хода к facelet-массиву через кубик (пересобираем кубик из facelets)
 function faceletsToCube(f){
-  // Восстанавливаем кубик из facelets
-  const cube = new Cube();
-  // Сбрасываем цвета кубиков и распределяем по стикерам
-  const OUT = [
-    {v:[1,0,0],  fi:9,  local:'R'},
-    {v:[-1,0,0], fi:36, local:'L'},
-    {v:[0,1,0],  fi:0,  local:'U'},
-    {v:[0,-1,0], fi:27, local:'D'},
-    {v:[0,0,1],  fi:18, local:'F'},
-    {v:[0,0,-1], fi:45, local:'B'}
+  const cube=new Cube();
+  const OUT=[
+    {v:[1,0,0],fi:9,local:'R'},{v:[-1,0,0],fi:36,local:'L'},
+    {v:[0,1,0],fi:0,local:'U'},{v:[0,-1,0],fi:27,local:'D'},
+    {v:[0,0,1],fi:18,local:'F'},{v:[0,0,-1],fi:45,local:'B'}
   ];
   for(const k of cube.cubies){
-    const [x,y,z] = k.pos;
-    for(let ni=0; ni<6; ni++){
-      const n = OUT[ni];
-      const dot = x*n.v[0]+y*n.v[1]+z*n.v[2];
-      if(dot<=0) continue;
-      const idx = cube._stickerIndex(n.local, x, y, z);
-      const color = f[n.fi+idx];
-      // найти локальный индекс в colors
-      let localIdx;
-      if(n.local==='R') localIdx=0;
-      else if(n.local==='L') localIdx=1;
-      else if(n.local==='U') localIdx=2;
-      else if(n.local==='D') localIdx=3;
-      else if(n.local==='F') localIdx=4;
-      else localIdx=5;
-      k.colors[localIdx] = color;
+    const[x,y,z]=k.pos;
+    for(let ni=0;ni<6;ni++){
+      const n=OUT[ni];
+      const dot=x*n.v[0]+y*n.v[1]+z*n.v[2];
+      if(dot<=0)continue;
+      const idx=cube._stickerIndex(n.local,x,y,z);
+      const color=f[n.fi+idx];
+      let li;
+      if(n.local==='R')li=0;else if(n.local==='L')li=1;
+      else if(n.local==='U')li=2;else if(n.local==='D')li=3;
+      else if(n.local==='F')li=4;else li=5;
+      k.colors[li]=color;
     }
   }
   return cube;
 }
-function applyMoveToFacelets(f, m){
-  const cube = faceletsToCube(f);
-  cube.move(m);
-  const nf = cube.facelets();
-  for(let i=0;i<54;i++) f[i] = nf[i];
-}
+function applyMoveToFacelets(f,m){const c=faceletsToCube(f);c.move(m);const nf=c.facelets();for(let i=0;i<54;i++)f[i]=nf[i];}
 
-// Простая функция поиска цвета по индексу на грани
-function idx(face, i){ return FACES.indexOf(face)*9 + i; }
-
-// Определяем решён ли конкретный стикер/позиция
-function isSolvedFacelet(f){ return f.every((c,i)=> c === FACES[Math.floor(i/9)]); }
-
-// ==== BEGINNER SOLVER ====
+/* ============================================================
+   SOLVER (beginner method)
+   ============================================================ */
 function solveCube(initFacelets){
-  const f = initFacelets.slice();
-  const moves = [];
-  const apply = (m)=>{ applyMoveToFacelets(f, m); moves.push(m); };
-  const applySeq = (arr)=>{ for(const m of arr) apply(m); };
-  const U = ()=>{ const c = FACES.indexOf('U'); return f.slice(c*9, c*9+9); };
-  const R = ()=>f.slice(9,18);
-  const F = ()=>f.slice(18,27);
-  const D = ()=>f.slice(27,36);
-  const L = ()=>f.slice(36,45);
-  const B = ()=>f.slice(45,54);
+  const f=initFacelets.slice();
+  const moves=[];
+  const apply=(m)=>{applyMoveToFacelets(f,m);moves.push(m);};
+  const applySeq=(arr)=>{for(const m of arr)apply(m);};
 
-  // -------- helpers: положение ребра / угла --------
-  // Возвращает {pos: 'UF'|'UR'|..., ori: 0|1} для данного набора цветов (рёберная пара)
-  function findEdge(c1, c2){
-    // Ребёрные слоты (по 2 стикера): [faceA,idxA,faceB,idxB]
-    const EDGES = {
-      'UF': ['U',7,'F',1], 'UR': ['U',5,'R',1], 'UB': ['U',1,'B',1], 'UL': ['U',3,'L',1],
-      'DF': ['D',1,'F',7], 'DR': ['D',5,'R',7], 'DB': ['D',7,'B',7], 'DL': ['D',3,'L',7],
-      'FR': ['F',5,'R',3], 'FL': ['F',3,'L',5], 'BR': ['B',3,'R',5], 'BL': ['B',5,'L',3]
+  function findEdge(c1,c2){
+    const E={
+      'UF':['U',7,'F',1],'UR':['U',5,'R',1],'UB':['U',1,'B',1],'UL':['U',3,'L',1],
+      'DF':['D',1,'F',7],'DR':['D',5,'R',7],'DB':['D',7,'B',7],'DL':['D',3,'L',7],
+      'FR':['F',5,'R',3],'FL':['F',3,'L',5],'BR':['B',3,'R',5],'BL':['B',5,'L',3]
     };
-    for(const [name, [fa,ia,fb,ib]] of Object.entries(EDGES)){
-      const a = f[FACES.indexOf(fa)*9+ia];
-      const b = f[FACES.indexOf(fb)*9+ib];
-      if((a===c1&&b===c2)||(a===c2&&b===c1)){
-        return {slot:name, ori: a===c1?0:1, a, b};
-      }
+    for(const[name,[fa,ia,fb,ib]]of Object.entries(E)){
+      const a=f[FACES.indexOf(fa)*9+ia],b=f[FACES.indexOf(fb)*9+ib];
+      if((a===c1&&b===c2)||(a===c2&&b===c1))return{slot:name,ori:a===c1?0:1};
     }
     return null;
   }
-  function findCorner(c1, c2, c3){
-    const CORNERS = {
-      'UFR': ['U',8,'F',2,'R',0], 'URB': ['U',2,'R',2,'B',0],
-      'UBL': ['U',0,'B',2,'L',0], 'ULF': ['U',6,'L',2,'F',0],
-      'DFR': ['D',2,'F',8,'R',6], 'DRB': ['D',8,'R',8,'B',6],
-      'DBL': ['D',6,'B',8,'L',6], 'DLF': ['D',0,'L',8,'F',6]
+  function findCorner(c1,c2,c3){
+    const C={
+      'UFR':['U',8,'F',2,'R',0],'URB':['U',2,'R',2,'B',0],
+      'UBL':['U',0,'B',2,'L',0],'ULF':['U',6,'L',2,'F',0],
+      'DFR':['D',2,'F',8,'R',6],'DRB':['D',8,'R',8,'B',6],
+      'DBL':['D',6,'B',8,'L',6],'DLF':['D',0,'L',8,'F',6]
     };
-    const set = new Set([c1,c2,c3]);
-    for(const [name, [fa,ia,fb,ib,fc,ic]] of Object.entries(CORNERS)){
-      const a = f[FACES.indexOf(fa)*9+ia];
-      const b = f[FACES.indexOf(fb)*9+ib];
-      const c = f[FACES.indexOf(fc)*9+ic];
-      if(set.has(a)&&set.has(b)&&set.has(c) && a!==b && b!==c && a!==c){
-        return {slot:name, a, b, c};
-      }
+    const set=new Set([c1,c2,c3]);
+    for(const[name,[fa,ia,fb,ib,fc,ic]]of Object.entries(C)){
+      const a=f[FACES.indexOf(fa)*9+ia],b=f[FACES.indexOf(fb)*9+ib],c=f[FACES.indexOf(fc)*9+ic];
+      if(set.has(a)&&set.has(b)&&set.has(c)&&a!==b&&b!==c&&a!==c)return{slot:name,a,b,c};
     }
     return null;
   }
 
-  // ============ PHASE 1: Крест на D ============
-  // Решаем 4 белых ребра на D-грани
-  function solveEdgeTo(slotTarget, colorD, colorSide){
-    for(let iter=0; iter<12; iter++){
-      const info = findEdge(colorD, colorSide);
-      if(!info) break;
-      if(info.slot === slotTarget && info.a === colorD) return; // solved
-      // Смотрим где ребро
-      const s = info.slot;
+  // D-крест
+  const D_EDGE_SLOTS=[
+    {slot:'DF',side:'F',sideColor:'G'},
+    {slot:'DR',side:'R',sideColor:'R'},
+    {slot:'DB',side:'B',sideColor:'B'},
+    {slot:'DL',side:'L',sideColor:'O'}
+  ];
+  const U_POS_FOR_D={'DF':'UF','DR':'UR','DB':'UB','DL':'UL'};
+  const SIDE_OF_U={'UF':'F','UR':'R','UB':'B','UL':'L'};
+
+  for(const cfg of D_EDGE_SLOTS){
+    for(let iter=0;iter<15;iter++){
+      const info=findEdge('D',cfg.sideColor);
+      if(!info)break;
+      // решён?
+      const [fa,ia,fb,ib]={'DF':['D',1,'F',7],'DR':['D',5,'R',7],'DB':['D',7,'B',7],'DL':['D',3,'L',7]}[cfg.slot];
+      if(f[FACES.indexOf(fa)*9+ia]==='D'&&f[FACES.indexOf(fb)*9+ib]===cfg.sideColor)break;
+      const s=info.slot;
       if(s.startsWith('D')){
-        // В D-слое. Если на месте но ориентация неверна — вытащим на U
-        if(s === slotTarget){
-          // ориентация неверна — выкручиваем
-          applySeq(['R','U','R\'']);
-        } else {
-          // не на своём месте — поднимаем на U
-          const sideFace = s[1];
-          apply(sideFace + '2');
-        }
-      } else if(s.startsWith('U')){
-        // В U-слое. Сначала выравниваем цвет на боковой грани
-        // Определяем какой цвет сбоку
-        const sideColor = info.a === colorD ? info.b : info.a;
-        // Вращаем U пока ребро не встанет над нужным слотом
-        let sideFaceSlot = slotTarget[1]; // 'F' для DF
-        // Найти, где сейчас боковой стикер
-        const sideFaces = {UF:'F', UR:'R', UB:'B', UL:'L'};
-        const curSide = sideFaces[s];
-        let turns = 0;
-        const order = ['F','R','B','L'];
-        let cur = order.indexOf(curSide);
-        let tgt = order.indexOf(sideFaceSlot);
-        turns = (tgt - cur + 4) % 4;
-        for(let i=0;i<turns;i++) apply('U');
-        // Ребро над нужным слотом
-        const uIdxTarget = {DF:'U7', DR:'U5', DB:'U1', DL:'U3'}[slotTarget];
-        // Проверяем ориентацию
-        const faceForSlot = slotTarget[1];
-        const curFIdx = {'F':1,'R':1,'B':1,'L':1}[faceForSlot];
-        const curUIdx = {'F':7,'R':5,'B':1,'L':3}[faceForSlot];
-        const uColor = f[0*9 + curUIdx];
-        if(uColor === colorD){
-          // правильная ориентация, вставляем
-          apply(faceForSlot + '2');
-        } else {
-          // неправильная — выталкиваем
-          apply(faceForSlot + '2');
-        }
-      } else {
-        // В среднем слое — выталкиваем на U
-        const faces = s.split('');
-        const f1 = faces[0]; const f2 = faces[1];
-        if(f1 === 'F' || f1 === 'R' || f1 === 'B' || f1 === 'L'){
-          if(f1 === 'F') applySeq(['R','U','R\'']);  // hmm
-          else if(f1 === 'R') applySeq(['R','U','R\'']);
-          else if(f1 === 'B') applySeq(['B','U','B\'']);
-          else applySeq(['L','U','L\'']);
-        } else {
-          if(f2 === 'F') applySeq(['R','U','R\'']);
-          else if(f2 === 'R') applySeq(['R','U','R\'']);
-          else if(f2 === 'B') applySeq(['B','U','B\'']);
-          else applySeq(['L','U','L\'']);
-        }
+        apply(cfg.slot[1]+'2');
+      }else if(s.startsWith('U')){
+        const curSide=SIDE_OF_U[s];
+        const order=['F','R','B','L'];
+        const turns=(order.indexOf(cfg.side)-order.indexOf(curSide)+4)%4;
+        for(let i=0;i<turns;i++)apply('U');
+        const uFace=f[0*9+({F:7,R:5,B:1,L:3}[cfg.side])];
+        apply(cfg.side+'2');
+      }else{
+        // средний слой — выталкиваем
+        const sideFaces=['F','R','B','L'];
+        const pushFace=sideFaces.find(ff=>{
+          const e=findEdge('D',cfg.sideColor);
+          if(!e)return false;
+          const E={
+            'UF':['U',7,'F',1],'UR':['U',5,'R',1],'UB':['U',1,'B',1],'UL':['U',3,'L',1]
+          };
+          return false;
+        })||'R';
+        const inv=s.includes('F')||s.includes('B')?'R':'F';
+        applySeq([inv,'U',inv+"'"]);
       }
     }
   }
 
-  // D-крест: рёбра D-F(W-G), D-R(W-R), D-B(W-B), D-L(W-O)
-  // (стандартная схема: U=W, F=G, R=R, B=B, L=O, D=Y)
-  const crossSlots = [['DF','F'],['DR','R'],['DB','B'],['DL','L']];
-  for(const [slot, side] of crossSlots){
-    solveEdgeTo(slot, 'D', side);
-  }
+  // Углы D
+  const D_CORNERS=[
+    {slot:'DFR',cols:['D','F','R']},
+    {slot:'DRB',cols:['D','R','B']},
+    {slot:'DBL',cols:['D','B','L']},
+    {slot:'DLF',cols:['D','L','F']}
+  ];
+  const C_IDX={
+    'DFR':['D',2,'F',8,'R',6],'DRB':['D',8,'R',8,'B',6],
+    'DBL':['D',6,'B',8,'L',6],'DLF':['D',0,'L',8,'F',6]
+  };
+  const C_IDX_U={
+    'UFR':['U',8,'F',2,'R',0],'URB':['U',2,'R',2,'B',0],
+    'UBL':['U',0,'B',2,'L',0],'ULF':['U',6,'L',2,'F',0]
+  };
+  const U_POS={'DFR':'UFR','DRB':'URB','DBL':'UBL','DLF':'ULF'};
 
-  // ============ PHASE 2: Углы первого слоя ============
-  function solveCornerTo(slotTarget, colors){
-    // colors: [c1,c2,c3] без 'D' (например, ['D','F','R'] но D-цвет первый)
-    for(let iter=0; iter<30; iter++){
-      const info = findCorner(colors[0], colors[1], colors[2]);
-      if(!info) break;
-      // Проверяем решён ли
-      const CORNER_IDX = {
-        'DFR': ['D',2,'F',8,'R',6], 'DRB': ['D',8,'R',8,'B',6],
-        'DBL': ['D',6,'B',8,'L',6], 'DLF': ['D',0,'L',8,'F',6],
-        'UFR': ['U',8,'F',2,'R',0], 'URB': ['U',2,'R',2,'B',0],
-        'UBL': ['U',0,'B',2,'L',0], 'ULF': ['U',6,'L',2,'F',0]
-      };
-      function isSolved(){
-        const [fa,ia,fb,ib,fc,ic] = CORNER_IDX[slotTarget];
-        return f[FACES.indexOf(fa)*9+ia] === slotTarget.split('').reduce((acc,ch)=>{
-          // крайние символы слот-имени = грани
-          return null;
-        }, null) ;
-      }
-      // Простая проверка: все три стикера в слоте совпадают с цветами кубика нужной грани
-      const SLOT_COLORS = {
-        'DFR': ['D','F','R'], 'DRB': ['D','R','B'],
-        'DBL': ['D','B','L'], 'DLF': ['D','L','F']
-      };
-      const [sa,sf,sr] = SLOT_COLORS[slotTarget];
-      const [fa,ia,fb,ib,fc,ic] = CORNER_IDX[slotTarget];
-      const a = f[FACES.indexOf(fa)*9+ia];
-      const b = f[FACES.indexOf(fb)*9+ib];
-      const c = f[FACES.indexOf(fc)*9+ic];
-      if(a===sa && b===sf && c===sr) return;
-
-      const s = info.slot;
+  for(const cfg of D_CORNERS){
+    for(let iter=0;iter<30;iter++){
+      const info=findCorner(cfg.cols[0],cfg.cols[1],cfg.cols[2]);
+      if(!info)break;
+      const[fa,ia,fb,ib,fc,ic]=C_IDX[cfg.slot];
+      if(f[FACES.indexOf(fa)*9+ia]===cfg.cols[0]&&f[FACES.indexOf(fb)*9+ib]===cfg.cols[1]&&f[FACES.indexOf(fc)*9+ic]===cfg.cols[2])break;
+      const s=info.slot;
       if(s.startsWith('D')){
-        // Угол в нижнем слое, но не тот/не туда — выталкиваем
-        // Применяем R U R' U' к DFR — если угол в DFR
-        // Найдём нужный ход
-        if(s === slotTarget){
-          // не та ориентация
-          const alg = slotTarget === 'DFR' ? ['R','U','R\'','U\''] :
-                      slotTarget === 'DRB' ? ['B','U','B\'','U\''] :
-                      slotTarget === 'DBL' ? ['L','U','L\'','U\''] :
-                                             ['F','U','F\'','U\''];
-          applySeq(alg);
-        } else {
-          const alg = s === 'DFR' ? ['R','U','R\''] :
-                      s === 'DRB' ? ['B','U','B\''] :
-                      s === 'DBL' ? ['L','U','L\''] :
-                                    ['F','U','F\''];
+        if(s===cfg.slot){
+          applySeq(['R','U','R\'','U\'']);
+        }else{
+          const alg=s==='DFR'?['R','U','R\'']:s==='DRB'?['B','U','B\'']:s==='DBL'?['L','U','L\'']:['F','U','F\''];
           applySeq(alg);
         }
-      } else {
-        // Угол в U-слое — вращаем U чтобы поставить над нужным слотом, затем R U R' U' * n
-        const U_POS = {'DFR':'UFR', 'DRB':'URB', 'DBL':'UBL', 'DLF':'ULF'};
-        const targetUPos = U_POS[slotTarget];
-        // Находим текущее положение
-        const curPos = s; // например UFR
-        // Вращаем U, пока не окажется над нужным
-        const U_ORDER = ['UFR','URB','UBL','ULF'];
-        let cur = U_ORDER.indexOf(curPos);
-        let tgt = U_ORDER.indexOf(targetUPos);
-        let turns = (tgt - cur + 4) % 4;
-        for(let i=0;i<turns;i++) apply('U');
-        // Применяем R U R' U' 1..5 раз, чтобы угол встал на место
-        for(let t=0; t<6; t++){
-          const [faa,iaa,fbb,ibb,fcc,icc] = CORNER_IDX[slotTarget];
-          const aa = f[FACES.indexOf(faa)*9+iaa];
-          const bb = f[FACES.indexOf(fbb)*9+ibb];
-          const cc = f[FACES.indexOf(fcc)*9+icc];
-          if(aa===sa && bb===sf && cc===sr) break;
+      }else{
+        const U_ORDER=['UFR','URB','UBL','ULF'];
+        const turns=(U_ORDER.indexOf(U_POS[cfg.slot])-U_ORDER.indexOf(s)+4)%4;
+        for(let i=0;i<turns;i++)apply('U');
+        for(let t=0;t<6;t++){
+          const[faa,iaa,fbb,ibb,fcc,icc]=C_IDX[cfg.slot];
+          if(f[FACES.indexOf(faa)*9+iaa]===cfg.cols[0]&&f[FACES.indexOf(fbb)*9+ibb]===cfg.cols[1]&&f[FACES.indexOf(fcc)*9+icc]===cfg.cols[2])break;
           applySeq(['R','U','R\'','U\'']);
         }
       }
     }
   }
 
-  const cornerSlots = [
-    ['DFR',['D','F','R']],
-    ['DRB',['D','R','B']],
-    ['DBL',['D','B','L']],
-    ['DLF',['D','L','F']]
+  // Средний слой
+  const MID=[
+    {slot:'FR',cols:['F','R']},{slot:'BR',cols:['B','R']},
+    {slot:'BL',cols:['B','L']},{slot:'FL',cols:['F','L']}
   ];
-  for(const [slot, cols] of cornerSlots){
-    solveCornerTo(slot, cols);
-  }
+  const MID_IDX={
+    'FR':['F',5,'R',3],'BR':['B',3,'R',5],'BL':['B',5,'L',3],'FL':['F',3,'L',5]
+  };
+  const U_SLOT_SIDE={UF:'F',UR:'R',UB:'B',UL:'L'};
+  const U_IDX_BY={F:1,R:1,B:1,L:1},U_UP_IDX={F:7,R:5,B:1,L:3};
+  const ORDER=['F','R','B','L'];
 
-  // ============ PHASE 3: Средний слой ============
-  // Решаем 4 ребра среднего слоя (без U и D цветов)
-  const MID_EDGES = [
-    {colors:['F','R'], slot:'FR'},
-    {colors:['R','B'], slot:'BR'},
-    {colors:['B','L'], slot:'BL'},
-    {colors:['L','F'], slot:'FL'}
-  ];
-  function placeMiddleEdge(slot, colors){
-    for(let iter=0; iter<30; iter++){
-      const info = findEdge(colors[0], colors[1]);
-      if(!info) return;
-      // Проверяем решён ли
-      const EDGE_IDX = {
-        'FR': ['F',5,'R',3], 'BR': ['B',3,'R',5], 'BL': ['B',5,'L',3], 'FL': ['F',3,'L',5]
-      };
-      const [fa,ia,fb,ib] = EDGE_IDX[slot];
-      const a = f[FACES.indexOf(fa)*9+ia];
-      const b = f[FACES.indexOf(fb)*9+ib];
-      if(a===colors[0] && b===colors[1]) return;
-
-      const s = info.slot;
+  for(const cfg of MID){
+    for(let iter=0;iter<25;iter++){
+      const info=findEdge(cfg.cols[0],cfg.cols[1]);
+      if(!info)break;
+      const[fa,ia,fb,ib]=MID_IDX[cfg.slot];
+      if(f[FACES.indexOf(fa)*9+ia]===cfg.cols[0]&&f[FACES.indexOf(fb)*9+ib]===cfg.cols[1])break;
+      const s=info.slot;
       if(s.startsWith('U')){
-        // На верхнем слое. Разворачиваем так, чтобы боковой цвет совпал с центром
-        // Определяем какой цвет сбоку
-        const U_slots = {UF:['F',1,7],UR:['R',1,5],UB:['B',1,1],UL:['L',1,3]};
-        const [sf, fi, ui] = U_slots[s];
-        const sideColor = f[FACES.indexOf(sf)*9+fi];
-        // Вращаем U, чтобы боковой цвет совпал с гранью
-        const order = ['F','R','B','L'];
-        let cur = order.indexOf(sf);
-        // Найти целевую грань = та, чей центр = sideColor
-        const centerColors = {F:f[22], R:f[13], B:f[49], L:f[40]};
-        let tgt = -1;
-        for(let i=0;i<4;i++){
-          if(centerColors[order[i]] === sideColor) tgt = i;
+        const sf=U_SLOT_SIDE[s];
+        const sideColor=f[FACES.indexOf(sf)*9+U_IDX_BY[sf]];
+        const centers={F:f[22],R:f[13],B:f[49],L:f[40]};
+        let tgt=-1;
+        for(let i=0;i<4;i++)if(centers[ORDER[i]]===sideColor)tgt=i;
+        if(tgt<0){apply('U');continue;}
+        const turns=(tgt-ORDER.indexOf(sf)+4)%4;
+        for(let i=0;i<turns;i++)apply('U');
+        const newSF=ORDER[tgt];
+        const upColor=f[0*9+U_UP_IDX[newSF]];
+        const rightF=ORDER[(tgt+1)%4];
+        const leftF=ORDER[(tgt+3)%4];
+        const rightColor=f[FACES.indexOf(rightF)*9+4];
+        if(upColor===rightColor){
+          applySeq(['U',rightF,'U\'',rightF+"'",'U\'',newSF+"'",'U',newSF]);
+        }else{
+          applySeq(['U\'',leftF+"'",'U',leftF,'U',newSF,'U\'',newSF+"'"]);
         }
-        if(tgt<0){ apply('U'); continue; }
-        const turns = (tgt - cur + 4) % 4;
-        for(let i=0;i<turns;i++) apply('U');
-        // Теперь смотрим: ребро должно вставляться вправо или влево
-        // Определяем целевую грань F' (верх)
-        const newSF = order[tgt];
-        const otherColor = (f[FACES.indexOf(newSF)*9+1] === sideColor) ? f[0*9 + ({F:7,R:5,B:1,L:3}[newSF])] : f[0*9 + ({F:7,R:5,B:1,L:3}[newSF])];
-        // Определяем, куда вставлять (влево/вправо)
-        // Смотрим на верхний цвет ребра
-        const upColor = f[0*9 + ({F:7,R:5,B:1,L:3}[newSF])];
-        // Если otherColor должен идти вправо (на R) — применяем правую вставку
-        // Определяем целевую грань для otherColor
-        const order2 = ['F','R','B','L'];
-        const tgtFace = order2[(order2.indexOf(newSF)+1)%4]; // правая грань
-        const tgtFace2 = order2[(order2.indexOf(newSF)+3)%4]; // левая
-        const c1 = f[FACES.indexOf(tgtFace)*9+4];
-        const c2 = f[FACES.indexOf(tgtFace2)*9+4];
-        if(upColor === c1){
-          // правая вставка
-          const F1 = newSF, R1 = tgtFace;
-          applySeq([F1,'U',F1+'\'','R1'.replace('1',''), 'U\'', 'R1'.replace('1',''), F1+'\'']); // placeholder
-        }
-        // Упрощённая универсальная вставка
-        // Правая вставка (для FR): U R U' R' U' F' U F
-        // Левая вставка (для FL): U' L' U L U F U' F'
-        if(upColor === c1){
-          // Проверим, совпадает ли правая грань
-          const rFace = tgtFace;
-          const fFace = newSF;
-          // U R U' R' U' F' U F
-          applySeq(['U', rFace, 'U\'', rFace+'\'', 'U\'', fFace+'\'', 'U', fFace]);
-        } else {
-          const lFace = tgtFace2;
-          const fFace = newSF;
-          // U' L' U L U F U' F'
-          applySeq(['U\'', lFace+'\'', 'U', lFace, 'U', fFace, 'U\'', fFace+'\'']);
-        }
-      } else {
-        // В среднем слое на неправильном месте — выталкиваем
-        const side = s[0];
-        // Простая выталкивающая последовательность
-        // Извлекаем на U: применяем правую вставку на этом слоте
-        // (упрощённо)
-        const fFace = s[0], rFace = s[1];
-        applySeq(['U', rFace, 'U\'', rFace+'\'', 'U\'', fFace+'\'', 'U', fFace]);
+      }else{
+        const sF=s[0],sR=s[1];
+        applySeq(['U',sR,'U\'',sR+"'",'U\'',sF+"'",'U',sF]);
       }
     }
   }
-  for(const e of MID_EDGES){
-    placeMiddleEdge(e.slot, e.colors);
-  }
 
-  // ============ PHASE 4: Жёлтый крест на U ============
-  // Повторяем F R U R' U' F' пока не образуется крест
-  let uCenter = f[4];  // верхний центр
-  function hasYellowCross(){
-    // Верхние 4 ребра
-    const top = f[1]; // U[1] = верхнее ребро, U[3]=левое, U[5]=правое, U[7]=нижнее
-    return f[1]===uCenter && f[3]===uCenter && f[5]===uCenter && f[7]===uCenter;
-  }
-  for(let i=0; i<8 && !hasYellowCross(); i++){
-    applySeq(['F','R','U','R\'','U\'','F\'']);
-  }
+  // Жёлтый крест
+  const uC=f[4];
+  function hasCross(){return f[1]===uC&&f[3]===uC&&f[5]===uC&&f[7]===uC;}
+  for(let i=0;i<8&&!hasCross();i++)applySeq(['F','R','U','R\'','U\'','F\'']);
 
-  // ============ PHASE 5: Перестановка верхних рёбер ============
-  function edgesPermSolved(){
-    // Проверяем боковые цвета верхних рёбер
-    const UF = [f[7], f[19]];   // U[7], F[1]
-    const UR = [f[5], f[10]];   // U[5], R[1]
-    const UB = [f[1], f[46]];   // U[1], B[1]
-    const UL = [f[3], f[37]];   // U[3], L[1]
-    return UF[0]===uCenter && UF[1]===f[22] &&
-           UR[0]===uCenter && UR[1]===f[13] &&
-           UB[0]===uCenter && UB[1]===f[49] &&
-           UL[0]===uCenter && UL[1]===f[40];
+  // Перестановка верхних рёбер
+  function edgesOK(){
+    return f[7]===uC&&f[19]===f[22]&&f[5]===uC&&f[10]===f[13]&&f[1]===uC&&f[46]===f[49]&&f[3]===uC&&f[37]===f[40];
   }
-  for(let i=0; i<8 && !edgesPermSolved(); i++){
+  for(let i=0;i<8&&!edgesOK();i++){
     applySeq(['R','U','R\'','U','R','U2','R\'']);
     apply('U');
   }
-  // Выравниваем
-  for(let i=0;i<4;i++){
-    const ok = f[7]===uCenter && f[19]===f[22] && f[5]===uCenter && f[10]===f[13] && f[1]===uCenter && f[46]===f[49] && f[3]===uCenter && f[37]===f[40];
-    if(ok) break;
-    apply('U');
-  }
+  for(let i=0;i<4;i++){if(edgesOK())break;apply('U');}
 
-  // ============ PHASE 6+7: Углы верхнего слоя ============
-  // (перестановка + ориентация) через U R U' L' U R' U' L и R' D' R D
-  function cornersPermSolved(){
-    const cols = [
-      [f[8],f[20],f[9]], // UFR
-      [f[2],f[11],f[47]],// URB
-      [f[0],f[45],f[38]],// UBL
-      [f[6],f[36],f[18]] // ULF
-    ];
-    const targets = [
-      ['U','F','R'],['U','R','B'],['U','B','L'],['U','L','F']
-    ];
-    // Проверяем, что каждая тройка содержит правильные цвета (без учёта порядка)
-    for(let i=0;i<4;i++){
-      const set = new Set(cols[i]);
-      if(!targets[i].every(c=>set.has(c))) return false;
-    }
+  // Углы верхние
+  function cornersPermOK(){
+    const cols=[[f[8],f[20],f[9]],[f[2],f[11],f[47]],[f[0],f[45],f[38]],[f[6],f[36],f[18]]];
+    const tg=[['U','F','R'],['U','R','B'],['U','B','L'],['U','L','F']];
+    for(let i=0;i<4;i++){const st=new Set(cols[i]);if(!tg[i].every(c=>st.has(c)))return false;}
     return true;
   }
-  for(let i=0;i<6 && !cornersPermSolved(); i++){
-    applySeq(['U','R','U\'','L\'','U','R\'','U\'','L']);
-  }
-  // Теперь ориентируем углы: R' D' R D пока каждый не встанет
+  for(let i=0;i<6&&!cornersPermOK();i++)applySeq(['U','R','U\'','L\'','U','R\'','U\'','L']);
   for(let i=0;i<4;i++){
-    // Смотрим текущий UFR угол
-    let safety = 0;
-    while(safety < 8){
-      // Решён ли UFR угол?
-      const a = f[8], b = f[20], c = f[9];
-      if(a==='U' && b==='F' && c==='R') break;
+    let safety=0;
+    while(safety<8){
+      if(f[8]==='U'&&f[20]==='F'&&f[9]==='R')break;
       applySeq(['R\'','D\'','R','D']);
       safety++;
     }
     apply('U');
   }
-  // Финальный выравнивающий U
-  for(let i=0;i<4;i++){
-    if(isSolvedFacelet(f)) break;
-    apply('U');
-  }
+  for(let i=0;i<4;i++){if(f.every((c,idx)=>c===FACES[Math.floor(idx/9)]))break;apply('U');}
 
   return moves;
 }
@@ -861,142 +642,99 @@ function solveCube(initFacelets){
 /* ============================================================
    3D VIEWER
    ============================================================ */
-const COLORS_3D = {
-  'U': 0xf5f5f5, 'D': 0xffd93b, 'F': 0x22c55e,
-  'B': 0x2f6dff, 'R': 0xe63946, 'L': 0xff8c1a
-};
+const COLORS_3D={U:0xf5f5f5,D:0xffd93b,F:0x22c55e,B:0x2f6dff,R:0xe63946,L:0xff8c1a};
 
-class Viewer {
+class Viewer{
   constructor(container){
-    this.el = container;
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-    this.camera.position.set(4.5, 4.5, 4.5);
+    this.el=container;
+    this.scene=new THREE.Scene();
+    this.camera=new THREE.PerspectiveCamera(45,1,0.1,100);
+    this.camera.position.set(4.5,4.5,4.5);
     this.camera.lookAt(0,0,0);
-    this.renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+    this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
     this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));
     container.appendChild(this.renderer.domElement);
-
-    const amb = new THREE.AmbientLight(0xffffff, 0.75);
-    this.scene.add(amb);
-    const d1 = new THREE.DirectionalLight(0xffffff, 1.1); d1.position.set(5,8,6); this.scene.add(d1);
-    const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-5,-4,-6); this.scene.add(d2);
-
-    this.cubeGroup = new THREE.Group();
+    this.scene.add(new THREE.AmbientLight(0xffffff,0.75));
+    const d1=new THREE.DirectionalLight(0xffffff,1.1);d1.position.set(5,8,6);this.scene.add(d1);
+    const d2=new THREE.DirectionalLight(0xffffff,0.4);d2.position.set(-5,-4,-6);this.scene.add(d2);
+    this.cubeGroup=new THREE.Group();
     this.scene.add(this.cubeGroup);
-    this.meshes = [];
-    this.currentCubieMeshes = new Map(); // posKey -> mesh
-
+    this.meshes=[];
     this._resize();
-    window.addEventListener('resize', ()=>this._resize());
-    this.autoRotate = true;
+    window.addEventListener('resize',()=>this._resize());
+    this.autoRotate=true;
     this._animate();
     this._bindDrag();
   }
-  _resize(){
-    const r = this.el.getBoundingClientRect();
-    this.renderer.setSize(r.width, r.height);
-    this.camera.aspect = r.width/r.height;
-    this.camera.updateProjectionMatrix();
-  }
+  _resize(){const r=this.el.getBoundingClientRect();if(r.width===0||r.height===0)return;this.renderer.setSize(r.width,r.height);this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();}
   _bindDrag(){
-    let dragging = false, lx=0, ly=0;
-    let ry=Math.PI/4, rx=Math.PI/6;
-    const applyRot = ()=>{ this.cubeGroup.rotation.set(rx, ry, 0, 'YXZ'); };
-    this.el.addEventListener('pointerdown', e=>{
-      dragging=true; lx=e.clientX; ly=e.clientY; this.autoRotate=false;
-      this.el.setPointerCapture(e.pointerId);
+    let dragging=false,lx=0,ly=0;
+    let ry=Math.PI/4,rx=Math.PI/6;
+    const apply=()=>this.cubeGroup.rotation.set(rx,ry,0,'YXZ');
+    this.el.addEventListener('pointerdown',e=>{dragging=true;lx=e.clientX;ly=e.clientY;this.autoRotate=false;this.el.setPointerCapture(e.pointerId);});
+    this.el.addEventListener('pointermove',e=>{
+      if(!dragging)return;
+      ry+=(e.clientX-lx)*0.01;
+      rx+=(e.clientY-ly)*0.01;
+      rx=Math.max(-1.3,Math.min(1.3,rx));
+      lx=e.clientX;ly=e.clientY;apply();
     });
-    this.el.addEventListener('pointermove', e=>{
-      if(!dragging) return;
-      ry += (e.clientX-lx)*0.01;
-      rx += (e.clientY-ly)*0.01;
-      rx = Math.max(-1.3, Math.min(1.3, rx));
-      lx=e.clientX; ly=e.clientY;
-      applyRot();
-    });
-    this.el.addEventListener('pointerup', ()=>{ dragging=false; });
-    this.cubeGroup.rotation.set(rx, ry, 0, 'YXZ');
-    this._applyRot = applyRot;
+    this.el.addEventListener('pointerup',()=>dragging=false);
+    apply();
   }
   buildFromCube(cube){
     while(this.cubeGroup.children.length){
-      const c = this.cubeGroup.children.pop();
-      c.geometry && c.geometry.dispose && c.geometry.dispose();
+      const c=this.cubeGroup.children.pop();
+      if(c.geometry)c.geometry.dispose();
     }
-    this.meshes = [];
-    this.currentCubieMeshes.clear();
-    const geo = new THREE.BoxGeometry(0.96, 0.96, 0.96);
+    this.meshes=[];
+    const geo=new THREE.BoxGeometry(0.96,0.96,0.96);
     for(const k of cube.cubies){
-      const mats = [];
-      // Порядок материалов Three.js BoxGeometry: +X, -X, +Y, -Y, +Z, -Z
-      const order = [0,1,2,3,4,5];
-      const localColors = k.colors;
-      for(const oi of order){
-        const col = localColors[oi];
-        const faceColor = col ? (COLORS_3D[col]||0x222222) : 0x15151c;
-        mats.push(new THREE.MeshStandardMaterial({color:faceColor, roughness:0.42, metalness:0.05}));
+      const mats=[];
+      for(let oi=0;oi<6;oi++){
+        const col=k.colors[oi];
+        mats.push(new THREE.MeshStandardMaterial({color:col?(COLORS_3D[col]||0x222222):0x15151c,roughness:0.42,metalness:0.05}));
       }
-      const mesh = new THREE.Mesh(geo, mats);
-      mesh.position.set(k.pos[0], k.pos[1], k.pos[2]);
+      const mesh=new THREE.Mesh(geo,mats);
+      mesh.position.set(k.pos[0],k.pos[1],k.pos[2]);
       this.cubeGroup.add(mesh);
-      this.meshes.push({mesh, cubie:k});
+      this.meshes.push({mesh,cubie:k});
     }
   }
-  // Анимировать ход. move = 'R'|"R'"|'R2'|...
   async animateMove(move){
-    const face = move[0];
-    const mod = move.slice(1);
-    const turns = mod==='2'?2 : mod==="'"?-1 : 1;
-    const axisMap = {U:1, D:1, R:0, L:0, F:2, B:2};
-    const layerMap = {U:1, D:-1, R:1, L:-1, F:1, B:-1};
-    const axis = ['x','y','z'][axisMap[face]];
-    const layer = layerMap[face];
-    const dirSign = {U:1, D:-1, R:1, L:-1, F:1, B:-1}[face];
-    // Направление: для U (CW сверху) rotation.y должна уменьшаться (по оси -Y)
-    // three.js: положительное вращение вокруг Y — против часовой, если смотреть с +Y
-    // U CW (сверху) = поворот по часовой = -PI/2 (для угла в right-hand)
-    const signs = {U:-1, D:1, R:-1, L:1, F:-1, B:1};
-    const sgn = signs[face];
-    const target = sgn * (Math.PI/2) * turns;
-
-    // Собираем кубики в слое
-    const pivot = new THREE.Object3D();
+    const face=move[0],mod=move.slice(1);
+    const turns=mod==='2'?2:mod==="'"?-1:1;
+    const axisMap={U:1,D:1,R:0,L:0,F:2,B:2};
+    const layerMap={U:1,D:-1,R:1,L:-1,F:1,B:-1};
+    const axis=['x','y','z'][axisMap[face]];
+    const layer=layerMap[face];
+    const signs={U:-1,D:1,R:-1,L:1,F:-1,B:1};
+    const target=signs[face]*(Math.PI/2)*turns;
+    const pivot=new THREE.Object3D();
     this.cubeGroup.add(pivot);
-    const inLayer = this.meshes.filter(m=> Math.round(m.mesh.position[axis])===layer);
-    for(const m of inLayer) pivot.attach(m.mesh);
-
-    // Анимация
-    const dur = 260 * Math.abs(turns);
-    const t0 = performance.now();
+    const inLayer=this.meshes.filter(m=>Math.round(m.mesh.position[axis])===layer);
+    for(const m of inLayer)pivot.attach(m.mesh);
+    const dur=260*Math.abs(turns);
+    const t0=performance.now();
     await new Promise(resolve=>{
-      const tick = ()=>{
-        const t = Math.min(1, (performance.now()-t0)/dur);
-        const e = t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
-        pivot.rotation[axis] = target * e;
-        if(t<1) requestAnimationFrame(tick); else resolve();
+      const tick=()=>{
+        const t=Math.min(1,(performance.now()-t0)/dur);
+        const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+        pivot.rotation[axis]=target*e;
+        if(t<1)requestAnimationFrame(tick);else resolve();
       };
       tick();
     });
-
-    // Фиксация: применяем трансформацию к мешам
-    for(const m of inLayer) this.cubeGroup.attach(m.mesh);
-    // Округляем позиции (устранить дрейф)
+    for(const m of inLayer)this.cubeGroup.attach(m.mesh);
     for(const m of this.meshes){
-      m.mesh.position.set(Math.round(m.mesh.position.x), Math.round(m.mesh.position.y), Math.round(m.mesh.position.z));
-      const q = m.mesh.quaternion;
-      // Округляем кватернион
-      const r = Math.round;
-      // Простое округление может дать дрейф — оставляем как есть
+      m.mesh.position.set(Math.round(m.mesh.position.x),Math.round(m.mesh.position.y),Math.round(m.mesh.position.z));
     }
     this.cubeGroup.remove(pivot);
   }
   _animate(){
     requestAnimationFrame(()=>this._animate());
-    if(this.autoRotate){
-      this.cubeGroup.rotation.y += 0.004;
-    }
-    this.renderer.render(this.scene, this.camera);
+    if(this.autoRotate)this.cubeGroup.rotation.y+=0.004;
+    this.renderer.render(this.scene,this.camera);
   }
 }
 
@@ -1004,529 +742,485 @@ class Viewer {
    COLOR CLASSIFICATION
    ============================================================ */
 function rgbToHsv(r,g,b){
-  r/=255; g/=255; b/=255;
-  const max = Math.max(r,g,b), min = Math.min(r,g,b);
-  const d = max-min;
-  let h = 0;
+  r/=255;g/=255;b/=255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+  let h=0;
   if(d!==0){
-    if(max===r) h = ((g-b)/d) % 6;
-    else if(max===g) h = (b-r)/d + 2;
-    else h = (r-g)/d + 4;
-    h *= 60; if(h<0) h+=360;
+    if(max===r)h=((g-b)/d)%6;
+    else if(max===g)h=(b-r)/d+2;
+    else h=(r-g)/d+4;
+    h*=60;if(h<0)h+=360;
   }
-  const s = max===0? 0 : d/max;
-  const v = max;
-  return [h, s, v];
+  return[h,max===0?0:d/max,max];
 }
-
-// Эталонные HSV-центры (учитывая, что камера может давать тёплый/холодный оттенок)
-// Мы используем адаптивный подход: сравниваем с ЦЕНТРАМИ отсканированных граней, а не с абсолютными константами
-const HUE_CENTERS = {
-  R: 0,    O: 30,   Y: 55,   G: 120,  B: 220
-};
-
+const HUE_CENTERS={R:0,O:30,Y:55,G:120,B:220};
 function classifyHSV(r,g,b){
-  const [h,s,v] = rgbToHsv(r,g,b);
-  // Белый: низкая насыщенность и высокая яркость
-  if(s < 0.18 && v > 0.5) return {c:'W', conf: 0.9, hsv:[h,s,v]};
-  // Чёрный / тень
-  if(v < 0.15) return {c:null, conf: 0, hsv:[h,s,v]};
-  // Классификация по hue
-  let best = null, bestDist = 1e9;
-  for(const [col, hue] of Object.entries(HUE_CENTERS)){
-    let d = Math.abs(h-hue);
-    if(d>180) d = 360-d;
-    if(d < bestDist){ bestDist = d; best = col; }
+  const[h,s,v]=rgbToHsv(r,g,b);
+  if(s<0.18&&v>0.5)return{c:'W',conf:0.9};
+  if(v<0.15)return{c:null,conf:0};
+  let best=null,bestD=1e9;
+  for(const[col,hue]of Object.entries(HUE_CENTERS)){
+    let d=Math.abs(h-hue);if(d>180)d=360-d;
+    if(d<bestD){bestD=d;best=col;}
   }
-  // Уверенность: чем меньше расстояние — тем выше
-  const conf = Math.max(0, 1 - bestDist/60);
-  return {c: best, conf, hsv:[h,s,v]};
+  const conf=Math.max(0,1-bestD/60);
+  return{c:best,conf};
 }
 
 /* ============================================================
-   UI / APP LOGIC
+   APP
    ============================================================ */
-const App = {
+const App={
   state:{
-    // scanned[face] = {colors:[9], conf:[9], rotation:0}
-    scanned: {},
-    currentFace: null,       // 'F','R',...
-    currentCapture: null,    // {colors:[9], conf:[9]}
-    facelets: null,          // 54-цветный массив
-    solution: [],
-    step: 0,
-    cube: null,
-    editingIdx: -1
+    scanned:{},currentFace:null,currentCapture:null,
+    solution:[],step:0,cube:null,editingIdx:-1,manualFaceEditor:null,
+    liveActive:false
   },
-  video: null,
-  stream: null,
-  canvas: null,
-  viewer: null,
-  order: ['F','R','B','L','U','D'],
+  video:null,stream:null,viewer:null,
+  order:['F','R','B','L','U','D'],
+  _canvas:null,_ctx:null,_lastLive:0,_rafId:null,_liveRes:null,
 
-  toast(msg, kind=''){
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast on '+kind;
+  toast(msg,kind=''){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.className='toast on '+kind;
     clearTimeout(this._tT);
-    this._tT = setTimeout(()=>t.className='toast '+kind, 2600);
+    this._tT=setTimeout(()=>t.className='toast '+kind,2600);
   },
+  show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');},
 
-  show(id){
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
-    document.getElementById(id).classList.add('on');
-  },
-
-  // ============ MANUAL MODE ============
-  openManual(){
-    // Создаём пустое состояние из 6 граней
-    this.state.scanned = {};
-    for(const f of FACES) this.state.scanned[f] = {colors: new Array(9).fill(null), conf: new Array(9).fill(0)};
-    this.state.manualMode = true;
-    this._renderVerify();
-    this.show('s-verify');
-  },
-  closeManual(){ document.getElementById('manualModal').classList.remove('on'); },
-
-  // ============ CAMERA ============
+  // CAMERA
   async startScan(){
-    this.state.manualMode = false;
-    this.state.scanned = {};
-    this.state.step = 0;
-    this.state.currentFace = null;
+    this.state.scanned={};this.state.step=0;this.state.currentFace=null;
     try{
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video:{ facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720} }
+      this.stream=await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}
       });
-      const v = document.getElementById('cam');
-      v.srcObject = this.stream;
+      const v=document.getElementById('cam');
+      v.srcObject=this.stream;
       await v.play();
       document.getElementById('camWrap').classList.add('on');
+      this._buildLiveMini();
       this.nextFace();
+      this._startLive();
     }catch(e){
       console.error(e);
-      let msg = 'Не удалось получить доступ к камере';
-      if(e.name==='NotAllowedError') msg = 'Вы запретили доступ к камере. Разрешите его в настройках браузера.';
-      else if(e.name==='NotFoundError') msg = 'Камера не найдена на этом устройстве.';
-      else if(!navigator.mediaDevices) msg = 'Ваш браузер не поддерживает доступ к камере.';
-      this.toast(msg, 'err');
-      // Предложим ручной режим
-      setTimeout(()=>{
-        if(confirm(msg+'\n\nПерейти к ручному вводу?')) this.openManual();
-      }, 300);
+      let msg='Не удалось получить доступ к камере';
+      if(e.name==='NotAllowedError')msg='Вы запретили доступ к камере. Разрешите в настройках браузера.';
+      else if(e.name==='NotFoundError')msg='Камера не найдена на этом устройстве.';
+      else if(!navigator.mediaDevices)msg='Ваш браузер не поддерживает доступ к камере.';
+      this.toast(msg,'err');
+      setTimeout(()=>{if(confirm(msg+'\n\nПерейти к ручному вводу?'))this.openManual();},300);
     }
   },
   stopScan(){
-    if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+    this._stopLive();
+    if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}
     document.getElementById('camWrap').classList.remove('on');
     this.show('s-home');
   },
   nextFace(){
-    const done = Object.keys(this.state.scanned);
-    const remaining = this.order.filter(f=>!done.includes(f));
-    if(remaining.length === 0){
+    const done=Object.keys(this.state.scanned);
+    const remaining=this.order.filter(f=>!done.includes(f));
+    if(remaining.length===0){
+      this._stopLive();
       document.getElementById('camWrap').classList.remove('on');
-      if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+      if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}
       this.finishScan();
       return;
     }
-    this.state.currentFace = remaining[0];
-    const total = this.order.length;
-    const num = total - remaining.length + 1;
-    document.getElementById('camFaceChip').textContent = `Сторона ${num} из ${total} — ${this._faceName(this.state.currentFace)}`;
-    document.getElementById('camHint').textContent = this._holdInstruction(this.state.currentFace);
+    this.state.currentFace=remaining[0];
+    const total=this.order.length,num=total-remaining.length+1;
+    document.getElementById('camFaceChip').textContent=`Сторона ${num} из ${total} — ${this._faceName(this.state.currentFace)}`;
+    document.getElementById('camHint').textContent=this._holdInstruction(this.state.currentFace);
   },
   _faceName(f){
-    const names = {U:'Верхняя (U)',R:'Правая (R)',F:'Передняя (F)',D:'Нижняя (D)',L:'Левая (L)',B:'Задняя (B)'};
-    return names[f] || f;
+    return{U:'Верхняя (U)',R:'Правая (R)',F:'Передняя (F)',D:'Нижняя (D)',L:'Левая (L)',B:'Задняя (B)'}[f]||f;
   },
   _holdInstruction(f){
-    const hints = {
+    return{
       F:'Держите кубик передней гранью к камере, верх — сверху',
-      R:'Поверните кубик вправо (по часовой), верх — сверху',
+      R:'Поверните кубик вправо, верх — сверху',
       B:'Поверните кубик на 180°, верх — сверху',
-      L:'Поверните кубик влево (против часовой), верх — сверху',
-      U:'Наклоните кубик верхней гранью к камере, передняя — снизу',
-      D:'Переверните кубик нижней гранью к камере, передняя — сверху'
-    };
-    return hints[f] || 'Наведите грань в рамку';
+      L:'Поверните кубик влево, верх — сверху',
+      U:'Наклоните верхней гранью к камере, передняя — снизу',
+      D:'Переверните нижней гранью к камере, передняя — сверху'
+    }[f]||'Наведите грань в рамку';
   },
-  capture(){
-    const video = document.getElementById('cam');
-    if(!video.videoWidth){ this.toast('Камера ещё не готова', 'err'); return; }
-    const c = document.createElement('canvas');
-    c.width = video.videoWidth; c.height = video.videoHeight;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(video, 0, 0);
 
-    // Область сканирования — квадрат в центре экрана
-    // Соответствует .grid3 — берём min(78vw,78vh) в пикселях экрана, маппим на видео
-    const rect = document.querySelector('.grid3').getBoundingClientRect();
-    const vRect = video.getBoundingClientRect();
-    // Масштаб между отображением и реальным видео (object-fit: cover)
-    const vAspect = video.videoWidth / video.videoHeight;
-    const dAspect = vRect.width / vRect.height;
-    let scaleX = video.videoWidth / vRect.width;
-    let scaleY = video.videoHeight / vRect.height;
-    let offX = 0, offY = 0;
-    if(vAspect > dAspect){
-      // видео шире — обрезано по бокам
-      const renderedW = vRect.height * vAspect;
-      offX = (renderedW - vRect.width) / 2 * scaleX;
-    } else {
-      const renderedH = vRect.width / vAspect;
-      offY = (renderedH - vRect.height) / 2 * scaleY;
+  // ===== REAL-TIME SAMPLING =====
+  _buildLiveMini(){
+    const el=document.getElementById('liveMini');
+    el.innerHTML='';
+    for(let i=0;i<9;i++){
+      const d=document.createElement('div');
+      d.className='none';
+      el.appendChild(d);
     }
-    const srcX = (rect.left - vRect.left) * scaleX + offX;
-    const srcY = (rect.top - vRect.top) * scaleY + offY;
-    const srcW = rect.width * scaleX;
-    const srcH = rect.height * scaleY;
-
-    // 9 областей
-    const colors = [];
-    const confs = [];
-    let sumConf = 0;
-    for(let r=0; r<3; r++){
-      for(let cc=0; cc<3; cc++){
-        const cellX = srcX + srcW * (cc/3 + 0.1/3);
-        const cellY = srcY + srcH * (r/3 + 0.1/3);
-        const cellW = srcW * 0.8/3;
-        const cellH = srcH * 0.8/3;
-        // Средний цвет клетки
-        const sample = 8;
-        let sr=0,sg=0,sb=0, cnt=0;
-        for(let dy=0; dy<sample; dy++) for(let dx=0; dx<sample; dx++){
-          const px = Math.floor(cellX + cellW*(dx+0.5)/sample);
-          const py = Math.floor(cellY + cellH*(dy+0.5)/sample);
-          if(px<0||py<0||px>=c.width||py>=c.height) continue;
-          const d = ctx.getImageData(px, py, 1, 1).data;
-          sr+=d[0]; sg+=d[1]; sb+=d[2]; cnt++;
-        }
-        const ar = sr/cnt, ag = sg/cnt, ab = sb/cnt;
-        const {c: col, conf} = classifyHSV(ar, ag, ab);
-        colors.push(col);
-        confs.push(conf);
-        sumConf += conf;
-      }
+  },
+  _startLive(){
+    this.state.liveActive=true;
+    this._lastLive=0;
+    const tick=()=>{
+      if(!this.state.liveActive)return;
+      this._rafId=requestAnimationFrame(tick);
+      const now=performance.now();
+      if(now-this._lastLive<150)return;
+      this._lastLive=now;
+      const res=this._sampleGrid();
+      if(res)this._applyLiveResult(res);
+    };
+    this._rafId=requestAnimationFrame(tick);
+  },
+  _stopLive(){
+    this.state.liveActive=false;
+    if(this._rafId){cancelAnimationFrame(this._rafId);this._rafId=null;}
+  },
+  _sampleGrid(){
+    const video=document.getElementById('cam');
+    if(!video||!video.videoWidth)return null;
+    const S=96;
+    if(!this._canvas){
+      this._canvas=document.createElement('canvas');
+      this._canvas.width=S;this._canvas.height=S;
+      this._ctx=this._canvas.getContext('2d',{willReadFrequently:true});
     }
-    const avgConf = sumConf / 9;
+    const ctx=this._ctx;
+    const rect=document.querySelector('.grid3').getBoundingClientRect();
+    const vRect=video.getBoundingClientRect();
+    const vAspect=video.videoWidth/video.videoHeight;
+    const dAspect=vRect.width/vRect.height;
+    const sx=video.videoWidth/vRect.width;
+    const sy=video.videoHeight/vRect.height;
+    let offX=0,offY=0;
+    if(vAspect>dAspect){const rw=vRect.height*vAspect;offX=(rw-vRect.width)/2*sx;}
+    else{const rh=vRect.width/vAspect;offY=(rh-vRect.height)/2*sy;}
+    const srcX=(rect.left-vRect.left)*sx+offX;
+    const srcY=(rect.top-vRect.top)*sy+offY;
+    const srcW=rect.width*sx;
+    const srcH=rect.height*sy;
+    try{
+      ctx.drawImage(video,srcX,srcY,srcW,srcH,0,0,S,S);
+    }catch(e){return null;}
+    const colors=[],confs=[];let sumConf=0;
+    for(let r=0;r<3;r++)for(let c=0;c<3;c++){
+      const cx=Math.floor((c+0.5)/3*S);
+      const cy=Math.floor((r+0.5)/3*S);
+      const half=4;
+      const img=ctx.getImageData(cx-half,cy-half,half*2,half*2).data;
+      let sr=0,sg=0,sb=0,n=0;
+      for(let i=0;i<img.length;i+=4){sr+=img[i];sg+=img[i+1];sb+=img[i+2];n++;}
+      const res=classifyHSV(sr/n,sg/n,sb/n);
+      colors.push(res.c);confs.push(res.conf);sumConf+=res.conf;
+    }
+    return{colors,confs,avgConf:sumConf/9};
+  },
+  _applyLiveResult(res){
+    this._liveRes=res;
+    const el=document.getElementById('liveMini');
+    for(let i=0;i<9;i++){
+      const d=el.children[i];
+      let cls='';
+      if(res.colors[i])cls=COLOR_CSS[res.colors[i]];
+      else cls='none';
+      if(res.confs[i]<0.4)cls+=' gray';
+      d.className=cls;
+    }
+    document.getElementById('liveConf').textContent=Math.round(res.avgConf*100)+'%';
+    document.getElementById('camConfChip').textContent='Уверенность '+Math.round(res.avgConf*100)+'%';
+  },
 
-    // Определяем центральный цвет → это определяет грань
-    const centerColor = colors[4];
-    if(centerColor === null){
-      this.toast('Не удалось распознать центральный стикер', 'err');
+  // Пользователь нажал "Дальше" или "Правка"
+  proceed(){
+    if(!this._liveRes){this.toast('Камера ещё не готова','err');return;}
+    const center=this._liveRes.colors[4];
+    if(!center){this.toast('Не вижу центральный стикер','err');return;}
+    const expected=this.state.currentFace;
+    const expColor=EXPECTED_CENTER[expected];
+    if(center!==expColor){
+      this.toast(`Центр должен быть ${COLOR_NAME[expColor]}, вижу ${COLOR_NAME[center]}`,'err');
       return;
     }
-    // Проверка соответствия ожидаемой грани
-    const expectedFace = this.state.currentFace;
-    const expectedColor = {U:'W', R:'R', F:'G', D:'Y', L:'O', B:'B'}[expectedFace];
-    if(centerColor !== expectedColor){
-      this.toast(`Центр должен быть ${COLOR_NAME[expectedColor]} (сейчас ${COLOR_NAME[centerColor]}). Переверните кубик.`, 'err');
-      // Всё равно продолжим — но пометим несоответствие
+    // дубликаты
+    for(const[f,data]of Object.entries(this.state.scanned)){
+      if(f!==expected&&data.colors[4]===center){
+        this.toast(`Цвет ${COLOR_NAME[center]} уже использован`,'err');
+        return;
+      }
     }
-
-    this.state.currentCapture = { colors, confs, avgConf, detectedFace: COLOR_TO_FACE[centerColor] };
-    document.getElementById('camConfChip').textContent = `Уверенность ${Math.round(avgConf*100)}%`;
-
-    // Показываем экран подтверждения
+    // Открываем экран подтверждения/правки
+    this.state.currentCapture={
+      colors:this._liveRes.colors.slice(),
+      confs:this._liveRes.confs.slice(),
+      avgConf:this._liveRes.avgConf
+    };
+    this._stopLive();
     this._renderConfirm();
   },
   retake(){
     document.getElementById('camWrap').classList.add('on');
-    this.show('s-home');
-    document.getElementById('camWrap').classList.add('on');
-    // Показываем экран камеры
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
-    document.getElementById('camWrap').classList.add('on');
+    if(this.stream&&this.state.liveActive===false){
+      this._startLive();
+    }
   },
   _renderConfirm(){
-    const cap = this.state.currentCapture;
-    const grid = document.getElementById('confirmGrid');
-    grid.innerHTML = '';
-    for(let i=0; i<9; i++){
-      const d = document.createElement('div');
-      const c = cap.colors[i];
-      d.className = c ? COLOR_CSS[c] : 'gW gray';
-      if(cap.confs[i] < 0.4) d.classList.add('gray');
-      d.dataset.idx = i;
-      d.style.cursor = 'pointer';
-      d.onclick = ()=> App._openPalette(i);
+    const cap=this.state.currentCapture;
+    if(!cap){this.retake();return;}
+    const grid=document.getElementById('confirmGrid');
+    grid.innerHTML='';
+    for(let i=0;i<9;i++){
+      const d=document.createElement('div');
+      const c=cap.colors[i];
+      d.className=c?COLOR_CSS[c]:'none';
+      if(cap.confs[i]<0.4)d.classList.add('gray');
+      d.style.cursor='pointer';
+      d.onclick=()=>App._openPalette(i);
       grid.appendChild(d);
     }
-    document.getElementById('confValue').textContent = Math.round(cap.avgConf*100)+'%';
-    document.getElementById('confirmTitle').textContent = this._faceName(this.state.currentFace);
+    document.getElementById('confValue').textContent=Math.round(cap.avgConf*100)+'%';
+    document.getElementById('confirmTitle').textContent=this._faceName(this.state.currentFace);
     this.show('s-confirm');
   },
   _openPalette(gridIdx){
-    this.state.editingIdx = gridIdx;
-    const pal = document.getElementById('palette');
-    pal.innerHTML = '';
+    this.state.editingIdx=gridIdx;
+    const pal=document.getElementById('palette');
+    pal.innerHTML='';
     for(const c of COLORS){
-      const b = document.createElement('div');
-      b.className = 'pal '+COLOR_CSS[c];
-      b.onclick = ()=>{ App._setColor(c); };
+      const b=document.createElement('div');
+      b.className='pal '+COLOR_CSS[c];
+      b.onclick=()=>App._setColor(c);
       pal.appendChild(b);
     }
-    document.getElementById('manualSub').textContent = `Клетка #${gridIdx+1}`;
+    document.getElementById('manualSub').textContent='Клетка #'+(gridIdx+1);
     document.getElementById('manualModal').classList.add('on');
   },
+  closeManual(){document.getElementById('manualModal').classList.remove('on');},
   _setColor(c){
-    if(this.state.editingIdx<0) return;
+    if(this.state.editingIdx<0)return;
     if(this.state.currentCapture){
-      this.state.currentCapture.colors[this.state.editingIdx] = c;
-      this.state.currentCapture.confs[this.state.editingIdx] = 1;
+      this.state.currentCapture.colors[this.state.editingIdx]=c;
+      this.state.currentCapture.confs[this.state.editingIdx]=1;
       this.closeManual();
       this._renderConfirm();
-    } else if(this.state.manualFaceEditor !== undefined){
-      // в ручном режиме
-      this.state.scanned[this.state.manualFaceEditor].colors[this.state.editingIdx] = c;
+    }else if(this.state.manualFaceEditor){
+      this.state.scanned[this.state.manualFaceEditor].colors[this.state.editingIdx]=c;
       this.closeManual();
       this._renderVerify();
     }
   },
   saveFace(){
-    const cap = this.state.currentCapture;
-    if(!cap) return;
-    // Проверяем что центральный цвет уникален
-    const center = cap.colors[4];
-    for(const [f, data] of Object.entries(this.state.scanned)){
-      if(data.colors[4] === center && f !== this.state.currentFace){
-        this.toast(`Цвет ${COLOR_NAME[center]} уже использован для грани ${f}`, 'err');
+    const cap=this.state.currentCapture;
+    if(!cap)return;
+    const center=cap.colors[4];
+    for(const[f,data]of Object.entries(this.state.scanned)){
+      if(f!==this.state.currentFace&&data.colors[4]===center){
+        this.toast('Этот цвет уже использован для другой грани','err');
         return;
       }
     }
-    this.state.scanned[this.state.currentFace] = {
-      colors: cap.colors.slice(),
-      conf: cap.confs.slice(),
-      rotation: 0
+    this.state.scanned[this.state.currentFace]={
+      colors:cap.colors.slice(),
+      conf:cap.confs.slice()
     };
-    this.state.currentCapture = null;
-    this.toast(`✓ Сторона ${this.state.currentFace} сохранена`, 'ok');
+    this.state.currentCapture=null;
+    this.toast('✓ '+this._faceName(this.state.currentFace)+' сохранена','ok');
+    document.getElementById('camWrap').classList.add('on');
     this.nextFace();
+    if(this.state.liveActive===false&&this.stream){
+      this._startLive();
+    }
   },
 
-  // ============ FINISH / VERIFY ============
-  finishScan(){
-    this.state.manualMode = false;
+  // MANUAL
+  openManual(){
+    this.state.scanned={};
+    for(const f of FACES)this.state.scanned[f]={colors:new Array(9).fill(null),conf:new Array(9).fill(0)};
     this._renderVerify();
     this.show('s-verify');
   },
+
+  // VERIFY
+  finishScan(){this._renderVerify();this.show('s-verify');},
   _renderVerify(){
-    // Показ всех граней
-    const fr = document.getElementById('verifyFaces');
-    fr.innerHTML = '';
+    const fr=document.getElementById('verifyFaces');
+    fr.innerHTML='';
     for(const f of FACES){
-      const data = this.state.scanned[f];
-      const chip = document.createElement('div');
-      chip.className = 'face-chip' + (data ? '' : ' done');
-      chip.innerHTML = `<div class="letter">${f}</div><div class="label">${data?'✓':'—'}</div>`;
-      chip.onclick = ()=>{ App._editFace(f); };
+      const d=this.state.scanned[f];
+      const chip=document.createElement('div');
+      chip.className='face-chip'+(d?'':' done');
+      chip.innerHTML=`<div class="letter">${f}</div><div class="label">${d?'✓':'—'}</div>`;
+      chip.onclick=()=>App._editFace(f);
       fr.appendChild(chip);
     }
-    // Счётчики
-    const cnt = {W:0,Y:0,R:0,O:0,B:0,G:0};
+    const cnt={W:0,Y:0,R:0,O:0,B:0,G:0};
     for(const f of FACES){
-      const d = this.state.scanned[f];
-      if(!d) continue;
-      for(const c of d.colors) if(c) cnt[c]++;
+      const d=this.state.scanned[f];
+      if(!d)continue;
+      for(const c of d.colors)if(c)cnt[c]++;
     }
-    document.getElementById('cntW').textContent = cnt.W;
-    document.getElementById('cntY').textContent = cnt.Y;
-    document.getElementById('cntR').textContent = cnt.R;
-    document.getElementById('cntO').textContent = cnt.O;
-    document.getElementById('cntB').textContent = cnt.B;
-    document.getElementById('cntG').textContent = cnt.G;
-
-    // Проверка
-    const allDone = FACES.every(f=>this.state.scanned[f] && this.state.scanned[f].colors.every(c=>c));
-    const validCounts = COLORS.every(c=>cnt[c]===9);
-    const btn = document.getElementById('btnSolve');
-    const msg = document.getElementById('verifyMsg');
+    document.getElementById('cntW').textContent=cnt.W;
+    document.getElementById('cntY').textContent=cnt.Y;
+    document.getElementById('cntR').textContent=cnt.R;
+    document.getElementById('cntO').textContent=cnt.O;
+    document.getElementById('cntB').textContent=cnt.B;
+    document.getElementById('cntG').textContent=cnt.G;
+    const allDone=FACES.every(f=>this.state.scanned[f]&&this.state.scanned[f].colors.every(c=>c));
+    const validCounts=COLORS.every(c=>cnt[c]===9);
+    const btn=document.getElementById('btnSolve');
+    const msg=document.getElementById('verifyMsg');
     if(!allDone){
-      msg.textContent = 'Не все стороны заполнены. Нажмите на чип грани, чтобы отредактировать.';
-      msg.style.color = 'var(--warn)';
-      btn.disabled = true;
-    } else if(!validCounts){
-      msg.textContent = 'Каждого цвета должно быть ровно 9. Проверьте грани с ошибками.';
-      msg.style.color = 'var(--err)';
-      btn.disabled = true;
-    } else {
-      msg.textContent = '✓ Кубик успешно отсканирован. Можно рассчитать решение.';
-      msg.style.color = 'var(--ok)';
-      btn.disabled = false;
+      msg.textContent='Не все стороны заполнены. Нажмите на чип грани для правки.';
+      msg.style.color='var(--warn)';
+      btn.disabled=true;
+    }else if(!validCounts){
+      msg.textContent='Каждого цвета должно быть ровно 9. Проверьте грани.';
+      msg.style.color='var(--err)';
+      btn.disabled=true;
+    }else{
+      msg.textContent='✓ Кубик успешно отсканирован.';
+      msg.style.color='var(--ok)';
+      btn.disabled=false;
     }
   },
   _editFace(f){
-    this.state.manualFaceEditor = f;
-    const d = this.state.scanned[f] || {colors: new Array(9).fill(null)};
-    // Открываем упрощённый редактор через прямое редактирование 9 клеток
-    // Переиспользуем модальное окно выбора цвета
-    this.state.manualFaceEditor = f;
-    // Сразу открываем "сетку подтверждения" для этой грани
-    this.state.currentCapture = {
-      colors: d.colors.slice(),
-      confs: d.colors.map(()=>1),
-      avgConf: 1
+    this.state.manualFaceEditor=f;
+    const d=this.state.scanned[f];
+    this.state.currentCapture={
+      colors:d.colors.slice(),
+      confs:d.colors.map(c=>c?1:0),
+      avgConf:1
     };
-    this.state.currentFace = f;
+    this.state.currentFace=f;
     this._renderConfirm();
   },
 
-  // ============ SOLVE ============
+  // SOLVE
   solve(){
-    // Собираем 54-элементный массив в порядке U,R,F,D,L,B
-    const f = new Array(54).fill(null);
-    for(let fi=0; fi<6; fi++){
-      const fname = FACES[fi];
-      const data = this.state.scanned[fname];
-      if(!data) continue;
-      for(let i=0;i<9;i++){
-        f[fi*9+i] = data.colors[i];
-      }
+    const f=new Array(54).fill(null);
+    for(let fi=0;fi<6;fi++){
+      const data=this.state.scanned[FACES[fi]];
+      if(!data)continue;
+      for(let i=0;i<9;i++)f[fi*9+i]=data.colors[i];
     }
-    // Проверяем что центр соответствует
-    for(let fi=0; fi<6; fi++){
-      const centerColor = f[fi*9+4];
-      const expected = {U:'W', R:'R', F:'G', D:'Y', L:'O', B:'B'}[FACES[fi]];
-      if(centerColor !== expected){
-        this.toast(`Центр грани ${FACES[fi]} должен быть ${COLOR_NAME[expected]}`, 'err');
+    for(let fi=0;fi<6;fi++){
+      const centerColor=f[fi*9+4];
+      const expected=EXPECTED_CENTER[FACES[fi]];
+      if(centerColor!==expected){
+        this.toast(`Центр грани ${FACES[fi]} должен быть ${COLOR_NAME[expected]}`,'err');
         return;
       }
     }
-    // Строим кубик из facelets
-    const cube = faceletsToCube(f);
-    // Проверяем валидность (каждого цвета ровно 9)
-    const cnt = {};
-    for(const c of f) cnt[c]=(cnt[c]||0)+1;
-    for(const c of COLORS) if(cnt[c]!==9){ this.toast('Неправильное количество цветов', 'err'); return; }
+    const cnt={};
+    for(const c of f)cnt[c]=(cnt[c]||0)+1;
+    for(const c of COLORS)if(cnt[c]!==9){this.toast('Неправильное количество цветов','err');return;}
 
-    // Запускаем solver
-    let solution;
-    try{
-      solution = solveCube(f.slice());
-    }catch(err){
-      console.error(err);
-      this.toast('Ошибка solver: '+err.message, 'err');
-      return;
-    }
-    if(!solution || solution.length===0){
-      this.toast('Кубик уже собран или решение не найдено', 'err');
-      return;
-    }
-    this.state.solution = solution;
-    this.state.step = 0;
-    this.state.cube = cube;
-    // Открываем экран решения
     this.show('s-solve');
-    // Создаём viewer если его нет
-    if(!this.viewer){
-      this.viewer = new Viewer(document.getElementById('viewer'));
-    }
-    // Небольшая задержка чтобы контейнер получил размеры
+    const cube=faceletsToCube(f);
+    let solution;
+    try{solution=solveCube(f.slice());}
+    catch(err){console.error(err);this.toast('Ошибка solver: '+err.message,'err');this.show('s-verify');return;}
+
+    if(!solution||solution.length===0){this.toast('Не удалось решить кубик','err');this.show('s-verify');return;}
+
+    this.state.solution=solution;
+    this.state.step=0;
+    this.state.cube=cube;
+    if(!this.viewer)this.viewer=new Viewer(document.getElementById('viewer'));
     requestAnimationFrame(()=>{
       this.viewer._resize();
       this.viewer.buildFromCube(cube);
     });
-    document.getElementById('solveInfo').textContent = `Решение: ${solution.length} ходов`;
+    document.getElementById('solveInfo').textContent='Решение: '+solution.length+' ходов';
     this._updateStepUI();
+    // AI подсказка
+    aiService.tip(`кубик решён, ${solution.length} ходов, пользователь начинает сборку`).then(t=>{
+      if(t)document.getElementById('aiTip').textContent='🤖 '+t;
+    });
   },
-
   _updateStepUI(){
-    const sol = this.state.solution;
-    const step = this.state.step;
-    const bar = document.getElementById('progressBar');
-    const mv = document.getElementById('stepMove');
-    const desc = document.getElementById('stepDesc');
-    const next = document.getElementById('nextBtn');
-    bar.style.width = (step/sol.length*100)+'%';
-    if(step >= sol.length){
-      mv.textContent = '✓';
-      desc.textContent = 'Все ходы выполнены. Кубик должен быть собран!';
-      next.textContent = 'Проверить результат';
-      next.disabled = false;
+    const sol=this.state.solution,step=this.state.step;
+    document.getElementById('progressBar').style.width=(step/sol.length*100)+'%';
+    const mv=document.getElementById('stepMove'),desc=document.getElementById('stepDesc'),next=document.getElementById('nextBtn');
+    if(step>=sol.length){
+      mv.textContent='✓';
+      desc.textContent='Все ходы выполнены. Кубик должен быть собран!';
+      next.textContent='Проверить результат';
       return;
     }
-    const m = sol[step];
-    mv.textContent = m.replace("'", '′');
-    desc.textContent = moveDescription(m);
-    next.textContent = 'Следующий шаг →';
-    next.disabled = false;
+    const m=sol[step];
+    mv.textContent=m.replace("'",'′');
+    desc.textContent=moveDescription(m);
+    next.textContent='Следующий шаг →';
+    // AI подсказка на каждом шаге (кэшируется)
+    aiService.tip(`шаг ${step+1} из ${sol.length}, ход ${m}`).then(t=>{
+      if(t)document.getElementById('aiTip').textContent='🤖 '+t;
+    });
   },
-  nextStep(){
-    const sol = this.state.solution;
-    if(this.state.step >= sol.length){
-      // Показываем "Кубик собран"
-      document.getElementById('doneInfo').textContent = `Вы сделали ${sol.length} ходов`;
+  async nextStep(){
+    const sol=this.state.solution;
+    if(this.state.step>=sol.length){
+      document.getElementById('doneInfo').textContent=`Вы сделали ${sol.length} ходов`;
       this.show('s-done');
       return;
     }
-    const m = sol[this.state.step];
+    const m=sol[this.state.step];
     this.state.step++;
-    // Анимируем
     if(this.viewer){
-      this.viewer.animateMove(m).then(()=>{
-        // Обновляем кубик модели
-        this.state.cube.move(m);
-        this._updateStepUI();
-      });
-    } else {
-      this._updateStepUI();
+      await this.viewer.animateMove(m);
+    }
+    this.state.cube.move(m);
+    this._updateStepUI();
+  },
+  async prevStep(){
+    if(this.state.step<=0)return;
+    this.state.step--;
+    const cube=faceletsToCube(this._originalFacelets());
+    for(let i=0;i<this.state.step;i++)cube.move(this.state.solution[i]);
+    this.state.cube=cube;
+    if(this.viewer){
+      this.viewer.autoRotate=false;
+      this.viewer.buildFromCube(cube);
     }
     this._updateStepUI();
   },
-  prevStep(){
-    // Простой откат: пересобираем кубик с нуля
-    if(this.state.step <= 0) return;
-    this.state.step--;
-    const cube = faceletsToCube(this._originalFacelets());
-    for(let i=0;i<this.state.step;i++) cube.move(this.state.solution[i]);
-    this.state.cube = cube;
-    if(this.viewer) this.viewer.buildFromCube(cube);
-    this._updateStepUI();
-  },
   _originalFacelets(){
-    const f = new Array(54).fill(null);
-    for(let fi=0; fi<6; fi++){
-      const fname = FACES[fi];
-      const data = this.state.scanned[fname];
-      if(!data) continue;
-      for(let i=0;i<9;i++) f[fi*9+i] = data.colors[i];
+    const f=new Array(54).fill(null);
+    for(let fi=0;fi<6;fi++){
+      const data=this.state.scanned[FACES[fi]];
+      if(!data)continue;
+      for(let i=0;i<9;i++)f[fi*9+i]=data.colors[i];
     }
     return f;
   },
   reset(){
-    this.state.scanned = {};
-    this.state.solution = [];
-    this.state.step = 0;
-    this.state.cube = null;
-    this.state.currentCapture = null;
-    this.state.manualMode = false;
+    this._stopLive();
+    if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}
+    document.getElementById('camWrap').classList.remove('on');
+    this.state.scanned={};
+    this.state.solution=[];
+    this.state.step=0;
+    this.state.cube=null;
+    this.state.currentCapture=null;
+    this.state.currentFace=null;
+    document.getElementById('aiTip').textContent='';
     this.show('s-home');
   }
 };
 
 function moveDescription(m){
-  const face = m[0];
-  const mod = m.slice(1);
-  const names = {U:'верхнюю', R:'правую', F:'переднюю', D:'нижнюю', L:'левую', B:'заднюю'};
-  const faceName = names[face] || face;
-  if(mod === "'") return `Поверните ${faceName} грань против часовой стрелки.`;
-  if(mod === '2') return `Поверните ${faceName} грань на 180°.`;
-  return `Поверните ${faceName} грань по часовой стрелке.`;
+  const face=m[0],mod=m.slice(1);
+  const names={U:'верхнюю',R:'правую',F:'переднюю',D:'нижнюю',L:'левую',B:'заднюю'};
+  const n=names[face]||face;
+  if(mod==="'")return`Поверните ${n} грань против часовой стрелки.`;
+  if(mod==='2')return`Поверните ${n} грань на 180°.`;
+  return`Поверните ${n} грань по часовой стрелке.`;
 }
 
-/* ============================================================
-   INIT
-   ============================================================ */
-window.App = App;
-window.addEventListener('resize', ()=> App.viewer && App.viewer._resize());
+window.App=App;
+window.addEventListener('resize',()=>App.viewer&&App.viewer._resize());
 
-// Проверка поддержки камеры
-if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-  console.warn('Камера недоступна');
-}
-
-console.log('%cRubik AI загружен','color:#7c5cff;font-size:14px;font-weight:bold');
+console.log('%cRubik AI','color:#7c5cff;font-size:16px;font-weight:bold');
+console.log('Gemini API:',aiService.enabled?'ключ указан':'ключ отсутствует');
 </script>
 </body>
 </html>
