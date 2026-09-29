@@ -1,1664 +1,2133 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>Карта · iOS 26 Liquid Glass</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Тень в доме</title>
 <style>
-  /* ============================================================
-     ТОКЕНЫ / ПЕРЕМЕННЫЕ ОФОРМЛЕНИЯ
-     ============================================================ */
-  :root {
-    --glass-bg: rgba(255, 255, 255, 0.55);
-    --glass-bg-strong: rgba(255, 255, 255, 0.72);
-    --glass-border: rgba(255, 255, 255, 0.65);
-    --glass-blur: 32px;
-    --glass-saturate: 180%;
-
-    --ink: #1c1c1e;
-    --ink-soft: rgba(28, 28, 30, 0.55);
-    --hairline: rgba(60, 60, 67, 0.12);
-
-    --accent: #0a84ff;
-    --danger: #ff453a;
-    --success: #30d158;
-
-    --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.04);
-    --shadow-lifted: 0 24px 64px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.08);
-
-    --radius-huge: 36px;
-    --radius-pill: 999px;
-
-    --spring: cubic-bezier(0.34, 1.35, 0.4, 1);
-    --spring-fast: cubic-bezier(0.32, 1.1, 0.4, 1);
-  }
-
-  body.dark {
-    --glass-bg: rgba(30, 30, 32, 0.65);
-    --glass-bg-strong: rgba(35, 35, 38, 0.82);
-    --glass-border: rgba(255, 255, 255, 0.15);
-    --ink: #f0f0f2;
-    --ink-soft: rgba(240, 240, 242, 0.6);
-    --hairline: rgba(255, 255, 255, 0.1);
-  }
-
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: var(--ink);
-    background: #eef0f2;
-    transition: background 300ms ease, color 300ms ease;
-  }
-
-  body.dark { background: #121214; }
-
-  /* ============================================================
-     ЭКРАН КАТАЛОГА ПРИЛОЖЕНИЙ (СКРЫТ)
-     ============================================================ */
-  #authScreen {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999;
-    background: linear-gradient(135deg, #ffffff 0%, #f3e8ff 50%, #e0c3fc 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    transition: opacity 400ms ease, visibility 400ms ease;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  body.dark #authScreen {
-    background: linear-gradient(135deg, #1c1c1e 0%, #2c163a 50%, #1a1025 100%);
-  }
-
-  #authScreen.hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  .catalog-card {
-    width: 100%;
-    max-width: 440px;
-    background: var(--glass-bg-strong);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-lifted);
-    border-radius: var(--radius-huge);
-    padding: 32px 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .catalog-title {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    letter-spacing: -0.4px;
-  }
-
-  .catalog-desc {
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--ink-soft);
-    margin-bottom: 24px;
-  }
-
-  .apps-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    width: 100%;
-    margin-bottom: 24px;
-  }
-
-  .app-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.4);
-    border: 1px solid var(--glass-border);
-    padding: 14px 8px;
-    border-radius: 20px;
-    transition: transform 150ms ease, background 150ms ease;
-  }
-
-  body.dark .app-item {
-    background: rgba(45, 45, 50, 0.4);
-  }
-
-  .app-item:active {
-    transform: scale(0.92);
-  }
-
-  .app-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
-
-  .app-icon.blue { background: #0a84ff; }
-  .app-icon.green { background: #30d158; }
-  .app-icon.purple { background: #bf5af2; }
-  .app-icon.orange { background: #ff9f0a; }
-  .app-icon.red { background: #ff453a; }
-  .app-icon.cyan { background: #32ade6; }
-
-  .app-icon svg { width: 24px; height: 24px; display: block; }
-
-  .app-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--ink);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-  }
-
-  .catalog-close-btn {
-    width: 100%;
-    height: 50px;
-    border-radius: var(--radius-pill);
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(10, 132, 255, 0.35);
-    transition: transform 150ms ease, opacity 200ms ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .catalog-close-btn:active { transform: scale(0.96); }
-
-  /* ============================================================
-     КАРТА — на весь экран
-     ============================================================ */
-  #map {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 0;
-    background: #dfe3e6;
-  }
-
-  #map-fallback-note {
-    position: fixed;
-    left: 50%;
-    bottom: 24px;
-    transform: translateX(-50%);
-    z-index: 100;
-    font-size: 13px;
-    color: var(--ink-soft);
-    background: var(--glass-bg);
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-    padding: 10px 16px;
-    border-radius: var(--radius-pill);
-    box-shadow: var(--shadow-soft);
-    display: none;
-    max-width: 86vw;
-    text-align: center;
-  }
-
-  /* ============================================================
-     ГЛАВНАЯ ВЕРТИКАЛЬНАЯ СТЕКЛЯННАЯ ПАНЕЛЬ (СЛЕВА)
-     ============================================================ */
-  .panel-wrap {
-    position: fixed;
-    top: max(18px, env(safe-area-inset-top));
-    left: 18px;
-    z-index: 10;
-  }
-
-  .glass-panel {
-    position: relative;
-    background: var(--glass-bg);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-soft);
-    border-radius: var(--radius-huge);
-    overflow: hidden;
-    cursor: pointer;
-
-    width: 56px;
-    height: 290px;
-    transition:
-      width 520ms var(--spring),
-      height 520ms var(--spring),
-      border-radius 520ms var(--spring-fast),
-      box-shadow 520ms var(--spring-fast),
-      background 400ms ease;
-  }
-
-  .glass-panel.is-open {
-    width: min(320px, 86vw);
-    height: min(420px, 65vh);
-    border-radius: var(--radius-huge);
-    box-shadow: var(--shadow-lifted);
-    cursor: default;
-    background: var(--glass-bg-strong);
-  }
-
-  .glass-panel::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 50%);
-    opacity: 0.6;
-  }
-
-  .compact-col {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 0;
-    opacity: 1;
-    transition: opacity 200ms ease;
-  }
-
-  .glass-panel.is-open .compact-col {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .compact-divider {
-    width: 24px;
-    height: 1px;
-    background: var(--hairline);
-    margin: 2px 0;
-  }
-
-  .expanded-content {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    opacity: 0;
-    transform: scale(0.97);
-    pointer-events: none;
-    transition: opacity 300ms ease 80ms, transform 400ms var(--spring-fast) 80ms;
-  }
-
-  .glass-panel.is-open .expanded-content {
-    opacity: 1;
-    transform: scale(1);
-    pointer-events: auto;
-  }
-
-  .expanded-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 18px 8px 18px;
-    flex-shrink: 0;
-  }
-
-  .expanded-title {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-  }
-
-  .icon-btn {
-    -webkit-appearance: none;
-    appearance: none;
-    border: none;
-    background: rgba(255, 255, 255, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--ink);
-    cursor: pointer;
-    transition: transform 200ms var(--spring-fast), background 180ms ease, box-shadow 180ms ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-  }
-
-  body.dark .icon-btn {
-    background: rgba(60, 60, 65, 0.6);
-    border-color: rgba(255, 255, 255, 0.15);
-  }
-
-  .icon-btn svg { width: 19px; height: 19px; display: block; }
-  .icon-btn:hover { background: rgba(255, 255, 255, 0.8); }
-  .icon-btn:active { transform: scale(0.88); }
-  .icon-btn.small { width: 32px; height: 32px; min-width: 32px; }
-  .icon-btn.small svg { width: 15px; height: 15px; }
-
-  .expanded-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 6px 14px 16px 14px;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .expanded-body::-webkit-scrollbar { width: 0; height: 0; }
-
-  .control-list {
-    background: rgba(255, 255, 255, 0.45);
-    border: 1px solid rgba(255,255,255,0.55);
-    border-radius: 22px;
-    overflow: hidden;
-  }
-
-  body.dark .control-list {
-    background: rgba(45, 45, 48, 0.4);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  .control-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 13px 14px;
-    cursor: pointer;
-    transition: background 150ms ease;
-    position: relative;
-  }
-
-  .control-row:not(:last-child)::after {
-    content: "";
-    position: absolute;
-    left: 52px;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    background: var(--hairline);
-  }
-
-  .control-row:hover { background: rgba(255,255,255,0.4); }
-  .control-row:active { background: rgba(255,255,255,0.6); }
-
-  .row-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    flex-shrink: 0;
-  }
-  .row-icon svg { width: 15px; height: 15px; }
-
-  .row-icon.blue { background: #0a84ff; }
-  .row-icon.purple { background: #bf5af2; }
-  .row-icon.danger { background: var(--danger); }
-  .row-icon.orange { background: #ff9f0a; }
-
-  .row-text { font-size: 15px; font-weight: 500; flex: 1; }
-
-  .toggle {
-    width: 44px;
-    height: 26px;
-    border-radius: var(--radius-pill);
-    background: rgba(120, 120, 128, 0.32);
-    position: relative;
-    flex-shrink: 0;
-    transition: background 200ms ease;
-  }
-  .toggle::after {
-    content: "";
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-    transition: transform 260ms var(--spring-fast);
-  }
-  .toggle.on { background: #30d158; }
-  .toggle.on::after { transform: translateX(18px); }
-
-  /* ============================================================
-     АВАТАРКА И ПАНЕЛЬ АККАУНТА
-     ============================================================ */
-  .user-avatar-container {
-    position: fixed;
-    top: max(324px, calc(env(safe-area-inset-top) + 308px));
-    left: calc(18px + (56px / 2));
-    transform: translateX(-50%);
-    z-index: 10;
-  }
-
-  .user-avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: var(--glass-bg);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border: 2px solid var(--glass-border);
-    box-shadow: var(--shadow-soft);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    overflow: hidden;
-    transition: transform 200ms var(--spring-fast);
-  }
-  .user-avatar:active { transform: scale(0.88); }
-  .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-  .account-panel {
-    position: fixed;
-    bottom: -100%;
-    left: 0;
-    width: 100%;
-    background: var(--glass-bg-strong);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border: 1px solid var(--glass-border);
-    z-index: 3000;
-    transition: bottom 0.35s var(--spring);
-    border-top-left-radius: var(--radius-huge);
-    border-top-right-radius: var(--radius-huge);
-    padding: 24px 20px max(28px, env(safe-area-inset-bottom)) 20px;
-    box-sizing: border-box;
-    box-shadow: var(--shadow-lifted);
-  }
-  .account-panel.open {
-    bottom: 0;
-  }
-  .setting-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 16px 0;
-    font-size: 15px;
-    font-weight: 500;
-  }
-  .delete-btn {
-    background: var(--danger);
-    color: white;
-    border: none;
-    width: 100%;
-    padding: 14px;
-    border-radius: 18px;
-    font-weight: 600;
-    font-size: 16px;
-    margin-top: 15px;
-    cursor: pointer;
-    transition: transform 150ms ease;
-  }
-  .delete-btn:active { transform: scale(0.96); }
-
-  /* ============================================================
-     ВЫДВИЖНАЯ ПАНЕЛЬ МАРШРУТОВ (1/3 ЭКРАНА СВЕРХУ)
-     ============================================================ */
-  .route-panel {
-    position: fixed;
-    top: -36vh;
-    left: 0;
-    width: 100%;
-    height: 34vh;
-    background: var(--glass-bg-strong);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border-bottom: 1px solid var(--glass-border);
-    z-index: 2000;
-    transition: top 0.4s var(--spring);
-    box-shadow: var(--shadow-lifted);
-    border-bottom-left-radius: var(--radius-huge);
-    border-bottom-right-radius: var(--radius-huge);
-    padding: max(20px, env(safe-area-inset-top)) 20px 20px 20px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .route-panel.open {
-    top: 0;
-  }
-  .route-panel input {
-    padding: 12px 16px;
-    border-radius: 14px;
-    border: 1px solid var(--glass-border);
-    background: rgba(255, 255, 255, 0.4);
-    color: var(--ink);
-    font-size: 15px;
-    font-family: inherit;
-    outline: none;
-  }
-  body.dark .route-panel input { background: rgba(50, 50, 55, 0.5); }
-  .route-btn {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    padding: 12px;
-    border-radius: 14px;
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-    transition: transform 150ms ease;
-  }
-  .route-btn:active { transform: scale(0.96); }
-
-  /* ============================================================
-     ОСТАЛЬНЫЕ ЭЛЕМЕНТЫ ИНТЕРФЕЙСА
-     ============================================================ */
-  .locate-fab {
-    position: fixed;
-    right: 20px;
-    bottom: max(24px, env(safe-area-inset-bottom));
-    z-index: 10;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: var(--glass-bg);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-soft);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent);
-    cursor: pointer;
-    transition: transform 200ms var(--spring-fast), background 180ms ease, box-shadow 180ms ease;
-  }
-  .locate-fab svg { width: 22px; height: 22px; display: block; }
-  .locate-fab:hover { background: rgba(255,255,255,0.8); box-shadow: var(--shadow-lifted); }
-  .locate-fab:active { transform: scale(0.86); }
-
-  .map-crosshair {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.5);
-    width: 48px;
-    height: 48px;
-    z-index: 8;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 300ms ease, transform 400ms var(--spring);
-  }
-  .map-crosshair.active {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  .map-crosshair svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
-
-  .add-action-bar {
-    position: fixed;
-    bottom: max(32px, env(safe-area-inset-bottom));
-    left: 50%;
-    transform: translateX(-50%) translateY(120px) scale(0.9);
-    z-index: 12;
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 450ms var(--spring), opacity 300ms ease;
-    width: calc(100% - 40px);
-    max-width: 340px;
-  }
-  .add-action-bar.active {
-    transform: translateX(-50%) translateY(0) scale(1);
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .add-action-btn {
-    width: 100%;
-    height: 56px;
-    border-radius: var(--radius-pill);
-    background: var(--glass-bg-strong);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border: 1.5px solid rgba(255, 255, 255, 0.8);
-    box-shadow: var(--shadow-lifted);
-    color: var(--ink);
-    font-size: 16px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: transform 180ms var(--spring-fast), background 180ms ease;
-  }
-  .add-action-btn:hover { background: rgba(255,255,255,0.9); }
-  .add-action-btn:active { transform: scale(0.95); }
-  .add-action-btn svg { width: 20px; height: 20px; color: var(--accent); }
-
-  #particleCanvas {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 15;
-    pointer-events: none;
-  }
-
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.25);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 300ms ease;
-    padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom)) 20px;
-  }
-  .modal-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .modal-card {
-    width: 100%;
-    max-width: 360px;
-    max-height: 80vh;
-    background: var(--glass-bg-strong);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-huge);
-    box-shadow: var(--shadow-lifted);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    transform: scale(0.92) translateY(20px);
-    transition: transform 400ms var(--spring);
-  }
-  .modal-overlay.active .modal-card {
-    transform: scale(1) translateY(0);
-  }
-
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-    flex-shrink: 0;
-  }
-  .modal-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-
-  .marks-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    -webkit-overflow-scrolling: touch;
-    padding-right: 2px;
-  }
-  .marks-list::-webkit-scrollbar { width: 0; height: 0; }
-
-  .mark-item {
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    border-radius: 16px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: background 150ms ease, transform 150ms ease;
-  }
-  body.dark .mark-item { background: rgba(50, 50, 55, 0.4); border-color: rgba(255, 255, 255, 0.08); }
-  .mark-item:hover { background: rgba(255, 255, 255, 0.8); }
-  .mark-item:active { transform: scale(0.97); }
-
-  .mark-item-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-    background: var(--danger);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 3px 10px rgba(255,69,58,0.35);
-  }
-  .mark-item-icon svg { width: 16px; height: 16px; }
-
-  .mark-item-info { flex: 1; overflow: hidden; }
-  .mark-item-title { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mark-item-coords { font-size: 12px; color: var(--ink-soft); font-family: monospace; }
-
-  .mark-item-delete {
-    background: transparent;
-    border: none;
-    color: var(--ink-soft);
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 150ms ease, color 150ms ease;
-  }
-  .mark-item-delete:hover { background: rgba(255, 69, 58, 0.12); color: var(--danger); }
-  .mark-item-delete svg { width: 16px; height: 16px; }
-
-  .marks-empty {
-    text-align: center;
-    color: var(--ink-soft);
-    font-size: 14px;
-    padding: 30px 0;
-  }
-
-  .toast-container {
-    position: fixed;
-    top: max(20px, env(safe-area-inset-top));
-    left: 50%;
-    transform: translateX(-50%) translateY(-30px);
-    z-index: 100;
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 350ms var(--spring), opacity 250ms ease;
-    width: max-content;
-    max-width: 90vw;
-  }
-  .toast-container.active {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
-  .toast-body {
-    background: var(--glass-bg-strong);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-lifted);
-    padding: 12px 18px;
-    border-radius: var(--radius-pill);
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--ink);
-    text-align: center;
-  }
-
-  @media (max-width: 480px) {
-    .panel-wrap { left: 14px; }
-    .user-avatar-container { left: calc(14px + (56px / 2)); }
-    .glass-panel.is-open { width: calc(100vw - 28px); max-width: 340px; }
-  }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Georgia',serif;color:#c9c2b8;user-select:none}
+canvas{display:block}
+#game{position:fixed;inset:0}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:10;background:#000}
+.hidden{display:none!important}
+
+/* ===== Vignette + grain ===== */
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:5;
+  background:radial-gradient(ellipse at center,rgba(0,0,0,0) 30%,rgba(0,0,0,0.85) 100%)}
+#grain{position:fixed;inset:0;pointer-events:none;z-index:6;opacity:0.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grainAnim 0.4s steps(3) infinite}
+@keyframes grainAnim{0%{transform:translate(0,0)}50%{transform:translate(-20px,10px)}100%{transform:translate(10px,-15px)}}
+#damage{position:fixed;inset:0;pointer-events:none;z-index:7;background:radial-gradient(ellipse at center,transparent 40%,rgba(120,0,0,0.7) 100%);opacity:0;transition:opacity 0.4s}
+
+/* ===== Menu ===== */
+#menu{background:radial-gradient(ellipse at 50% 30%,#1a1512 0%,#050403 80%)}
+#menu h1{font-size:clamp(38px,8vw,72px);letter-spacing:14px;color:#8b7d6b;text-shadow:0 0 30px #000,0 0 60px #2a1a0a;font-weight:300;margin-bottom:6px;animation:titlePulse 6s infinite}
+@keyframes titlePulse{0%,100%{opacity:0.85}50%{opacity:1}}
+#menu .sub{font-size:13px;letter-spacing:8px;color:#5a4a3a;margin-bottom:50px;font-style:italic}
+#menu .btn{background:transparent;border:1px solid #4a3e30;color:#8b7d6b;padding:14px 60px;margin:6px;font-family:'Georgia',serif;font-size:16px;letter-spacing:5px;cursor:pointer;transition:all 0.35s;min-width:240px}
+#menu .btn:hover{border-color:#a89274;color:#e0d4be;background:rgba(80,60,40,0.15);letter-spacing:7px;box-shadow:0 0 24px rgba(120,90,50,0.25)}
+#menu .btn:disabled{opacity:0.25;cursor:not-allowed}
+#menu .btn:disabled:hover{border-color:#4a3e30;color:#8b7d6b;background:transparent;letter-spacing:5px;box-shadow:none}
+
+/* ===== Intro ===== */
+#intro{background:#000;text-align:center;padding:40px}
+#intro p{font-size:18px;line-height:1.9;color:#8a8276;max-width:560px;opacity:0;font-style:italic;transition:opacity 1.8s}
+#intro p.show{opacity:1}
+
+/* ===== HUD ===== */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:4}
+#crosshair{position:absolute;top:50%;left:50%;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.55);transform:translate(-50%,-50%);transition:all 0.2s}
+#crosshair.active{width:14px;height:14px;background:rgba(255,220,150,0.9);box-shadow:0 0 12px rgba(255,220,150,0.7)}
+#prompt{position:absolute;bottom:26%;left:50%;transform:translateX(-50%);font-size:15px;letter-spacing:2px;color:#e0d4be;text-shadow:0 0 8px #000;opacity:0;transition:opacity 0.25s;white-space:nowrap}
+#prompt.show{opacity:1}
+#inventory{position:absolute;bottom:14px;left:14px;display:flex;gap:6px;flex-wrap:wrap;max-width:60%}
+.invslot{width:48px;height:48px;border:1px solid #4a3e30;background:rgba(10,8,5,0.6);display:flex;align-items:center;justify-content:center;font-size:22px;border-radius:4px;transition:all 0.25s}
+.invslot.pop{transform:scale(1.25);border-color:#c0a878;box-shadow:0 0 14px rgba(200,170,120,0.5)}
+#stamina{position:absolute;top:16px;left:50%;transform:translateX(-50%);width:180px;height:4px;background:rgba(0,0,0,0.6);border:1px solid #333;border-radius:2px;overflow:hidden;opacity:0;transition:opacity 0.5s}
+#stamina.show{opacity:1}
+#stamina > div{height:100%;background:linear-gradient(90deg,#8a2020,#c04040);width:100%;transition:width 0.1s}
+#objective{position:absolute;top:16px;right:16px;max-width:280px;text-align:right;font-size:13px;color:#a89880;font-style:italic;text-shadow:0 0 6px #000;line-height:1.5}
+#attemptInfo{position:absolute;top:16px;left:16px;font-size:12px;color:#6a5a48;letter-spacing:3px}
+
+/* ===== Death / Win ===== */
+#death,#win{background:rgba(0,0,0,0.98);text-align:center;padding:30px}
+#death h2{font-size:clamp(36px,9vw,72px);color:#7a1010;letter-spacing:10px;margin-bottom:30px;text-shadow:0 0 40px #a02020;animation:deathShake 0.15s infinite}
+@keyframes deathShake{0%,100%{transform:translate(0,0)}25%{transform:translate(-2px,1px)}75%{transform:translate(2px,-1px)}}
+#win{background:linear-gradient(180deg,#1a1a1a,#e8e0d0)}
+#win h2{font-size:clamp(36px,9vw,72px);color:#2a1a0a;letter-spacing:12px;margin-bottom:30px;font-weight:300}
+.again-btn{margin-top:20px;padding:14px 50px;font-size:15px;letter-spacing:5px;background:transparent;border:1px solid #8b7d6b;color:#8b7d6b;font-family:'Georgia',serif;cursor:pointer;transition:all 0.3s}
+.again-btn:hover{background:#8b7d6b;color:#0a0806}
+
+/* ===== Settings ===== */
+#settings{background:radial-gradient(ellipse at 50% 30%,#1a1512 0%,#050403 80%);padding:30px}
+#settings h2{letter-spacing:8px;color:#8b7d6b;font-weight:300;margin-bottom:26px;font-size:26px}
+.setting{width:min(420px,88vw);margin:12px 0;display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#8b7d6b;letter-spacing:2px}
+.setting input[type=range]{width:180px;accent-color:#8b7d6b;background:transparent}
+.setting select{background:#0a0806;color:#8b7d6b;border:1px solid #4a3e30;padding:6px 10px;font-family:inherit}
+#settings .btn{margin-top:24px}
+
+/* ===== Code panel ===== */
+#codePanel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,8,5,0.96);border:2px solid #4a3e30;padding:26px;z-index:20;display:flex;flex-direction:column;align-items:center;gap:14px;border-radius:6px}
+#codePanel h3{color:#a89880;letter-spacing:5px;font-weight:300}
+#codePanel input{background:#0a0806;border:1px solid #4a3e30;color:#e0d4be;font-size:26px;letter-spacing:14px;text-align:center;padding:12px;width:230px;font-family:monospace;outline:none}
+#codePanel input:focus{border-color:#c0a878}
+#codePanel .msg{color:#a02020;font-size:13px;min-height:16px;letter-spacing:2px}
+
+/* ===== Mobile ===== */
+#mobile{position:fixed;inset:0;pointer-events:none;z-index:8;display:none}
+#mobile.active{display:block}
+#joyZone{position:absolute;left:0;bottom:0;width:45%;height:55%;pointer-events:auto}
+#joyBase{position:absolute;width:130px;height:130px;border-radius:50%;border:2px solid rgba(200,170,120,0.35);background:rgba(0,0,0,0.25);display:none}
+#joyStick{position:absolute;width:60px;height:60px;border-radius:50%;background:rgba(200,170,120,0.4);border:1px solid rgba(200,170,120,0.6)}
+#lookZone{position:absolute;right:0;top:0;width:55%;height:100%;pointer-events:auto}
+.mbtn{position:absolute;pointer-events:auto;width:64px;height:64px;border-radius:50%;background:rgba(20,15,10,0.65);border:1px solid rgba(200,170,120,0.4);color:#c0a878;font-size:11px;font-family:inherit;letter-spacing:1px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold}
+.mbtn:active{background:rgba(200,170,120,0.35);color:#fff}
+#btnAction{right:20px;bottom:130px;width:74px;height:74px}
+#btnSprint{right:100px;bottom:50px}
+#btnCrouch{right:20px;bottom:50px}
+#btnDrop{right:180px;bottom:90px;width:56px;height:56px;font-size:10px}
+
+/* ===== Fade ===== */
+#fade{position:fixed;inset:0;background:#000;z-index:30;pointer-events:none;opacity:0;transition:opacity 0.8s}
+#fade.show{opacity:1}
+#subtitle{position:fixed;bottom:14%;left:50%;transform:translateX(-50%);color:#c9c2b8;font-size:15px;font-style:italic;text-shadow:0 0 8px #000;z-index:9;pointer-events:none;text-align:center;max-width:80vw;opacity:0;transition:opacity 0.5s}
+#subtitle.show{opacity:1}
+
+@media (max-width:640px){
+  #inventory{bottom:auto;top:16px;left:50%;transform:translateX(-50%);max-width:none}
+  .invslot{width:38px;height:38px;font-size:18px}
+  #objective{font-size:11px;max-width:180px;top:64px}
+  #attemptInfo{display:none}
+}
 </style>
-<!-- Подключение скрипта Telegram Web App SDK -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
-  <!-- Экран каталога приложений скрыт для мгновенного доступа к карте -->
-  <div id="authScreen" class="hidden">
-    <div class="catalog-card">
-      <div class="catalog-title">Каталог приложений</div>
-      <div class="catalog-desc">
-        Выберите нужное приложение или сервис для быстрого запуска.
-      </div>
-      <div class="apps-grid">
-        <div class="app-item" onclick="openApp('Карта')">
-          <div class="app-icon blue">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-          </div>
-          <div class="app-name">Карта</div>
-        </div>
-        <div class="app-item" onclick="openApp('Маршруты')">
-          <div class="app-icon green">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-          </div>
-          <div class="app-name">Маршруты</div>
-        </div>
-        <div class="app-item" onclick="openApp('Метки')">
-          <div class="app-icon red">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-          </div>
-          <div class="app-name">Метки</div>
-        </div>
-        <div class="app-item" onclick="openApp('Профиль')">
-          <div class="app-icon purple">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          </div>
-          <div class="app-name">Профиль</div>
-        </div>
-        <div class="app-item" onclick="openApp('Настройки')">
-          <div class="app-icon orange">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-          </div>
-          <div class="app-name">Настройки</div>
-        </div>
-        <div class="app-item" onclick="openApp('Спутник')">
-          <div class="app-icon cyan">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"></path><path d="m2 13 10 5 10-5"></path></svg>
-          </div>
-          <div class="app-name">Спутник</div>
-        </div>
-      </div>
-      <button class="catalog-close-btn" onclick="closeCatalogScreen()">Открыть карту</button>
-    </div>
+<div id="game"></div>
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="damage"></div>
+
+<!-- ============ HUD ============ -->
+<div id="hud" class="hidden">
+  <div id="crosshair"></div>
+  <div id="prompt"></div>
+  <div id="inventory"></div>
+  <div id="stamina"><div></div></div>
+  <div id="objective"></div>
+  <div id="attemptInfo"></div>
+</div>
+<div id="subtitle"></div>
+
+<!-- ============ Menu ============ -->
+<div id="menu" class="overlay">
+  <h1>ТЕНЬ В ДОМЕ</h1>
+  <div class="sub">— ИЗ ЧЕГО НЕ ВЫБРАТЬСЯ —</div>
+  <button class="btn" id="btnNew">НОВАЯ ИГРА</button>
+  <button class="btn" id="btnContinue" disabled>ПРОДОЛЖИТЬ</button>
+  <button class="btn" id="btnSettings">НАСТРОЙКИ</button>
+  <button class="btn" id="btnExit">ВЫХОД</button>
+</div>
+
+<!-- ============ Intro ============ -->
+<div id="intro" class="overlay hidden">
+  <p id="introText"></p>
+</div>
+
+<!-- ============ Settings ============ -->
+<div id="settings" class="overlay hidden">
+  <h2>НАСТРОЙКИ</h2>
+  <div class="setting"><span>ГРОМКОСТЬ</span><input type="range" id="setVol" min="0" max="1" step="0.05" value="0.7"></div>
+  <div class="setting"><span>МУЗЫКА</span><input type="range" id="setMus" min="0" max="1" step="0.05" value="0.5"></div>
+  <div class="setting"><span>ЧУВСТВИТЕЛЬНОСТЬ</span><input type="range" id="setSens" min="0.3" max="3" step="0.1" value="1"></div>
+  <div class="setting"><span>КАЧЕСТВО</span>
+    <select id="setQual"><option value="high">ВЫСОКОЕ</option><option value="medium" selected>СРЕДНЕЕ</option><option value="low">НИЗКОЕ</option></select>
   </div>
+  <button class="btn again-btn" id="btnBackSettings">НАЗАД</button>
+</div>
 
-  <div id="map"></div>
-  <div id="map-fallback-note">
-    Не удалось загрузить Яндекс Карту. Проверьте подключение и API-ключ.
+<!-- ============ Code panel ============ -->
+<div id="codePanel" class="hidden">
+  <h3>КОДОВЫЙ ЗАМОК</h3>
+  <input id="codeInput" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+  <div class="msg" id="codeMsg"></div>
+  <button class="btn again-btn" id="codeClose">ОТМЕНА</button>
+</div>
+
+<!-- ============ Death ============ -->
+<div id="death" class="overlay hidden">
+  <h2>ВЫ ПОПАЛИСЬ</h2>
+  <button class="again-btn" id="btnRetry">ПОПРОБОВАТЬ СНОВА</button>
+</div>
+
+<!-- ============ Win ============ -->
+<div id="win" class="overlay hidden">
+  <h2>ТЫ СБЕЖАЛ</h2>
+  <button class="again-btn" id="btnPlayAgain">ИГРАТЬ СНОВА</button>
+</div>
+
+<!-- ============ Mobile controls ============ -->
+<div id="mobile">
+  <div id="joyZone">
+    <div id="joyBase"><div id="joyStick"></div></div>
   </div>
-
-  <canvas id="particleCanvas"></canvas>
-
-  <div class="toast-container" id="toastContainer">
-    <div class="toast-body" id="toastText">Уведомление</div>
-  </div>
-
-  <!-- Главная стеклянная панель слева -->
-  <div class="panel-wrap">
-    <div class="glass-panel" id="panel">
-      <div class="compact-col" id="compactCol">
-        <button class="icon-btn accent" id="compactRouteBtn" title="Маршрут">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
-        </button>
-        <div class="compact-divider"></div>
-        <button class="icon-btn" id="compactAddBtn" title="Добавить метку">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9"></circle>
-            <path d="M12 8v8M8 12h8"></path>
-          </svg>
-        </button>
-        <div class="compact-divider"></div>
-        <button class="icon-btn" id="compactSatelliteBtn" title="Спутник">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3 2 8l10 5 10-5-10-5Z"></path>
-            <path d="m2 13 10 5 10-5"></path>
-          </svg>
-        </button>
-        <div class="compact-divider"></div>
-        <button class="icon-btn" id="compactMarksBtn" title="Мои метки">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-        </button>
-      </div>
-
-      <div class="expanded-content" id="expandedContent">
-        <div class="expanded-header">
-          <div class="expanded-title">Меню</div>
-          <button class="icon-btn small" id="collapseBtn" title="Свернуть">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 6 6 18M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-
-        <div class="expanded-body">
-          <div class="control-list">
-            <div class="control-row" id="routeMenuRow">
-              <div class="row-icon orange">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-              </div>
-              <div class="row-text">Поиск маршрута</div>
-            </div>
-            <div class="control-row" id="addMarkRow">
-              <div class="row-icon blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg>
-              </div>
-              <div class="row-text">Добавить метку</div>
-            </div>
-            <div class="control-row" id="satelliteRow">
-              <div class="row-icon purple">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"></path><path d="m2 13 10 5 10-5"></path></svg>
-              </div>
-              <div class="row-text">Спутник</div>
-              <div class="toggle" id="satelliteToggle"></div>
-            </div>
-            <div class="control-row" id="myMarksRow">
-              <div class="row-icon danger">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              </div>
-              <div class="row-text">Мои метки</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Круглая кнопка аккаунта (человечек) под панелью слева -->
-  <div class="user-avatar-container">
-    <div class="user-avatar" id="userAvatar" onclick="toggleAccountPanel()" title="Аккаунт">
-      👤
-    </div>
-  </div>
-
-  <!-- Панель маршрутов (1/3 экрана сверху) -->
-  <div class="route-panel" id="routePanel">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <strong>Построение маршрута</strong>
-      <span style="cursor:pointer; font-size:20px; padding: 4px;" onclick="toggleRoutePanel()">✕</span>
-    </div>
-    <input type="text" id="startLocation" placeholder="Место нахождения">
-    <input type="text" id="endLocation" placeholder="Место назначения">
-    <button class="route-btn" onclick="calculateRoute()">Маршрут</button>
-  </div>
-
-  <!-- Панель аккаунта (выдвигается снизу) -->
-  <div class="account-panel" id="accountPanel">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-      <h3 style="margin: 0; font-size: 20px;">АККАУНТ</h3>
-      <span style="cursor:pointer; font-size:20px; padding: 4px;" onclick="toggleAccountPanel()">✕</span>
-    </div>
-    
-    <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
-      <div id="acc-photo-wrap" style="width: 56px; height: 56px; border-radius: 50%; background: var(--glass-bg); border: 1.5px solid var(--glass-border); display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 24px;">👤</div>
-      <div>
-        <div id="acc-name" style="font-weight: 600; font-size: 16px;">Имя: Загрузка...</div>
-        <div id="acc-username" style="color: var(--ink-soft); font-size: 13px; margin-top: 2px;">Username: Не указано</div>
-      </div>
-    </div>
-
-    <div style="font-size: 14px; margin-bottom: 8px;">Номер телефона: <span id="acc-phone" style="font-weight: 500;">Не указано</span></div>
-    <div style="font-size: 14px; margin-bottom: 16px;">Telegram ID: <span id="acc-tgid" style="font-weight: 500;">Не указано</span></div>
-
-    <div class="setting-row">
-      <span>Темная тема</span>
-      <div class="toggle" id="themeToggle" onclick="toggleTheme()"></div>
-    </div>
-    <div class="setting-row">
-      <span>Курсор</span>
-      <select id="cursorSelect" onchange="changeCursor()" style="padding: 6px 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--ink); outline: none;">
-        <option value="default">Обычный</option>
-        <option value="pointer">Указатель</option>
-        <option value="crosshair">Крестик</option>
-      </select>
-    </div>
-    <button class="delete-btn" onclick="deleteAccount()">Сбросить настройки</button>
-  </div>
-
-  <button class="locate-fab" id="locateFab" title="Моё местоположение">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3.2"></circle>
-      <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
-    </svg>
-  </button>
-
-  <div class="map-crosshair" id="mapCrosshair">
-    <svg viewBox="0 0 48 48" fill="none">
-      <circle cx="24" cy="24" r="18" stroke="#0a84ff" stroke-width="2" stroke-dasharray="4 4" opacity="0.8"/>
-      <circle cx="24" cy="24" r="5" fill="#0a84ff" fill-opacity="0.2" stroke="#0a84ff" stroke-width="2"/>
-      <line x1="24" y1="2" x2="24" y2="12" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="24" y1="36" x2="24" y2="46" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="2" y1="24" x2="12" y2="24" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="36" y1="24" x2="46" y2="24" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round"/>
-    </svg>
-  </div>
-
-  <div class="add-action-bar" id="addActionbar">
-    <button class="add-action-btn" id="confirmAddBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 6 9 17l-5-5"></path>
-      </svg>
-      Добавить
-    </button>
-  </div>
-
-  <div class="modal-overlay" id="marksModalOverlay">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">Мои метки</div>
-        <button class="icon-btn small" id="closeMarksModal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <div class="marks-list" id="marksListContainer"></div>
-    </div>
-  </div>
-
-<script>
-  // Логика работы каталога приложений
-  function openApp(appName) {
-    document.getElementById('authScreen').classList.add('hidden');
-    showToast(`Открыто приложение: ${appName}`);
-    if (appName === 'Маршруты') {
-      toggleRoutePanel();
-    } else if (appName === 'Метки') {
-      openMarksModal();
-    } else if (appName === 'Профиль') {
-      toggleAccountPanel();
-    } else if (appName === 'Спутник') {
-      toggleSatelliteState();
-    }
-  }
-
-  function closeCatalogScreen() {
-    document.getElementById('authScreen').classList.add('hidden');
-    showToast('Каталог закрыт');
-  }
-
-  // Автоматическая инициализация и интеграция с Telegram Web App в фоновом режиме
-  function initTelegramWebApp() {
-    const nameEl = document.getElementById('acc-name');
-    const usernameEl = document.getElementById('acc-username');
-    const tgidEl = document.getElementById('acc-tgid');
-    const photoWrap = document.getElementById('acc-photo-wrap');
-    const phoneEl = document.getElementById('acc-phone');
-
-    if (window.Telegram && window.Telegram.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      
-      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        const tgUser = tg.initDataUnsafe.user;
-        
-        // Имя (first_name / last_name)
-        const fullName = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || 'Не указано';
-        nameEl.textContent = 'Имя: ' + fullName;
-
-        // Юзернейм (username)
-        usernameEl.textContent = 'Username: ' + (tgUser.username ? '@' + tgUser.username : 'Не указано');
-
-        // Telegram ID (id)
-        tgidEl.textContent = tgUser.id || 'Не указано';
-
-        // Фото профиля (если доступно)
-        if (tgUser.photo_url) {
-          photoWrap.innerHTML = `<img src="${tgUser.photo_url}" alt="Фото профиля" style="width:100%; height:100%; object-fit:cover;">`;
-        } else {
-          photoWrap.innerHTML = '👤';
-        }
-
-        // Сохраняем в localStorage для удобства
-        localStorage.setItem('user_name', fullName);
-        localStorage.setItem('user_username', tgUser.username || '');
-        localStorage.setItem('user_tgid', tgUser.id || '');
-        if (tgUser.photo_url) localStorage.setItem('user_photo', tgUser.photo_url);
-      }
-
-      // Автоматическое получение номера телефона из Telegram WebApp (если доступен объект contact или запрашивался через requestContact)
-      if (tg.initDataUnsafe && tg.initDataUnsafe.phone) {
-        phoneEl.textContent = tg.initDataUnsafe.phone;
-        localStorage.setItem('user_phone', tg.initDataUnsafe.phone);
-      } else if (typeof tg.requestContact === 'function' && !localStorage.getItem('user_phone')) {
-        // Фоновый запрос контакта без назойливых модальных окон ввода (если поддерживается клиентом)
-        try {
-          tg.requestContact((shared, contact) => {
-            if (shared && contact && contact.phone_number) {
-              phoneEl.textContent = contact.phone_number;
-              localStorage.setItem('user_phone', contact.phone_number);
-            }
-          });
-        } catch (e) {
-          // Игнорируем, если среда не позволяет вызвать без явного клика
-        }
-      }
-    } else {
-      // Заглушки на случай, если страница открыта в обычном браузере
-      nameEl.textContent = 'Имя: Не в Telegram';
-      usernameEl.textContent = 'Username: Не в Telegram';
-      tgidEl.textContent = 'Не в Telegram';
-      photoWrap.innerHTML = '👤';
-    }
-  }
-
-  // Загрузка и отображение данных профиля пользователя
-  async function loadUserData(phone) {
-    const phoneEl = document.getElementById('acc-phone');
-    const nameEl = document.getElementById('acc-name');
-    const usernameEl = document.getElementById('acc-username');
-    const tgidEl = document.getElementById('acc-tgid');
-    const photoWrap = document.getElementById('acc-photo-wrap');
-
-    phoneEl.textContent = phone || localStorage.getItem('user_phone') || 'Не указано';
-
-    try {
-      const response = await fetch('/api/user-profile?phone=' + encodeURIComponent(phone));
-      if (response.ok) {
-        const user = await response.json();
-        nameEl.textContent = 'Имя: ' + (user.name || 'Не указано');
-        usernameEl.textContent = 'Username: ' + (user.username ? '@' + user.username : 'Не указано');
-        tgidEl.textContent = user.telegram_id || 'Не указано';
-        if (user.photo_url) {
-          photoWrap.innerHTML = `<img src="${user.photo_url}" alt="Фото профиля" style="width:100%; height:100%; object-fit:cover;">`;
-        } else {
-          photoWrap.innerHTML = '👤';
-        }
-        return;
-      }
-    } catch (e) {
-      // Игнорируем ошибки сети при отсутствии эндпоинта
-    }
-
-    // Если данные получены через Telegram WebApp, используем их приоритетно
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-      initTelegramWebApp();
-      return;
-    }
-
-    // Фолбэк из локального хранилища, если данные уже сохранялись
-    const cachedName = localStorage.getItem('user_name');
-    const cachedUsername = localStorage.getItem('user_username');
-    const cachedTgid = localStorage.getItem('user_tgid');
-    const cachedPhoto = localStorage.getItem('user_photo');
-    const cachedPhone = localStorage.getItem('user_phone');
-
-    nameEl.textContent = 'Имя: ' + (cachedName || 'Не в Telegram');
-    usernameEl.textContent = 'Username: ' + (cachedUsername ? '@' + cachedUsername : 'Не в Telegram');
-    tgidEl.textContent = cachedTgid || 'Не в Telegram';
-    if (cachedPhone) phoneEl.textContent = cachedPhone;
-    if (cachedPhoto) {
-      photoWrap.innerHTML = `<img src="${cachedPhoto}" alt="Фото профиля" style="width:100%; height:100%; object-fit:cover;">`;
-    } else {
-      photoWrap.innerHTML = '👤';
-    }
-  }
-
-  // Автоматическая инициализация Telegram WebApp сразу при загрузке
-  window.addEventListener('DOMContentLoaded', () => {
-    initTelegramWebApp();
-    const savedPhone = localStorage.getItem('user_phone');
-    if (savedPhone) {
-      loadUserData(savedPhone);
-    } else {
-      loadUserData();
-    }
-  });
-
-  // Закрытие панели аккаунта при клике вне окна
-  window.addEventListener('click', (e) => {
-    const accountPanel = document.getElementById('accountPanel');
-    const userAvatar = document.getElementById('userAvatar');
-    if (accountPanel.classList.contains('open')) {
-      if (!accountPanel.contains(e.target) && !userAvatar.contains(e.target)) {
-        accountPanel.classList.remove('open');
-      }
-    }
-  });
-
-  // Управление панелью маршрутов (1/3 экрана)
-  function toggleRoutePanel() {
-    const panel = document.getElementById('routePanel');
-    panel.classList.toggle('open');
-  }
-
-  // Управление панелью аккаунта
-  function toggleAccountPanel() {
-    const panel = document.getElementById('accountPanel');
-    panel.classList.toggle('open');
-  }
-
-  // Расчет маршрута с проверкой полей
-  function calculateRoute() {
-    const start = document.getElementById('startLocation').value.trim();
-    const end = document.getElementById('endLocation').value.trim();
-
-    if (!start || !end) {
-      showToast("Ошибка: заполните места нахождения и назначения!");
-      return;
-    }
-    showToast(`Поиск маршрута: ${start} → ${end}`);
-    toggleRoutePanel();
-  }
-
-  // Переключение темы
-  function toggleTheme() {
-    const toggle = document.getElementById('themeToggle');
-    document.body.classList.toggle('dark');
-    const isDark = document.body.classList.contains('dark');
-    if (isDark) toggle.classList.add('on');
-    else toggle.classList.remove('on');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  }
-
-  if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark');
-    document.getElementById('themeToggle').classList.add('on');
-  }
-
-  // Изменение курсора
-  function changeCursor() {
-    const val = document.getElementById('cursorSelect').value;
-    document.body.style.cursor = val;
-  }
-
-  // Сброс локальных данных
-  function deleteAccount() {
-    if (confirm("Сбросить сохраненные настройки и выйти?")) {
-      localStorage.clear();
-      location.reload();
-    }
-  }
-
-  const YANDEX_API_KEY = "8ad29e26-3e5e-419a-baf2-3e66a4bc6653";
-
-  let map = null;
-  let userPlacemark = null;
-  let userMarks = []; 
-  let nextMarkId = 1;
-  let isAddingMode = false;
-
-  function loadYandexMaps() {
-    const script = document.createElement("script");
-    script.src = `https://api-maps.yandex.ru/2.1/?apikey=${YANDEX_API_KEY}&lang=ru_RU`;
-    script.onload = () => ymaps.ready(initMap);
-    script.onerror = () => {
-      document.getElementById("map-fallback-note").style.display = "block";
-    };
-    document.head.appendChild(script);
-  }
-
-  function initMap() {
-    map = new ymaps.Map("map", {
-      center: [45.035470, 38.975313],
-      zoom: 13,
-      controls: []
-    });
-
-    fetchMarksFromServer();
-    setInterval(fetchMarksFromServer, 6000);
-  }
-
-  let toastTimer = null;
-  function showToast(message) {
-    const container = document.getElementById("toastContainer");
-    const textEl = document.getElementById("toastText");
-    textEl.textContent = message;
-    container.classList.add("active");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-      container.classList.remove("active");
-    }, 3200);
-  }
-
-  const panel = document.getElementById("panel");
-  const compactCol = document.getElementById("compactCol");
-
-  function openPanel() { panel.classList.add("is-open"); }
-  function closePanel() { panel.classList.remove("is-open"); }
-
-  compactCol.addEventListener("click", (e) => {
-    const btn = e.target.closest("button");
-    if (!btn) return;
-    if (btn.id === "compactRouteBtn") { toggleRoutePanel(); }
-    else if (btn.id === "compactAddBtn") startAddMode();
-    else if (btn.id === "compactSatelliteBtn") toggleSatelliteState();
-    else if (btn.id === "compactMarksBtn") openMarksModal();
-  });
-
-  document.getElementById("collapseBtn").addEventListener("click", (e) => {
-    e.stopPropagation();
-    closePanel();
-  });
-
-  document.getElementById("routeMenuRow").addEventListener("click", () => {
-    closePanel();
-    toggleRoutePanel();
-  });
-
-  document.getElementById("locateFab").addEventListener("click", () => {
-    if (!navigator.geolocation) {
-      showToast("Геолокация не поддерживается вашим браузером");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = [pos.coords.latitude, pos.coords.longitude];
-        if (map) map.setCenter(coords, 16, { duration: 500 });
-        if (ymaps) {
-          if (!userPlacemark) {
-            userPlacemark = new ymaps.Placemark(coords, {}, { preset: "islands#blueCircleIconWithCircle" });
-            map.geoObjects.add(userPlacemark);
-          } else {
-            userPlacemark.geometry.setCoordinates(coords);
-          }
-        }
-        showToast("Геолокация определена");
-      },
-      () => showToast("Доступ к геолокации запрещён или недоступен"),
-      { timeout: 10000, enableHighAccuracy: true }
-    );
-  });
-
-  const satelliteToggle = document.getElementById("satelliteToggle");
-  document.getElementById("satelliteRow").addEventListener("click", (e) => {
-    e.stopPropagation();
-    toggleSatelliteState();
-  });
-
-  function toggleSatelliteState() {
-    const isOn = satelliteToggle.classList.toggle("on");
-    if (map) map.setType(isOn ? "yandex#satellite" : "yandex#map");
-    showToast(isOn ? "Спутниковый режим включен" : "Обычная карта");
-  }
-
-  const marksModalOverlay = document.getElementById("marksModalOverlay");
-  
-  document.getElementById("myMarksRow").addEventListener("click", () => {
-    closePanel();
-    openMarksModal();
-  });
-
-  function openMarksModal() {
-    renderMarksList();
-    marksModalOverlay.classList.add("active");
-  }
-
-  document.getElementById("closeMarksModal").addEventListener("click", () => {
-    marksModalOverlay.classList.remove("active");
-  });
-  marksModalOverlay.addEventListener("click", (e) => {
-    if (e.target === marksModalOverlay) marksModalOverlay.classList.remove("active");
-  });
-
-  async function saveMarkToServer(markData) {
-    try {
-      const response = await fetch('/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: markData })
-      });
-      if (!response.ok) throw new Error('Ошибка сохранения');
-      fetchMarksFromServer();
-    } catch (err) {
-      console.error("Ошибка сохранения на сервер", err);
-      showToast("Не удалось сохранить метку на сервер");
-    }
-  }
-
-  async function deleteMarkFromServer(id) {
-    try {
-      const response = await fetch(`/api/data/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Ошибка удаления');
-      fetchMarksFromServer();
-    } catch (err) {
-      console.error("Ошибка удаления на сервере", err);
-      showToast("Не удалось удалить метку с сервера");
-    }
-  }
-
-  async function fetchMarksFromServer() {
-    try {
-      const response = await fetch('/api/data');
-      if (!response.ok) return;
-      const rows = await response.json();
-
-      userMarks.forEach(m => {
-        if (m.placemark && map) map.geoObjects.remove(m.placemark);
-      });
-      userMarks = [];
-
-      rows.forEach(row => {
-        const payload = row.data;
-        if (payload && payload.coords) {
-          const markId = row.id;
-          const title = payload.title || `Метка`;
-          
-          createRedCustomPlacemark(payload.coords, title, markId, false);
-          
-          const numMatch = title.match(/\d+/);
-          if (numMatch) {
-            const parsedNum = parseInt(numMatch[0], 10);
-            if (parsedNum >= nextMarkId) nextMarkId = parsedNum + 1;
-          }
-        }
-      });
-    } catch (err) {}
-  }
-
-  function renderMarksList() {
-    const container = document.getElementById("marksListContainer");
-    container.innerHTML = "";
-
-    if (userMarks.length === 0) {
-      container.innerHTML = `<div class="marks-empty">Пока нет сохранённых меток</div>`;
-      return;
-    }
-
-    userMarks.forEach((mark) => {
-      const item = document.createElement("div");
-      item.className = "mark-item";
-      item.innerHTML = `
-        <div class="mark-item-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-        </div>
-        <div class="mark-item-info">
-          <div class="mark-item-title">${mark.title}</div>
-          <div class="mark-item-coords">${mark.coords[0].toFixed(4)}, ${mark.coords[1].toFixed(4)}</div>
-        </div>
-        <button class="mark-item-delete" title="Удалить" data-id="${mark.id}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
-        </button>
-      `;
-
-      item.addEventListener("click", (e) => {
-        if (e.target.closest(".mark-item-delete")) return;
-        marksModalOverlay.classList.remove("active");
-        if (map) {
-          map.setCenter(mark.coords, 16, { duration: 600 });
-          highlightPlacemark(mark);
-        }
-      });
-
-      item.querySelector(".mark-item-delete").addEventListener("click", (e) => {
-        e.stopPropagation();
-        removeMark(mark.id);
-      });
-
-      container.appendChild(item);
-    });
-  }
-
-  function highlightPlacemark(markObj) {
-    if (!markObj || !markObj.placemark) return;
-    const originalOptions = markObj.placemark.options.get("iconLayout");
-    const activeLayout = ymaps.templateLayoutFactory.createClass(
-      `<div style="position: relative; width: 44px; height: 44px; transform: translate(-50%, -100%); transition: transform 0.3s ease;">
-        <div style="position: absolute; inset: 0; background: #ff3b30; border-radius: 50%; box-shadow: 0 0 0 6px rgba(255,59,48,0.4), 0 8px 20px rgba(255,59,48,0.6); display: flex; align-items: center; justify-content: center; border: 3px solid #ffffff;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-        </div>
-      </div>`
-    );
-    markObj.placemark.options.set("iconLayout", activeLayout);
-    setTimeout(() => {
-      if (markObj.placemark) markObj.placemark.options.set("iconLayout", originalOptions);
-    }, 1800);
-  }
-
-  function removeMark(id) {
-    deleteMarkFromServer(id);
-    showToast("Метка удалена у всех");
-  }
-
-  const addMarkRow = document.getElementById("addMarkRow");
-  const mapCrosshair = document.getElementById("mapCrosshair");
-  const addActionbar = document.getElementById("addActionbar");
-
-  addMarkRow.addEventListener("click", () => {
-    closePanel();
-    startAddMode();
-  });
-
-  function startAddMode() {
-    isAddingMode = true;
-    mapCrosshair.classList.add("active");
-    addActionbar.classList.add("active");
-    showToast("Передвиньте карту, чтобы выбрать точку прицелом");
-  }
-
-  function finishAddMode() {
-    isAddingMode = false;
-    mapCrosshair.classList.remove("active");
-    addActionbar.classList.remove("active");
-  }
-
-  document.getElementById("confirmAddBtn").addEventListener("click", (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const btnCenterX = rect.left + rect.width / 2;
-    const btnCenterY = rect.top + rect.height / 2;
-
-    if (map) {
-      const centerCoords = map.getCenter();
-      const title = `Метка ${nextMarkId++}`;
-      
-      saveMarkToServer({
-        title: title,
-        coords: centerCoords
-      });
-      showToast(`Метка «${title}» добавлена для всех!`);
-    }
-
-    triggerDustEffect(btnCenterX, btnCenterY);
-    finishAddMode();
-  });
-
-  function createRedCustomPlacemark(coords, title, id, save = true) {
-    if (!ymaps || !map) return;
-
-    const redSvgLayout = ymaps.templateLayoutFactory.createClass(
-      `<div style="position: relative; width: 38px; height: 38px; transform: translate(-50%, -100%);">
-        <div style="position: absolute; inset: 0; background: #ff3b30; border-radius: 50%; box-shadow: 0 6px 16px rgba(255,59,48,0.45); display: flex; align-items: center; justify-content: center; border: 2.5px solid #ffffff;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-        </div>
-      </div>`
-    );
-
-    const mark = new ymaps.Placemark(coords, {}, {
-      iconLayout: redSvgLayout,
-      iconShape: { type: 'Circle', coordinates: [0, 0], radius: 19 }
-    });
-
-    map.geoObjects.add(mark);
-
-    const markObj = {
-      id: id,
-      title: title,
-      coords: coords,
-      placemark: mark
-    };
-
-    userMarks.push(markObj);
-  }
-
-  const canvas = document.getElementById("particleCanvas");
-  const ctx = canvas.getContext("2d");
-
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  window.addEventListener("resize", resizeCanvas);
-  resizeCanvas();
-
-  function triggerDustEffect(originX, originY) {
-    const particles = [];
-    const count = 55;
-    const crossX = window.innerWidth / 2;
-    const crossY = window.innerHeight / 2;
-
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 1.5 + Math.random() * 7;
-      particles.push({
-        x: originX, y: originY,
-        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 1.5,
-        size: 2 + Math.random() * 3.5, alpha: 1, decay: 0.015 + Math.random() * 0.02,
-        color: Math.random() > 0.4 ? '#ff3b30' : '#ffffff'
-      });
-    }
-
-    for (let i = 0; i < 40; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 1 + Math.random() * 6;
-      particles.push({
-        x: crossX, y: crossY,
-        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-        size: 1.5 + Math.random() * 3, alpha: 1, decay: 0.02 + Math.random() * 0.025,
-        color: '#0a84ff'
-      });
-    }
-
-    let startTime = performance.now();
-    function animateParticles(currentTime) {
-      let elapsed = currentTime - startTime;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      let activeCount = 0;
-      particles.forEach(p => {
-        if (p.alpha <= 0) return;
-        activeCount++;
-        p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.alpha -= p.decay;
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, p.alpha);
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      });
-
-      if (activeCount > 0 && elapsed < 800) {
-        requestAnimationFrame(animateParticles);
-      } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-    }
-
-    requestAnimationFrame(animateParticles);
-  }
-
-  loadYandexMaps();
+  <div id="lookZone"></div>
+  <button class="mbtn" id="btnAction">E</button>
+  <button class="mbtn" id="btnSprint">БЕГ</button>
+  <button class="mbtn" id="btnCrouch">↓</button>
+  <button class="mbtn" id="btnDrop">БРОС</button>
+</div>
+
+<div id="fade"></div>
+
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
 </script>
 
+<script type="module">
+import * as THREE from 'three';
+
+/* ==========================================================
+   AIService — опциональный Gemini. Игра работает без ключа.
+   ========================================================== */
+const GEMINI_API_KEY = "ВСТАВЬ_СЮДА_СВОЙ_GEMINI_API_KEY";
+
+class AIService {
+  constructor(){
+    this.enabled = !!GEMINI_API_KEY && !GEMINI_API_KEY.includes("ВСТАВЬ");
+    this.lastCall = 0;
+    this.cooldown = 20000;
+    this.pending = false;
+  }
+  async whisper(context){
+    if(!this.enabled || this.pending) return null;
+    if(Date.now() - this.lastCall < this.cooldown) return null;
+    this.pending = true;
+    this.lastCall = Date.now();
+    try{
+      const ctrl = new AbortController();
+      const to = setTimeout(()=>ctrl.abort(), 6000);
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+         body:JSON.stringify({contents:[{parts:[{text:
+`Ты — атмосферный голос дома в хорроре. Ответь ОДНОЙ короткой фразой на русском (до 60 символов), жутковатой, без пояснений. Контекст: ${context}`}]}],
+         generationConfig:{temperature:1.1,maxOutputTokens:40}})}
+      );
+      clearTimeout(to);
+      const data = await res.json();
+      const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      this.pending = false;
+      return txt ? txt.trim().replace(/^"|"$/g,'') : null;
+    }catch(e){
+      this.pending = false;
+      return null;
+    }
+  }
+}
+const aiService = new AIService();
+
+/* ==========================================================
+   AudioSystem — процедурные звуки через Web Audio API
+   ========================================================== */
+class AudioSystem {
+  constructor(){
+    this.ctx = null;
+    this.master = null;
+    this.musicGain = null;
+    this.vol = 0.7;
+    this.musVol = 0.5;
+    this.chaseNodes = null;
+  }
+  init(){
+    if(this.ctx) return;
+    try{
+      this.ctx = new (window.AudioContext||window.webkitAudioContext)();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = this.vol;
+      this.master.connect(this.ctx.destination);
+      this.musicGain = this.ctx.createGain();
+      this.musicGain.gain.value = this.musVol;
+      this.musicGain.connect(this.master);
+      this._startAmbient();
+    }catch(e){ console.warn('audio', e); }
+  }
+  setVol(v){ this.vol = v; if(this.master) this.master.gain.value = v; }
+  setMus(v){ this.musVol = v; if(this.musicGain) this.musicGain.gain.value = v; }
+
+  _startAmbient(){
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = 'sine'; o.frequency.value = 42;
+    g.gain.value = 0.05;
+    const o2 = this.ctx.createOscillator();
+    o2.type = 'sine'; o2.frequency.value = 63;
+    const g2 = this.ctx.createGain(); g2.gain.value = 0.025;
+    o.connect(g).connect(this.master);
+    o2.connect(g2).connect(this.master);
+    o.start(); o2.start();
+  }
+
+  noise(dur, freq=800, vol=0.3, type='lowpass'){
+    if(!this.ctx) return;
+    const sr = this.ctx.sampleRate;
+    const buf = this.ctx.createBuffer(1, sr*dur, sr);
+    const d = buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const f = this.ctx.createBiquadFilter();
+    f.type = type; f.frequency.value = freq;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(vol, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+dur);
+    src.connect(f).connect(g).connect(this.master);
+    src.start();
+  }
+
+  tone(freq, dur, vol=0.15, type='sine', slideTo=null){
+    if(!this.ctx) return;
+    const o = this.ctx.createOscillator();
+    o.type = type; o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime+dur);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(vol, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+dur);
+    o.connect(g).connect(this.master);
+    o.start(); o.stop(this.ctx.currentTime+dur);
+  }
+
+  footstep(run=false, crouch=false){
+    if(crouch) this.noise(0.08, 300, 0.06);
+    else if(run) { this.noise(0.12, 900, 0.22); this.tone(60, 0.1, 0.1, 'sine', 40); }
+    else this.noise(0.1, 600, 0.14);
+  }
+  doorOpen(){ this.tone(180, 0.7, 0.12, 'sawtooth', 260); this.noise(0.5, 400, 0.08); }
+  doorClose(){ this.tone(200, 0.35, 0.16, 'sawtooth', 90); this.noise(0.2, 300, 0.1); }
+  pick(){ this.tone(880, 0.12, 0.12, 'sine', 1320); }
+  drop(hard=false){ if(hard) this.noise(0.25, 2500, 0.3); else this.noise(0.15, 700, 0.15); }
+  metal(){ this.tone(1400, 0.5, 0.2, 'triangle', 400); this.noise(0.2, 3000, 0.12, 'highpass'); }
+  glass(){ this.noise(0.5, 4000, 0.3, 'highpass'); }
+  electric(){ this.noise(0.4, 1800, 0.15, 'bandpass'); this.tone(120, 0.4, 0.12, 'sawtooth'); }
+  breath(){ this.noise(1.2, 500, 0.05, 'bandpass'); }
+  hit(){ this.tone(80, 0.4, 0.4, 'square', 40); this.noise(0.3, 200, 0.3); }
+  scream(){ 
+    const o=this.ctx.createOscillator(); o.type='sawtooth';
+    o.frequency.setValueAtTime(900,this.ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(200,this.ctx.currentTime+1.2);
+    const g=this.ctx.createGain(); g.gain.setValueAtTime(0.35,this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+1.2);
+    o.connect(g).connect(this.master); o.start(); o.stop(this.ctx.currentTime+1.2);
+  }
+  startChase(){
+    if(!this.ctx || this.chaseNodes) return;
+    const o = this.ctx.createOscillator();
+    const o2 = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type='sawtooth'; o.frequency.value=55;
+    o2.type='square'; o2.frequency.value=58;
+    g.gain.value=0.14;
+    const lfo = this.ctx.createOscillator();
+    const lfoG = this.ctx.createGain();
+    lfo.frequency.value = 6; lfoG.gain.value = 25;
+    lfo.connect(lfoG).connect(o.frequency);
+    lfo.start();
+    o.connect(g).connect(this.musicGain);
+    o2.connect(g);
+    o.start(); o2.start();
+    this.chaseNodes = {o,o2,g,lfo};
+  }
+  stopChase(){
+    if(!this.chaseNodes) return;
+    try{
+      this.chaseNodes.g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+0.7);
+      setTimeout(()=>{ try{this.chaseNodes.o.stop();this.chaseNodes.o2.stop();this.chaseNodes.lfo.stop();}catch(e){} this.chaseNodes=null; }, 800);
+    }catch(e){ this.chaseNodes = null; }
+  }
+}
+const audio = new AudioSystem();
+
+/* ==========================================================
+   SaveSystem
+   ========================================================== */
+const SaveSystem = {
+  key:'shadow_house_save_v1',
+  ok:true,
+  test(){ try{ localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return true; }catch(e){ return false; } },
+  save(data){ if(!this.ok) return; try{ localStorage.setItem(this.key, JSON.stringify(data)); }catch(e){ this.ok=false; } },
+  load(){ if(!this.ok) return null; try{ const s = localStorage.getItem(this.key); return s?JSON.parse(s):null; }catch(e){ return null; } },
+  clear(){ try{ localStorage.removeItem(this.key); }catch(e){} },
+  saveSettings(s){ if(!this.ok) return; try{ localStorage.setItem('shadow_house_set', JSON.stringify(s)); }catch(e){} },
+  loadSettings(){ try{ const s = localStorage.getItem('shadow_house_set'); return s?JSON.parse(s):null; }catch(e){ return null; } }
+};
+SaveSystem.ok = SaveSystem.test();
+
+/* ==========================================================
+   NoiseSystem
+   ========================================================== */
+class NoiseSystem {
+  constructor(){ this.events = []; }
+  emit(x,z,floor,radius,type){
+    this.events.push({x,z,floor,radius,type,t:performance.now()});
+    if(this.events.length>40) this.events.shift();
+  }
+  forEnemy(ex,ez,efloor){
+    const now = performance.now();
+    this.events = this.events.filter(e => now - e.t < 3000);
+    for(const e of this.events){
+      if(e.floor !== efloor) continue;
+      const d = Math.hypot(e.x-ex, e.z-ez);
+      if(d < e.radius) return e;
+    }
+    return null;
+  }
+}
+const noise = new NoiseSystem();
+
+/* ==========================================================
+   LevelManager — процедурная постройка дома
+   ========================================================== */
+const FLOOR_Y = { '-1': -4, '0': 0, '1': 4, '2': 8 };
+
+// Материалы
+const MAT = {};
+function initMaterials(){
+  const tex = (color, rough=0.9, rep=3) => {
+    const c = document.createElement('canvas'); c.width=c.height=128;
+    const x = c.getContext('2d'); x.fillStyle=color; x.fillRect(0,0,128,128);
+    for(let i=0;i<400;i++){
+      x.fillStyle = `rgba(0,0,0,${Math.random()*0.12})`;
+      x.fillRect(Math.random()*128, Math.random()*128, 1+Math.random()*3, 1+Math.random()*3);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep,rep);
+    return t;
+  };
+  MAT.wall  = new THREE.MeshStandardMaterial({map:tex('#5a4a3a',0.95,2), roughness:0.95});
+  MAT.wall2 = new THREE.MeshStandardMaterial({map:tex('#3e3630',0.95,2), roughness:0.95});
+  MAT.floor = new THREE.MeshStandardMaterial({map:tex('#2e2418',0.9,4), roughness:0.9});
+  MAT.wood  = new THREE.MeshStandardMaterial({map:tex('#3a2a1a',0.9,2), roughness:0.9});
+  MAT.ceil  = new THREE.MeshStandardMaterial({color:0x1a1512, roughness:1});
+  MAT.metal = new THREE.MeshStandardMaterial({color:0x3a3a42, roughness:0.4, metalness:0.8});
+  MAT.dark  = new THREE.MeshStandardMaterial({color:0x0f0a08, roughness:1});
+  MAT.door  = new THREE.MeshStandardMaterial({map:tex('#4a3524',0.85,1), roughness:0.85});
+  MAT.doorLock = new THREE.MeshStandardMaterial({color:0x1a0f08, roughness:0.8});
+}
+
+class LevelManager {
+  constructor(scene){
+    this.scene = scene;
+    this.walls = [];    // {mesh, x1,z1,x2,z2,floor, door:bool, doorRef}
+    this.floors = {};   // {floor: {walls:[...], floor: mesh, ceiling}}
+    this.doors = [];
+    this.items = [];
+    this.triggers = [];
+    this.lights = [];
+    this.floorMeshes = {};
+    this.interactables = [];
+  }
+
+  // стена по двум точкам (XZ), толщина t
+  addWall(f, x1, z1, x2, z2, mat, t=0.3, h=3.2){
+    const y = FLOOR_Y[f];
+    const cx = (x1+x2)/2, cz = (z1+z2)/2;
+    const len = Math.hypot(x2-x1, z2-z1);
+    const ang = Math.atan2(z2-z1, x2-x1);
+    const geo = new THREE.BoxGeometry(len, h, t);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(cx, y+h/2, cz);
+    mesh.rotation.y = -ang;
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    this.scene.add(mesh);
+    const w = {mesh, x1,z1,x2,z2,floor:f, t, h, angle:ang, door:false};
+    this.walls.push(w);
+    return w;
+  }
+
+  addFloorRect(f, x1, z1, x2, z2, mat, ceil=true){
+    const y = FLOOR_Y[f];
+    const w = Math.abs(x2-x1), d = Math.abs(z2-z1);
+    const cx = (x1+x2)/2, cz = (z1+z2)/2;
+    const g = new THREE.Mesh(new THREE.BoxGeometry(w, 0.2, d), mat);
+    g.position.set(cx, y-0.1, cz);
+    g.receiveShadow = true;
+    this.scene.add(g);
+    if(ceil){
+      const c = new THREE.Mesh(new THREE.BoxGeometry(w, 0.2, d), MAT.ceil);
+      c.position.set(cx, y+3.2, cz);
+      this.scene.add(c);
+    }
+  }
+
+  addDoor(f, x, z, rotY, keyId=null, label='', codeLock=false, locked=false){
+    const y = FLOOR_Y[f];
+    const g = new THREE.Group();
+    g.position.set(x, y, z);
+    g.rotation.y = rotY;
+
+    const hinge = new THREE.Group();
+    const doorGeo = new THREE.BoxGeometry(1.2, 2.6, 0.08);
+    const doorMesh = new THREE.Mesh(doorGeo, locked?MAT.doorLock:MAT.door);
+    doorMesh.position.set(0.6, 1.3, 0);
+    doorMesh.castShadow = true;
+    hinge.add(doorMesh);
+    g.add(hinge);
+
+    // ручка
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.06,8,8), MAT.metal);
+    knob.position.set(1.05, 1.3, 0.06);
+    hinge.add(knob);
+
+    this.scene.add(g);
+    const d = {
+      group:g, hinge, mesh:doorMesh, x, z, floor:f, rotY, keyId, label, codeLock, locked,
+      open:false, angle:0, targetAngle:0, hasBoards:false
+    };
+    this.doors.push(d);
+    this.interactables.push(d);
+    return d;
+  }
+
+  addBoardsToDoor(door){
+    door.hasBoards = true;
+    const y = FLOOR_Y[door.floor];
+    for(let i=0;i<3;i++){
+      const b = new THREE.Mesh(
+        new THREE.BoxGeometry(1.3, 0.18, 0.06),
+        new THREE.MeshStandardMaterial({map:MAT.wood.map, roughness:0.95})
+      );
+      b.position.set(door.x, y+0.7+i*0.7, door.z);
+      b.rotation.y = door.rotY + 0.15 + Math.random()*0.1;
+      b.rotation.z = (Math.random()-0.5)*0.05;
+      b.castShadow = true;
+      this.scene.add(b);
+      door.boards = door.boards || [];
+      door.boards.push(b);
+    }
+  }
+
+  addLight(f, x, z, color=0xffaa66, intensity=1.2, distance=8, flicker=false){
+    const y = FLOOR_Y[f];
+    const l = new THREE.PointLight(color, intensity, distance, 2);
+    l.position.set(x, y+2.7, z);
+    this.scene.add(l);
+    // визуальная лампочка
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.08,6,6),
+      new THREE.MeshBasicMaterial({color}));
+    bulb.position.copy(l.position);
+    this.scene.add(bulb);
+    const rec = {light:l, bulb, base:intensity, flicker, floor:f, x, z};
+    this.lights.push(rec);
+    return rec;
+  }
+
+  addTrigger(f, x, z, radius, target){
+    const t = {x, z, floor:f, radius, target};
+    this.triggers.push(t);
+    return t;
+  }
+
+  buildHouse(rng){
+    initMaterials();
+
+    /* ================= ПОДВАЛ (-4) ================= */
+    const bf = '-1';
+    this.addFloorRect(bf, -12, -6, 12, 6, MAT.floor, true);
+    // внешние стены
+    this.addWall(bf, -12,-6, 12,-6, MAT.wall2);
+    this.addWall(bf, 12,-6, 12,6, MAT.wall2);
+    this.addWall(bf, 12,6, -12,6, MAT.wall2);
+    this.addWall(bf, -12,6, -12,-6, MAT.wall2);
+    // внутренние
+    this.addWall(bf, -2,-6, -2,0, MAT.wall2);        // инструменталка
+    this.addWall(bf, -12,0, -2,0, MAT.wall2);
+    this.addWall(bf, 4,0, 4,6, MAT.wall2);            // машинный зал
+    this.addWall(bf, 4,0, 12,0, MAT.wall2);
+    // свет
+    this.addLight(bf, -7, -3, 0x6688aa, 0.9, 10);
+    this.addLight(bf, 0, 3, 0x886644, 0.7, 8, true);
+    this.addLight(bf, 8, 3, 0x6688aa, 0.8, 10);
+    // предмет: предохранитель в машинном зале
+    this.spawnItem(bf, 8, 3, 'fuse');
+    // щиток
+    this.buildPanel(bf, 6, -5);
+
+    /* ================= ПЕРВЫЙ ЭТАЖ (0) ================= */
+    const gf = '0';
+    this.addFloorRect(gf, -12, -10, 12, 10, MAT.floor, true);
+    // стены
+    this.addWall(gf, -12,-10, 12,-10, MAT.wall);
+    this.addWall(gf, 12,-10, 12,10, MAT.wall);
+    this.addWall(gf, 12,10, -12,10, MAT.wall);
+    this.addWall(gf, -12,10, -12,-10, MAT.wall);
+    // межкомнатные (с проёмами)
+    // прихожая (центр) — стены вокруг
+    this.addWall(gf, -4,-10, -4,-6, MAT.wall);
+    this.addWall(gf, -4,-3, -4,3, MAT.wall);
+    this.addWall(gf, -4,6, -4,10, MAT.wall);
+    this.addWall(gf, 4,-10, 4,-6, MAT.wall);
+    this.addWall(gf, 4,-3, 4,3, MAT.wall);
+    this.addWall(gf, 4,6, 4,10, MAT.wall);
+    this.addWall(gf, -12,-2, -4,-2, MAT.wall);
+    this.addWall(gf, -12,2, -4,2, MAT.wall);
+    this.addWall(gf, -12,6, -4,6, MAT.wall);
+    // свет
+    this.addLight(gf, 0, 6, 0xffaa66, 1.4, 12, true);
+    this.addLight(gf, 8, 0, 0xffbb77, 1.2, 12);
+    this.addLight(gf, -8, -6, 0xff9944, 1.0, 10, true);
+    this.addLight(gf, -8, 4, 0x88aaff, 0.8, 8);
+    this.addLight(gf, -8, 8, 0xffaa66, 0.9, 8);
+    // ДВЕРИ
+    // входная (финальная) — юг
+    this.addDoor(gf, 0, 10, Math.PI, null, 'Входная дверь', true, true);
+    // между прихожей и кухней (северо-запад)
+    this.addDoor(gf, -4, -4.5, Math.PI/2, null, 'Кухня');
+    // между прихожей и гостиной
+    this.addDoor(gf, 4, 0, -Math.PI/2, null, 'Гостиная');
+    // кладовая
+    this.addDoor(gf, -4, 4.5, Math.PI/2, null, 'Ванная');
+    // в подвал
+    const bd = this.addDoor(gf, -8, 2, 0, null, 'Спуск в подвал');
+    this.addBoardsToDoor(bd);
+    bd.blocksBasement = true;
+    // триггеры подвала
+    this.addTrigger(gf, -8, 2.5, 1.2, {floor:'-1', x:-6, z:3.5});
+    this.addTrigger(bf, -6, 3.5, 1.2, {floor:'0', x:-8, z:3.5});
+
+    // Предметы (рандом)
+    // Ключ ржавый — в одной из 3 локаций 1 этажа
+    const keySpots = [[-8,-6,'кухня'], [8,0,'гостиная'], [8,4,'гостиная']];
+    const keySpot = keySpots[Math.floor(rng()*keySpots.length)];
+    this.spawnItem(gf, keySpot[0], keySpot[1], 'rustyKey');
+
+    // Молоток — кухня или ванная
+    const hammerSpots = [[-8,-7], [-8,4], [-8,8]];
+    const hs = hammerSpots[Math.floor(rng()*hammerSpots.length)];
+    this.spawnItem(gf, hs[0], hs[1], 'hammer');
+
+    // Механизм (шестерёнка ставится сюда) — в прихожей
+    this.buildMechanism(gf, 3, -8);
+
+    // Триггер лестницы наверх
+    this.addTrigger(gf, 8, 8, 1.5, {floor:'1', x:8, z:0});
+
+    /* ================= ВТОРОЙ ЭТАЖ (4) ================= */
+    const f1 = '1';
+    this.addFloorRect(f1, -12, -10, 12, 10, MAT.floor, true);
+    this.addWall(f1, -12,-10, 12,-10, MAT.wall);
+    this.addWall(f1, 12,-10, 12,10, MAT.wall);
+    this.addWall(f1, 12,10, -12,10, MAT.wall);
+    this.addWall(f1, -12,10, -12,-10, MAT.wall);
+    // коридор (горизонтальный в центре)
+    this.addWall(f1, -8,-2, -2,-2, MAT.wall);
+    this.addWall(f1, 0,-2, 8,-2, MAT.wall);
+    this.addWall(f1, -8,2, -2,2, MAT.wall);
+    this.addWall(f1, 0,2, 8,2, MAT.wall);
+    // разделители
+    this.addWall(f1, -2,-10, -2,-2, MAT.wall);
+    this.addWall(f1, -8,2, -8,10, MAT.wall);
+    this.addWall(f1, 2,2, 2,10, MAT.wall);
+    // свет
+    this.addLight(f1, 0, 0, 0xffcc88, 1.2, 12, true);
+    this.addLight(f1, -7, -6, 0xffaa66, 1.0, 10);
+    this.addLight(f1, 6, -6, 0xffaa66, 0.9, 10, true);
+    this.addLight(f1, -5, 6, 0x88aaff, 0.8, 8);
+    this.addLight(f1, 7, 6, 0xffaa66, 0.9, 8);
+    // двери
+    this.addDoor(f1, -8, -2, 0, null, 'Спальня');   // спальня
+    this.addDoor(f1, 4, -2, 0, 'rustyKey', 'Кабинет', false, true); // КАБИНЕТ заперт ключом
+    this.addDoor(f1, -8, 2, Math.PI, null, 'Кладовая');
+    this.addDoor(f1, 5, 2, Math.PI, null, 'Детская');
+    this.addDoor(f1, 0, -2, 0, null, 'Проход'); // декор
+
+    // Записка с кодом в кабинете
+    this.spawnItem(f1, 6, -7, 'noteCode');
+    // Люк на чердак — открывается после шестерёнки (в спальне)
+    this.buildAtticHatch(f1, -8, -8);
+
+    // триггеры
+    this.addTrigger(f1, 8, 0, 1.5, {floor:'0', x:8, z:8});
+    this.addTrigger(f1, -8, -8, 1.2, {floor:'2', x:0, z:0, requireFlag:'atticOpen'});
+
+    /* ================= ЧЕРДАК (8) ================= */
+    const at = '2';
+    this.addFloorRect(at, -12, -10, 12, 10, MAT.wood, true);
+    this.addWall(at, -12,-10, 12,-10, MAT.wood);
+    this.addWall(at, 12,-10, 12,10, MAT.wood);
+    this.addWall(at, 12,10, -12,10, MAT.wood);
+    this.addWall(at, -12,10, -12,-10, MAT.wood);
+    this.addLight(at, -4, -4, 0xaa8855, 0.6, 12, true);
+    this.addLight(at, 4, 4, 0xaa8855, 0.5, 12);
+    // старые коробки
+    for(let i=0;i<20;i++){
+      const x = (rng()-0.5)*20, z = (rng()-0.5)*16;
+      if(Math.abs(x)<2 && Math.abs(z)<2) continue;
+      const s = 0.4 + rng()*0.7;
+      const box = new THREE.Mesh(
+        new THREE.BoxGeometry(s, s*0.9, s),
+        new THREE.MeshStandardMaterial({map:MAT.wood.map, roughness:0.95})
+      );
+      box.position.set(x, FLOOR_Y[at]+s*0.45, z);
+      box.rotation.y = rng()*Math.PI;
+      box.castShadow = true;
+      this.scene.add(box);
+    }
+    // выход с чердака
+    this.addTrigger(at, 0, 0, 1.2, {floor:'1', x:-8, z:-7});
+
+    // Предметы на чердаке могут понадобиться (опционально — атмосфера)
+    // Всё нужное уже разложено
+
+    // маркер выхода — вернём ссылку
+    this.exitDoor = this.doors.find(d=>d.codeLock);
+    this.mechanism = this.interactables.find(i=>i.type==='mechanism');
+    this.panel = this.interactables.find(i=>i.type==='panel');
+    this.atticHatch = this.interactables.find(i=>i.type==='hatch');
+  }
+
+  buildMechanism(f, x, z){
+    const y = FLOOR_Y[f];
+    const g = new THREE.Group();
+    g.position.set(x, y, z);
+    const base = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.4, 0.6), MAT.metal);
+    base.position.y = 0.7;
+    base.castShadow = true;
+    g.add(base);
+    // слот для шестерёнки
+    const slot = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.05, 8, 16), new THREE.MeshStandardMaterial({color:0x5a5a5a, metalness:0.8, roughness:0.4}));
+    slot.position.set(0, 0.8, 0.32);
+    g.add(slot);
+    this.scene.add(g);
+    const obj = {type:'mechanism', x, z, floor:f, group:g, slot, installed:false, label:'Механизм', mesh:base};
+    this.interactables.push(obj);
+    return obj;
+  }
+  buildPanel(f, x, z){
+    const y = FLOOR_Y[f];
+    const g = new THREE.Group();
+    g.position.set(x, y, z);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.2, 0.2), MAT.metal);
+    box.position.y = 1.6;
+    box.castShadow = true;
+    g.add(box);
+    const led = new THREE.Mesh(new THREE.SphereGeometry(0.05,6,6),
+      new THREE.MeshBasicMaterial({color:0x330000}));
+    led.position.set(0.2, 1.9, 0.12);
+    g.add(led);
+    this.scene.add(g);
+    const obj = {type:'panel', x, z, floor:f, group:g, led, installed:false, label:'Щиток', mesh:box};
+    this.interactables.push(obj);
+    return obj;
+  }
+  buildAtticHatch(f, x, z){
+    const y = FLOOR_Y[f];
+    const g = new THREE.Group();
+    g.position.set(x, y, z);
+    const hatch = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 1.4), MAT.wood);
+    hatch.position.y = 3.15;
+    g.add(hatch);
+    this.scene.add(g);
+    const obj = {type:'hatch', x, z, floor:f, group:g, hatch, opened:false, label:'Люк на чердак', mesh:hatch};
+    this.interactables.push(obj);
+    return obj;
+  }
+
+  spawnItem(f, x, z, type){
+    const y = FLOOR_Y[f];
+    const item = ItemFactory.create(type);
+    item.group.position.set(x, y + 0.5, z);
+    item.x = x; item.z = z; item.floor = f;
+    this.scene.add(item.group);
+    this.items.push(item);
+    return item;
+  }
+
+  // Проверка коллизии (AABB-приближение, круг против отрезков стен)
+  collide(x, z, r, floor){
+    // внешние границы
+    let nx = x, nz = z;
+    for(const w of this.walls){
+      if(w.floor !== floor) continue;
+      // расстояние от точки до отрезка
+      const dx = w.x2 - w.x1, dz = w.z2 - w.z1;
+      const len2 = dx*dx + dz*dz;
+      let t = len2>0 ? ((x - w.x1)*dx + (z - w.z1)*dz) / len2 : 0;
+      t = Math.max(0, Math.min(1, t));
+      const px = w.x1 + dx*t, pz = w.z1 + dz*t;
+      const ddx = x - px, ddz = z - pz;
+      const d = Math.hypot(ddx, ddz);
+      const minD = r + w.t/2;
+      if(d < minD && d > 0.0001){
+        const push = (minD - d);
+        nx += (ddx/d) * push;
+        nz += (ddz/d) * push;
+      }
+    }
+    // двери закрытые
+    for(const d of this.doors){
+      if(d.floor !== floor) continue;
+      if(d.open) continue;
+      if(d.hasBoards && !d.boardsBroken) {
+        // всё равно препятствие
+      }
+      const dx = d.x - nx, dz = d.z - nz;
+      // дверь — это отрезок длиной 1.2 с центром в (d.x,d.z), повёрнутый
+      const cos = Math.cos(d.rotY), sin = Math.sin(d.rotY);
+      const localX = dx*cos + dz*sin;
+      const localZ = -dx*sin + dz*cos;
+      // дверь занимает x от 0 до 1.2 (сдвиг вдоль), тонкая по z
+      if(localX > -r && localX < 1.2 + r && Math.abs(localZ) < r + 0.1){
+        // отталкивание по z
+        const push = (r + 0.1 - Math.abs(localZ)) * (localZ>0?1:-1);
+        nx += sin * push;
+        nz += cos * push;
+      }
+    }
+    return {x:nx, z:nz};
+  }
+
+  update(dt, t){
+    // мигание ламп
+    for(const l of this.lights){
+      if(l.flicker){
+        const f = 0.7 + Math.sin(t*3 + l.x)*0.15 + Math.random()*0.15;
+        l.light.intensity = l.base * f;
+        l.bulb.material.opacity = f;
+      }
+    }
+    // вращение дверей к целевому углу
+    for(const d of this.doors){
+      if(Math.abs(d.angle - d.targetAngle) > 0.001){
+        d.angle += (d.targetAngle - d.angle) * Math.min(1, dt*8);
+        d.hinge.rotation.y = d.angle;
+      }
+    }
+  }
+}
+
+/* ==========================================================
+   ItemFactory — данные и меши предметов
+   ========================================================== */
+const ITEM_DEFS = {
+  rustyKey:  { name:'Ржавый ключ',  icon:'🗝', color:0x8a6a3a },
+  noteCode:  { name:'Записка с кодом', icon:'📜', color:0xd8c8a8 },
+  hammer:    { name:'Молоток',      icon:'🔨', color:0x6a5a4a },
+  gear:      { name:'Шестерёнка',   icon:'⚙', color:0x8a8a90 },
+  fuse:      { name:'Предохранитель', icon:'🔌', color:0xcc4444 }
+};
+
+class Item {
+  constructor(type){
+    const def = ITEM_DEFS[type];
+    this.type = type;
+    this.name = def.name;
+    this.icon = def.icon;
+    this.group = new THREE.Group();
+    let geo;
+    switch(type){
+      case 'rustyKey':
+        geo = new THREE.BoxGeometry(0.28, 0.05, 0.1);
+        break;
+      case 'noteCode':
+        geo = new THREE.BoxGeometry(0.3, 0.02, 0.22);
+        break;
+      case 'hammer':
+        geo = new THREE.BoxGeometry(0.1, 0.4, 0.1);
+        break;
+      case 'gear':
+        geo = new THREE.TorusGeometry(0.15, 0.05, 8, 12);
+        break;
+      case 'fuse':
+        geo = new THREE.BoxGeometry(0.08, 0.24, 0.08);
+        break;
+      default:
+        geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+    }
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:def.color, roughness:0.6, metalness: type==='gear'?0.8:0.2, emissive: def.color, emissiveIntensity:0.15}));
+    m.castShadow = true;
+    if(type==='gear') m.rotation.x = Math.PI/2;
+    this.group.add(m);
+    this.mesh = m;
+  }
+}
+const ItemFactory = { create:(t)=> new Item(t) };
+
+/* ==========================================================
+   Inventory
+   ========================================================== */
+class Inventory {
+  constructor(max=8){
+    this.items = [];
+    this.max = max;
+  }
+  add(item){
+    if(this.items.length >= this.max) return false;
+    this.items.push(item);
+    return true;
+  }
+  remove(type){
+    const i = this.items.findIndex(x=>x.type===type);
+    if(i<0) return null;
+    return this.items.splice(i,1)[0];
+  }
+  has(type){ return this.items.some(x=>x.type===type); }
+  clear(){ this.items = []; }
+}
+
+/* ==========================================================
+   PlayerController
+   ========================================================== */
+class PlayerController {
+  constructor(camera, level){
+    this.camera = camera;
+    this.level = level;
+    this.pos = new THREE.Vector3(0, FLOOR_Y['1']+1.7, -6);
+    this.vel = new THREE.Vector3();
+    this.yaw = 0; this.pitch = 0;
+    this.eyeY = 1.7;
+    this.crouchY = 1.0;
+    this.height = 1.7;
+    this.radius = 0.35;
+    this.floor = '1';
+    this.walkSpeed = 3.0;
+    this.runSpeed = 5.5;
+    this.crouchSpeed = 1.4;
+    this.accel = 12;
+    this.friction = 9;
+    this.isRunning = false;
+    this.isCrouching = false;
+    this.stamina = 1;
+    this.inCover = null;
+    this.locked = false;
+    this.bobT = 0;
+    this.stepAccum = 0;
+    this.headBob = 0;
+    this.mouseSens = 1;
+  }
+  setPosition(x, floor, z){
+    this.floor = floor;
+    this.pos.set(x, FLOOR_Y[floor]+this.height, z);
+  }
+  getInput(keys, mobileVec){
+    // mobileVec: {x:-1..1, y:-1..1} — джойстик
+    let f = 0, r = 0;
+    if(keys['w']) f += 1;
+    if(keys['s']) f -= 1;
+    if(keys['a']) r -= 1;
+    if(keys['d']) r += 1;
+    if(mobileVec){
+      f += -mobileVec.y;
+      r += mobileVec.x;
+    }
+    const len = Math.hypot(f,r);
+    if(len>1){ f/=len; r/=len; }
+    return {f, r};
+  }
+  update(dt, keys, mobileVec){
+    if(this.locked) return;
+    const inp = this.getInput(keys, mobileVec);
+    this.isRunning = (keys['shift'] || this.forceRun) && this.stamina > 0.05 && inp.f !== 0;
+    this.isCrouching = keys['control'] || this.forceCrouch;
+    let speed = this.isCrouching ? this.crouchSpeed : (this.isRunning ? this.runSpeed : this.walkSpeed);
+    // направление
+    const forward = new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
+    const right = new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
+    const desired = new THREE.Vector3();
+    desired.addScaledVector(forward, inp.f);
+    desired.addScaledVector(right, inp.r);
+    if(desired.length()>1) desired.normalize();
+    desired.multiplyScalar(speed);
+
+    // ускорение / трение
+    const dx = desired.x - this.vel.x;
+    const dz = desired.z - this.vel.z;
+    const k = Math.min(1, (desired.length()>0.1 ? this.accel : this.friction) * dt);
+    this.vel.x += dx * k;
+    this.vel.z += dz * k;
+
+    // движение с коллизией
+    const nx = this.pos.x + this.vel.x * dt;
+    const nz = this.pos.z + this.vel.z * dt;
+    const c = this.level.collide(nx, nz, this.radius, this.floor);
+    this.pos.x = c.x; this.pos.z = c.z;
+
+    // выносливость
+    if(this.isRunning) this.stamina = Math.max(0, this.stamina - dt*0.28);
+    else this.stamina = Math.min(1, this.stamina + dt*0.22);
+
+    // высота / присед
+    const targetY = FLOOR_Y[this.floor] + (this.isCrouching ? this.crouchY : this.height);
+    this.pos.y += (targetY - this.pos.y) * Math.min(1, dt*10);
+
+    // шаги
+    const speedNow = Math.hypot(this.vel.x, this.vel.z);
+    this.stepAccum += speedNow * dt;
+    const stride = this.isCrouching ? 1.4 : (this.isRunning ? 1.4 : 1.8);
+    if(this.stepAccum > stride && speedNow > 0.5){
+      this.stepAccum = 0;
+      audio.footstep(this.isRunning, this.isCrouching);
+      const radius = this.isCrouching ? 3 : (this.isRunning ? 14 : 7);
+      noise.emit(this.pos.x, this.pos.z, this.floor, radius, 'step');
+    }
+
+    // покачивание головы
+    this.bobT += dt * speedNow * (this.isRunning?1.6:1);
+    this.headBob = Math.sin(this.bobT*2) * (this.isRunning?0.06:0.03) * Math.min(1, speedNow/3);
+
+    // камера
+    this.camera.position.set(this.pos.x, this.pos.y + this.headBob, this.pos.z);
+    this.camera.rotation.order = 'YXZ';
+    this.camera.rotation.y = this.yaw;
+    this.camera.rotation.x = this.pitch;
+  }
+}
+
+/* ==========================================================
+   EnemyAI — Вера
+   ========================================================== */
+class EnemyAI {
+  constructor(scene, level){
+    this.scene = scene;
+    this.level = level;
+    this.group = new THREE.Group();
+    this.pos = new THREE.Vector3(0, 0, 0);
+    this.floor = '0';
+    this.state = 'PATROL';
+    this.speed = 1.6;
+    this.chaseSpeed = 3.6;
+    this.stateTimer = 0;
+    this.lastSeenPos = null;
+    this.targetPos = null;
+    this.patrolPoints = [];
+    this.patrolIdx = 0;
+    this.waypoint = null;
+    this.losTimer = 0;
+    this.searchTimer = 0;
+    this.listenRadius = 18;
+    this.fov = Math.PI * 0.55;
+    this.viewDist = 16;
+    this.buildMesh();
+    this.pickPatrolPoints();
+  }
+  buildMesh(){
+    // высокая худая фигура
+    const skin = new THREE.MeshStandardMaterial({color:0xd8cec0, roughness:0.9});
+    const dress = new THREE.MeshStandardMaterial({color:0x2a2028, roughness:0.95});
+    const hair = new THREE.MeshStandardMaterial({color:0x1a1010, roughness:1});
+
+    // платье — конус
+    const bodyGeo = new THREE.CylinderGeometry(0.45, 0.9, 2.0, 12, 1, true);
+    const body = new THREE.Mesh(bodyGeo, dress);
+    body.position.y = 1.0;
+    body.castShadow = true;
+    this.group.add(body);
+    // торс
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 0.9, 10), dress);
+    torso.position.y = 2.05;
+    torso.castShadow = true;
+    this.group.add(torso);
+    // голова
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), skin);
+    head.position.y = 2.75;
+    head.scale.set(0.9, 1.25, 0.9);
+    head.castShadow = true;
+    this.group.add(head);
+    // волосы
+    const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8, 0, Math.PI*2, 0, Math.PI*0.6), hair);
+    hairMesh.position.y = 2.8;
+    hairMesh.scale.set(1.05, 1.2, 1.05);
+    this.group.add(hairMesh);
+    // глаза
+    const eyeMat = new THREE.MeshBasicMaterial({color:0x000000});
+    const e1 = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), eyeMat);
+    e1.position.set(-0.07, 2.76, 0.19);
+    this.group.add(e1);
+    const e2 = e1.clone(); e2.position.x = 0.07;
+    this.group.add(e2);
+    // длинные руки
+    const armGeo = new THREE.CylinderGeometry(0.05, 0.04, 1.6, 6);
+    const a1 = new THREE.Mesh(armGeo, skin);
+    a1.position.set(-0.4, 2.0, 0);
+    a1.rotation.z = 0.15;
+    a1.castShadow = true;
+    this.group.add(a1);
+    const a2 = a1.clone(); a2.position.x = 0.4; a2.rotation.z = -0.15;
+    this.group.add(a2);
+    // "шея"
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.3, 6), skin);
+    neck.position.y = 2.5;
+    this.group.add(neck);
+
+    this.group.scale.set(1.0, 1.15, 1.0);
+    this.scene.add(this.group);
+    this.parts = {a1, a2, head};
+  }
+  pickPatrolPoints(){
+    this.patrolPoints = [
+      {x:0,z:6,floor:'0'},
+      {x:8,z:0,floor:'0'},
+      {x:-8,z:-6,floor:'0'},
+      {x:-8,z:6,floor:'0'},
+      {x:0,z:0,floor:'1'},
+      {x:-7,z:-6,floor:'1'},
+      {x:6,z:6,floor:'1'},
+      {x:-5,z:6,floor:'1'}
+    ];
+  }
+  setFloor(f, x, z){
+    this.floor = f;
+    this.pos.set(x, FLOOR_Y[f], z);
+    this.group.position.copy(this.pos);
+  }
+  canSee(player){
+    if(player.floor !== this.floor) return false;
+    const dx = player.pos.x - this.pos.x;
+    const dz = player.pos.z - this.pos.z;
+    const dist = Math.hypot(dx, dz);
+    if(dist > this.viewDist) return false;
+    const angle = Math.atan2(-dx, -dz); // по направлению forward (-z)
+    const enemyDir = this.group.rotation.y;
+    let diff = angle - enemyDir;
+    while(diff > Math.PI) diff -= Math.PI*2;
+    while(diff < -Math.PI) diff += Math.PI*2;
+    if(Math.abs(diff) > this.fov/2) return false;
+    // проверка стен
+    return this.hasLineOfSight(player.pos.x, player.pos.z);
+  }
+  hasLineOfSight(tx, tz){
+    // упрощённо: считаем пересечение с отрезками стен этого этажа
+    const x1 = this.pos.x, z1 = this.pos.z;
+    for(const w of this.level.walls){
+      if(w.floor !== this.floor) continue;
+      if(this.segIntersect(x1,z1,tx,tz, w.x1,w.z1,w.x2,w.z2)) return false;
+    }
+    return true;
+  }
+  segIntersect(x1,z1,x2,z2,x3,z3,x4,z4){
+    const d = (x2-x1)*(z4-z3) - (z2-z1)*(x4-x3);
+    if(Math.abs(d) < 1e-6) return false;
+    const t = ((x3-x1)*(z4-z3) - (z3-z1)*(x4-x3)) / d;
+    const u = ((x3-x1)*(z2-z1) - (z3-z1)*(x2-x1)) / d;
+    return t>0.02 && t<0.98 && u>0.02 && u<0.98;
+  }
+  goto(target, dt, speed){
+    const dx = target.x - this.pos.x;
+    const dz = target.z - this.pos.z;
+    const d = Math.hypot(dx,dz);
+    if(d < 0.4) return true;
+    const vx = dx/d * speed;
+    const vz = dz/d * speed;
+    const c = this.level.collide(this.pos.x + vx*dt, this.pos.z + vz*dt, 0.35, this.floor);
+    // маленькое обходное поведение: если не двигаемся — выбираем соседнее направление
+    const moved = Math.hypot(c.x-this.pos.x, c.z-this.pos.z);
+    if(moved < speed*dt*0.3){
+      // пробуем обойти: сдвиг перпендикулярно
+      const px = -dz/d, pz = dx/d;
+      const sign = (Math.floor(this.stateTimer*2)%2===0)?1:-1;
+      const c2 = this.level.collide(this.pos.x + px*sign*speed*dt, this.pos.z + pz*sign*speed*dt, 0.35, this.floor);
+      this.pos.x = c2.x; this.pos.z = c2.z;
+    } else {
+      this.pos.x = c.x; this.pos.z = c.z;
+    }
+    // поворот
+    const ang = Math.atan2(-dx, -dz);
+    let diff = ang - this.group.rotation.y;
+    while(diff > Math.PI) diff -= Math.PI*2;
+    while(diff < -Math.PI) diff += Math.PI*2;
+    this.group.rotation.y += diff * Math.min(1, dt*5);
+    return false;
+  }
+  update(dt, player, noiseSys){
+    this.stateTimer += dt;
+    this.group.position.copy(this.pos);
+
+    // проверка видимости игрока
+    const sees = this.canSee(player) && !player.inCover;
+    // проверка шума
+    const heard = noiseSys.forEnemy(this.pos.x, this.pos.z, this.floor);
+
+    switch(this.state){
+      case 'PATROL': {
+        const wp = this.patrolPoints[this.patrolIdx];
+        if(wp.floor !== this.floor){
+          // телепорт между этажами (упрощение для патруля)
+          this.setFloor(wp.floor, wp.x, wp.z);
+        }
+        if(this.goto(wp, dt, this.speed)){
+          this.patrolIdx = (this.patrolIdx+1) % this.patrolPoints.length;
+        }
+        if(sees){ this.enterChase(player); break; }
+        if(heard){
+          this.state = 'HEAR';
+          this.stateTimer = 0;
+          this.targetPos = {x:heard.x, z:heard.z};
+        }
+        break;
+      }
+      case 'HEAR': {
+        if(this.stateTimer > 0.6 || sees){
+          this.state = 'INVESTIGATE';
+          this.stateTimer = 0;
+        }
+        break;
+      }
+      case 'INVESTIGATE': {
+        if(!this.targetPos){ this.state='PATROL'; this.stateTimer=0; break; }
+        if(this.goto(this.targetPos, dt, this.speed*1.15)){
+          this.state = 'SEARCH';
+          this.stateTimer = 0;
+          this.searchTimer = 0;
+        }
+        if(sees){ this.enterChase(player); break; }
+        if(this.stateTimer > 12){ this.state='PATROL'; this.stateTimer=0; }
+        break;
+      }
+      case 'SEARCH': {
+        this.searchTimer += dt;
+        // вращаемся
+        this.group.rotation.y += dt * 1.4;
+        if(sees){ this.enterChase(player); break; }
+        if(heard && Math.random() < 0.4){
+          this.targetPos = {x:heard.x, z:heard.z};
+          this.state = 'INVESTIGATE';
+          this.stateTimer = 0;
+        }
+        if(this.searchTimer > 5){ this.state = 'RETURN'; this.stateTimer = 0; }
+        break;
+      }
+      case 'CHASE': {
+        this.targetPos = {x:player.pos.x, z:player.pos.z};
+        // если игрок на другом этаже — сбрасываем погоню
+        if(player.floor !== this.floor){
+          this.state = 'SEARCH'; this.stateTimer = 0;
+          this.searchTimer = 0;
+          break;
+        }
+        // прямое преследование
+        const done = this.goto(this.targetPos, dt, this.chaseSpeed);
+        // атака
+        const d = Math.hypot(player.pos.x - this.pos.x, player.pos.z - this.pos.z);
+        if(d < 1.2 && !player.inCover){
+          this.attack(player);
+          break;
+        }
+        if(!sees){
+          this.losTimer += dt;
+          if(this.losTimer > 3){
+            this.state = 'SEARCH';
+            this.stateTimer = 0;
+            this.searchTimer = 0;
+            this.losTimer = 0;
+          }
+        } else {
+          this.losTimer = 0;
+        }
+        break;
+      }
+      case 'RETURN': {
+        const wp = this.patrolPoints[this.patrolIdx];
+        if(this.floor !== wp.floor){
+          this.setFloor(wp.floor, wp.x, wp.z);
+        }
+        if(this.goto(wp, dt, this.speed)){
+          this.state = 'PATROL';
+          this.stateTimer = 0;
+        }
+        break;
+      }
+    }
+    // анимация рук
+    const t = performance.now()*0.001;
+    const walkAmp = this.state === 'CHASE' ? 0.4 : 0.18;
+    this.parts.a1.rotation.x = Math.sin(t*3) * walkAmp;
+    this.parts.a2.rotation.x = -Math.sin(t*3) * walkAmp;
+
+    // случайные атмосферные шёпоты (опционально)
+    if(Math.random() < dt*0.02){
+      aiService.whisper(`враг ${this.state}, игрок ${this.state==='CHASE'?'рядом':'где-то'}`).then(txt=>{
+        if(txt) Game.showSubtitle(txt, 3000);
+      });
+    }
+  }
+  enterChase(player){
+    if(this.state !== 'CHASE'){
+      audio.startChase();
+      audio.scream();
+      Game.cameraShake(0.5, 0.6);
+      Game.showSubtitle('Она увидела тебя', 2000);
+    }
+    this.state = 'CHASE';
+    this.stateTimer = 0;
+    this.losTimer = 0;
+  }
+  attack(player){
+    if(this.attackCooldown > 0) return;
+    this.attackCooldown = 2;
+    audio.stopChase();
+    audio.hit();
+    Game.triggerDeath();
+  }
+}
+
+/* ==========================================================
+   MobileControls
+   ========================================================== */
+class MobileControls {
+  constructor(){
+    this.enabled = false;
+    this.moveVec = {x:0, y:0};
+    this.lookActive = false;
+    this.lookLast = {x:0, y:0};
+    this.joyActive = false;
+    this.joyId = null;
+    this.joyOrigin = {x:0, y:0};
+    this.buttons = {action:false, run:false, crouch:false, drop:false};
+    this.init();
+  }
+  init(){
+    if(!('ontouchstart' in window) && !navigator.maxTouchPoints) return;
+    this.enabled = true;
+    document.getElementById('mobile').classList.add('active');
+    const joyZone = document.getElementById('joyZone');
+    const joyBase = document.getElementById('joyBase');
+    const joyStick = document.getElementById('joyStick');
+    const lookZone = document.getElementById('lookZone');
+
+    joyZone.addEventListener('touchstart', e=>{
+      const t = e.changedTouches[0];
+      this.joyId = t.identifier;
+      this.joyActive = true;
+      const r = joyZone.getBoundingClientRect();
+      this.joyOrigin.x = t.clientX; this.joyOrigin.y = t.clientY;
+      joyBase.style.display = 'block';
+      joyBase.style.left = (t.clientX - r.left - 65) + 'px';
+      joyBase.style.top = (t.clientY - r.top - 65) + 'px';
+      joyStick.style.left = '35px'; joyStick.style.top = '35px';
+      e.preventDefault();
+    }, {passive:false});
+    joyZone.addEventListener('touchmove', e=>{
+      if(!this.joyActive) return;
+      for(const t of e.changedTouches){
+        if(t.identifier !== this.joyId) continue;
+        const dx = t.clientX - this.joyOrigin.x;
+        const dy = t.clientY - this.joyOrigin.y;
+        const d = Math.hypot(dx, dy);
+        const max = 55;
+        const cl = Math.min(1, d/max);
+        this.moveVec.x = (dx/(d||1)) * cl;
+        this.moveVec.y = (dy/(d||1)) * cl;
+        joyStick.style.left = (35 + dx*(cl/(d/(max*cl)||1)) * (d>max?max/d:1)) + 'px';
+        joyStick.style.top  = (35 + dy*(cl/(d/(max*cl)||1)) * (d>max?max/d:1)) + 'px';
+      }
+      e.preventDefault();
+    }, {passive:false});
+    const endJoy = e=>{
+      for(const t of e.changedTouches){
+        if(t.identifier === this.joyId){
+          this.joyActive = false; this.joyId = null;
+          this.moveVec.x = 0; this.moveVec.y = 0;
+          joyBase.style.display = 'none';
+        }
+      }
+    };
+    joyZone.addEventListener('touchend', endJoy);
+    joyZone.addEventListener('touchcancel', endJoy);
+
+    lookZone.addEventListener('touchstart', e=>{
+      const t = e.changedTouches[0];
+      this.lookActive = true;
+      this.lookLast.x = t.clientX; this.lookLast.y = t.clientY;
+      e.preventDefault();
+    }, {passive:false});
+    lookZone.addEventListener('touchmove', e=>{
+      if(!this.lookActive) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - this.lookLast.x;
+      const dy = t.clientY - this.lookLast.y;
+      this.lookLast.x = t.clientX; this.lookLast.y = t.clientY;
+      if(Game && Game.player){
+        Game.player.yaw -= dx * 0.005 * Game.player.mouseSens;
+        Game.player.pitch -= dy * 0.005 * Game.player.mouseSens;
+        Game.player.pitch = Math.max(-1.3, Math.min(1.3, Game.player.pitch));
+      }
+      e.preventDefault();
+    }, {passive:false});
+    lookZone.addEventListener('touchend', ()=>{ this.lookActive = false; });
+
+    const bind = (id, name) => {
+      const el = document.getElementById(id);
+      el.addEventListener('touchstart', e=>{ this.buttons[name]=true; e.preventDefault(); }, {passive:false});
+      el.addEventListener('touchend', e=>{ this.buttons[name]=false; e.preventDefault(); }, {passive:false});
+    };
+    bind('btnAction','action');
+    bind('btnSprint','run');
+    bind('btnCrouch','crouch');
+    bind('btnDrop','drop');
+  }
+}
+const mobile = new MobileControls();
+
+/* ==========================================================
+   UIManager
+   ========================================================== */
+class UIManager {
+  constructor(){
+    this.inventoryEl = document.getElementById('inventory');
+    this.promptEl = document.getElementById('prompt');
+    this.crosshairEl = document.getElementById('crosshair');
+    this.staminaEl = document.getElementById('stamina');
+    this.staminaBar = this.staminaEl.querySelector('div');
+    this.objectiveEl = document.getElementById('objective');
+    this.attemptEl = document.getElementById('attemptInfo');
+    this.subtitleEl = document.getElementById('subtitle');
+    this.fadeEl = document.getElementById('fade');
+    this.damageEl = document.getElementById('damage');
+  }
+  updateInventory(inv){
+    this.inventoryEl.innerHTML = '';
+    for(const it of inv.items){
+      const d = document.createElement('div');
+      d.className = 'invslot';
+      d.textContent = it.icon;
+      this.inventoryEl.appendChild(d);
+    }
+  }
+  popSlot(index){
+    const slots = this.inventoryEl.children;
+    if(slots[index]){ slots[index].classList.add('pop'); setTimeout(()=>slots[index]?.classList.remove('pop'), 350); }
+  }
+  setPrompt(text){ 
+    if(text){ this.promptEl.textContent = text; this.promptEl.classList.add('show'); }
+    else this.promptEl.classList.remove('show');
+  }
+  setCrosshairActive(a){ this.crosshairEl.classList.toggle('active', a); }
+  setStamina(v){
+    this.staminaBar.style.width = (v*100)+'%';
+    this.staminaEl.classList.toggle('show', v < 0.99);
+  }
+  setObjective(t){ this.objectiveEl.textContent = t || ''; }
+  setAttempt(n){ this.attemptEl.textContent = 'ПОПЫТКА ' + n; }
+  showSubtitle(text, ms=2500){
+    this.subtitleEl.textContent = text;
+    this.subtitleEl.classList.add('show');
+    clearTimeout(this._stT);
+    this._stT = setTimeout(()=>this.subtitleEl.classList.remove('show'), ms);
+  }
+  fade(on, dur=800){
+    this.fadeEl.style.transition = `opacity ${dur}ms`;
+    this.fadeEl.classList.toggle('show', on);
+  }
+  flashDamage(){
+    this.damageEl.style.opacity = 1;
+    setTimeout(()=>{ this.damageEl.style.opacity = 0; }, 200);
+  }
+}
+const ui = new UIManager();
+
+/* ==========================================================
+   GameManager
+   ========================================================== */
+const Game = {
+  scene:null, camera:null, renderer:null, level:null, player:null, enemy:null,
+  inventory:null, clock:null, keys:{}, running:false, paused:false,
+  attempt:1, flags:{}, rng:Math.random,
+  shakeTime:0, shakeAmp:0,
+  ray:null, lastInteract:0, droppedItems:[],
+  currentFloor: '1',
+  mobileVec: {x:0, y:0},
+  started:false,
+
+  init(){
+    const container = document.getElementById('game');
+    this.renderer = new THREE.WebGLRenderer({antialias: window.devicePixelRatio < 2, powerPreference:'high-performance'});
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    container.appendChild(this.renderer.domElement);
+
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x05040a);
+    this.scene.fog = new THREE.Fog(0x0a0a12, 4, 26);
+
+    this.camera = new THREE.PerspectiveCamera(72, window.innerWidth/window.innerHeight, 0.05, 100);
+    this.camera.rotation.order = 'YXZ';
+
+    this.clock = new THREE.Clock();
+    this.inventory = new Inventory();
+    this.ray = new THREE.Raycaster();
+
+    window.addEventListener('resize', ()=>this.onResize());
+    this.setupPointerLock();
+
+    // частицы пыли
+    this.createDust();
+
+    this.animate();
+  },
+
+  createDust(){
+    const N = 200;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(N*3);
+    for(let i=0;i<N;i++){
+      pos[i*3] = (Math.random()-0.5)*30;
+      pos[i*3+1] = Math.random()*8;
+      pos[i*3+2] = (Math.random()-0.5)*30;
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({color:0xffffff, size:0.03, transparent:true, opacity:0.25, depthWrite:false});
+    this.dust = new THREE.Points(geo, mat);
+    this.scene.add(this.dust);
+  },
+
+  setupPointerLock(){
+    const canvas = this.renderer.domElement;
+    canvas.addEventListener('click', ()=>{
+      if(this.running && !mobile.enabled) canvas.requestPointerLock();
+    });
+    document.addEventListener('pointerlockchange', ()=>{
+      if(document.pointerLockElement === canvas) this.player && (this.player.locked = false);
+      else if(this.player) this.player.locked = true;
+    });
+    document.addEventListener('mousemove', (e)=>{
+      if(document.pointerLockElement === canvas && this.player){
+        this.player.yaw -= e.movementX * 0.002 * this.player.mouseSens;
+        this.player.pitch -= e.movementY * 0.002 * this.player.mouseSens;
+        this.player.pitch = Math.max(-1.3, Math.min(1.3, this.player.pitch));
+      }
+    });
+  },
+
+  onResize(){
+    this.camera.aspect = window.innerWidth/window.innerHeight;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+  },
+
+  newGame(){
+    SaveSystem.clear();
+    this.attempt = 1;
+    this.flags = {};
+    this.inventory.clear();
+    this.droppedItems = [];
+    this.level = null;
+    this.started = false;
+
+    // новый rng для разброса предметов
+    const seed = Date.now();
+    let s = seed;
+    this.rng = ()=> { s = (s*9301 + 49297) % 233280; return s/233280; };
+
+    this.level = new LevelManager(this.scene);
+    this.level.buildHouse(this.rng);
+
+    this.player = new PlayerController(this.camera, this.level);
+    this.player.setPosition(0, '1', -6);
+    this.player.mouseSens = this.settings.sens || 1;
+
+    this.enemy = new EnemyAI(this.scene, this.level);
+    this.enemy.setFloor('0', 0, 6);
+
+    this.currentFloor = '1';
+    this.keys = {};
+    this.droppedItems = [];
+
+    ui.setAttempt(this.attempt);
+    ui.setObjective('Осмотрись. Найди выход.');
+    ui.updateInventory(this.inventory);
+
+    // показать HUD
+    document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('death').classList.add('hidden');
+    document.getElementById('win').classList.add('hidden');
+    document.getElementById('codePanel').classList.add('hidden');
+    this.running = true;
+    this.paused = false;
+
+    // интро
+    this.playIntro();
+  },
+
+  playIntro(){
+    audio.init();
+    ui.fade(true, 200);
+    setTimeout(()=>{
+      ui.fade(false, 1200);
+      this.showSubtitle('...', 1000);
+      setTimeout(()=>this.showSubtitle('Ты пришёл в себя на холодном полу.', 2500), 500);
+      setTimeout(()=>{
+        this.showSubtitle('Старый дом скрипит где-то наверху.', 2500);
+        audio.tone(120, 1.5, 0.1, 'sawtooth', 80);
+      }, 3500);
+      setTimeout(()=>{
+        this.showSubtitle('Внизу что-то упало.', 2500);
+        audio.metal();
+      }, 6500);
+      setTimeout(()=>{
+        this.started = true;
+      }, 9000);
+    }, 500);
+  },
+
+  showSubtitle(t, ms){ ui.showSubtitle(t, ms); },
+
+  cameraShake(amp, time){ 
+    this.shakeAmp = Math.max(this.shakeAmp, amp);
+    this.shakeTime = Math.max(this.shakeTime, time);
+  },
+
+  triggerDeath(){
+    this.running = false;
+    ui.fade(true, 400);
+    audio.stopChase();
+    setTimeout(()=>{
+      document.getElementById('death').classList.remove('hidden');
+      document.getElementById('hud').classList.add('hidden');
+    }, 500);
+  },
+
+  triggerWin(){
+    this.running = false;
+    audio.stopChase();
+    ui.fade(true, 1500);
+    setTimeout(()=>{
+      document.getElementById('win').classList.remove('hidden');
+      document.getElementById('hud').classList.add('hidden');
+    }, 1600);
+  },
+
+  retry(){
+    this.attempt++;
+    SaveSystem.save({attempt:this.attempt});
+    // сброс, но сохраняем попытку
+    document.getElementById('death').classList.add('hidden');
+    this.newGame();
+    this.attempt = parseInt(localStorage.getItem('shadow_attempt')||this.attempt, 10);
+    if(this.attempt > 1) ui.setAttempt(this.attempt);
+  },
+
+  interact(){
+    if(!this.started) return;
+    // raycast
+    this.ray.setFromCamera(new THREE.Vector2(0,0), this.camera);
+    this.ray.far = 3.0;
+    // Собираем все интерактивные
+    const targets = [];
+    for(const it of this.level.items) if(!it.taken) targets.push(it.group);
+    for(const d of this.level.doors){
+      // у двери несколько мешей, берём group
+      targets.push(d.group);
+    }
+    for(const obj of this.level.interactables) if(obj.mesh) targets.push(obj.mesh);
+
+    const hits = this.ray.intersectObjects(targets, true);
+    if(hits.length === 0) return;
+    const hit = hits[0];
+    // находим владельца
+    let owner = null;
+    for(const it of this.level.items){ if(!it.taken && (it.group === hit.object.parent || it.group === hit.object)){ owner = {type:'item', item:it}; break; } }
+    if(!owner) for(const d of this.level.doors){ if(d.group === hit.object.parent || hit.object.parent === d.hinge || d.mesh === hit.object){ owner = {type:'door', door:d}; break; } }
+    if(!owner) for(const obj of this.level.interactables){ if(obj.mesh === hit.object || obj.mesh === hit.object.parent){ owner = {type:'obj', obj}; break; } }
+
+    if(!owner) return;
+    if(owner.type === 'item') this.pickup(owner.item);
+    else if(owner.type === 'door') this.useDoor(owner.door);
+    else this.useObject(owner.obj);
+  },
+
+  pickup(item){
+    if(this.inventory.items.length >= this.inventory.max){
+      this.showSubtitle('Слишком много предметов в руках', 2000);
+      return;
+    }
+    item.taken = true;
+    this.scene.remove(item.group);
+    this.inventory.add(item);
+    audio.pick();
+    ui.updateInventory(this.inventory);
+    ui.popSlot(this.inventory.items.length - 1);
+    this.showSubtitle('Получено: ' + item.name, 1800);
+    if(item.type === 'noteCode'){
+      this.showSubtitle('Записка: код ' + this.getCode(), 3500);
+    }
+    noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 4, 'pickup');
+  },
+
+  getCode(){ return '4721'; },
+
+  useDoor(door){
+    // блокировка досками
+    if(door.hasBoards && !door.boardsBroken){
+      if(this.inventory.has('hammer')){
+        this.inventory.remove('hammer');
+        door.boardsBroken = true;
+        if(door.boards) door.boards.forEach(b => this.scene.remove(b));
+        audio.metal();
+        this.showSubtitle('Доски сорваны молотком.', 2200);
+        noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 16, 'crash');
+        ui.updateInventory(this.inventory);
+        return;
+      } else {
+        this.showSubtitle('Дверь заколочена. Нужен молоток.', 2200);
+        return;
+      }
+    }
+    // код
+    if(door.codeLock){
+      if(!this.flags.powerOn){
+        this.showSubtitle('Кодовый замок без питания.', 2200);
+        return;
+      }
+      this.openCodePanel(door);
+      return;
+    }
+    // ключ
+    if(door.locked){
+      if(door.keyId && this.inventory.has(door.keyId)){
+        door.locked = false;
+        this.inventory.remove(door.keyId);
+        audio.doorOpen();
+        this.showSubtitle('Замок открыт: ' + door.label, 2200);
+        ui.updateInventory(this.inventory);
+        noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 8, 'door');
+      } else {
+        this.showSubtitle('Заперто. Нужен ключ.', 2200);
+        return;
+      }
+    }
+    // обычное открывание
+    door.open = !door.open;
+    door.targetAngle = door.open ? -Math.PI*0.55 : 0;
+    if(door.open) audio.doorOpen(); else audio.doorClose();
+    noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 8, 'door');
+  },
+
+  useObject(obj){
+    if(obj.type === 'mechanism'){
+      if(obj.installed){ this.showSubtitle('Шестерёнка уже установлена.', 1800); return; }
+      if(this.inventory.has('gear')){
+        this.inventory.remove('gear');
+        obj.installed = true;
+        obj.slot.material = new THREE.MeshStandardMaterial({color:0xc0a860, metalness:0.9, roughness:0.3});
+        audio.electric();
+        this.showSubtitle('Механизм загудел. Люк на чердак открыт.', 3000);
+        this.flags.atticOpen = true;
+        if(this.level.atticHatch){
+          this.level.atticHatch.hatch.rotation.x = -Math.PI/2;
+          this.level.atticHatch.opened = true;
+        }
+        noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 20, 'machine');
+        ui.updateInventory(this.inventory);
+        ui.setObjective('Найди люк на чердак (в спальне).');
+      } else {
+        this.showSubtitle('Нужна шестерёнка.', 1800);
+      }
+      return;
+    }
+    if(obj.type === 'hatch'){
+      if(!this.flags.atticOpen){ this.showSubtitle('Люк заперт. Нужен механизм.', 2000); return; }
+      // телепорт на чердак
+      this.teleport('2', 0, 0);
+      return;
+    }
+    if(obj.type === 'panel'){
+      if(obj.installed){ this.showSubtitle('Питание уже включено.', 1800); return; }
+      if(this.inventory.has('fuse')){
+        this.inventory.remove('fuse');
+        obj.installed = true;
+        obj.led.material = new THREE.MeshBasicMaterial({color:0x00ff44});
+        audio.electric();
+        this.flags.powerOn = true;
+        this.showSubtitle('Питание включено. Кодовый замок работает.', 3000);
+        noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 18, 'machine');
+        ui.updateInventory(this.inventory);
+        ui.setObjective('Найди входную дверь и введи код.');
+      } else {
+        this.showSubtitle('Нужен предохранитель.', 2000);
+      }
+      return;
+    }
+  },
+
+  openCodePanel(door){
+    this._codeDoor = door;
+    document.getElementById('codePanel').classList.remove('hidden');
+    document.getElementById('codeInput').value = '';
+    document.getElementById('codeMsg').textContent = '';
+    setTimeout(()=>document.getElementById('codeInput').focus(), 50);
+    this.paused = true;
+    if(document.pointerLockElement) document.exitPointerLock();
+  },
+
+  closeCodePanel(){
+    document.getElementById('codePanel').classList.add('hidden');
+    this.paused = false;
+  },
+
+  submitCode(){
+    const input = document.getElementById('codeInput');
+    const val = input.value.trim();
+    const msg = document.getElementById('codeMsg');
+    if(val === this.getCode()){
+      msg.style.color = '#44cc44';
+      msg.textContent = 'ОТКРЫТО';
+      audio.doorOpen();
+      setTimeout(()=>{
+        this.closeCodePanel();
+        this.triggerWin();
+      }, 700);
+    } else {
+      msg.textContent = 'НЕВЕРНЫЙ КОД';
+      input.value = '';
+      audio.tone(200, 0.2, 0.2, 'square', 100);
+    }
+  },
+
+  teleport(floor, x, z){
+    ui.fade(true, 300);
+    setTimeout(()=>{
+      this.player.setPosition(x, floor, z);
+      this.currentFloor = floor;
+      ui.fade(false, 400);
+    }, 350);
+  },
+
+  updateInteractPrompt(){
+    if(!this.started){ ui.setPrompt(''); ui.setCrosshairActive(false); return; }
+    this.ray.setFromCamera(new THREE.Vector2(0,0), this.camera);
+    this.ray.far = 3.0;
+    const targets = [];
+    for(const it of this.level.items) if(!it.taken) targets.push(it.group);
+    for(const d of this.level.doors) targets.push(d.group);
+    for(const obj of this.level.interactables) if(obj.mesh) targets.push(obj.mesh);
+    const hits = this.ray.intersectObjects(targets, true);
+    if(hits.length === 0){ ui.setPrompt(''); ui.setCrosshairActive(false); return; }
+    const hit = hits[0];
+    let text = null;
+    for(const it of this.level.items){ if(!it.taken && (it.group === hit.object.parent || it.group === hit.object)){ text = 'E — взять ' + it.name; break; } }
+    if(!text) for(const d of this.level.doors){ if(d.group === hit.object.parent || d.mesh === hit.object){
+      if(d.hasBoards && !d.boardsBroken) text = 'E — сломать доски (нужен молоток)';
+      else if(d.codeLock) text = 'E — кодовый замок';
+      else if(d.locked) text = 'E — заперто (нужен ключ)';
+      else text = 'E — ' + (d.open?'закрыть':'открыть');
+      break; } }
+    if(!text) for(const obj of this.level.interactables){ if(obj.mesh === hit.object || obj.mesh === hit.object.parent){
+      if(obj.type==='mechanism') text = obj.installed ? 'Установлено' : 'E — установить шестерёнку';
+      else if(obj.type==='panel') text = obj.installed ? 'Питание включено' : 'E — вставить предохранитель';
+      else if(obj.type==='hatch') text = obj.opened ? 'E — залезть на чердак' : 'Люк закрыт';
+      break; } }
+    ui.setPrompt(text || '');
+    ui.setCrosshairActive(!!text);
+  },
+
+  // ==== Перемещение между этажами ====
+  checkTriggers(){
+    const px = this.player.pos.x, pz = this.player.pos.z;
+    for(const t of this.level.triggers){
+      if(t.floor !== this.player.floor) continue;
+      const d = Math.hypot(px - t.x, pz - t.z);
+      if(d < t.radius){
+        if(t.target.requireFlag && !this.flags[t.target.requireFlag]) continue;
+        // телепорт
+        const key = t.target.floor + '|' + t.target.x.toFixed(1) + '|' + t.target.z.toFixed(1);
+        if(this._lastTrigger === key) continue;
+        this._lastTrigger = key;
+        this.teleport(t.target.floor, t.target.x, t.target.z);
+        audio.doorClose();
+        setTimeout(()=>{ this._lastTrigger = null; }, 1500);
+        return;
+      }
+    }
+  },
+
+  // ==== Случайные события ====
+  _lastRandom: 0,
+  checkRandomEvent(dt){
+    this._lastRandom += dt;
+    if(this._lastRandom < 12) return;
+    this._lastRandom = 0;
+    if(Math.random() > 0.35) return;
+    const r = Math.random();
+    if(r < 0.2){
+      audio.doorClose();
+      this.showSubtitle('Где-то хлопнула дверь.', 2000);
+    } else if(r < 0.4){
+      audio.metal();
+      this.showSubtitle('Скрип металла наверху.', 2000);
+    } else if(r < 0.6){
+      audio.footstep(false, false);
+      this.showSubtitle('Шаги. Рядом?', 1800);
+    } else if(r < 0.8){
+      audio.tone(80, 0.8, 0.1, 'sine', 40);
+      const light = this.level.lights[Math.floor(Math.random()*this.level.lights.length)];
+      if(light){
+        const orig = light.base;
+        for(let i=0;i<8;i++){
+          setTimeout(()=>{
+            light.light.intensity = Math.random()*0.3;
+            if(i===7) light.light.intensity = orig;
+          }, i*80);
+        }
+      }
+    } else {
+      audio.breath();
+      this.showSubtitle('Дыхание за спиной...', 1800);
+    }
+  },
+
+  // ==== Главный цикл ====
+  animate(){
+    requestAnimationFrame(()=>this.animate());
+    const dt = Math.min(0.05, this.clock.getDelta());
+    const t = performance.now() * 0.001;
+
+    if(this.level){ this.level.update(dt, t); }
+
+    if(this.dust){
+      const p = this.dust.geometry.attributes.position;
+      const arr = p.array;
+      for(let i=0;i<arr.length;i+=3){
+        arr[i+1] += Math.sin(t*0.4 + i)*0.0005;
+      }
+      p.needsUpdate = true;
+      this.dust.rotation.y = t * 0.01;
+    }
+
+    if(this.running && !this.paused && this.player){
+      // мобильные кнопки — интегрируем в keys
+      const keys = { ...this.keys };
+      if(mobile.enabled){
+        keys['shift'] = mobile.buttons.run;
+        keys['control'] = mobile.buttons.crouch;
+        if(mobile.buttons.action){ this.keys['e'] = true; }
+      }
+      this.player.update(dt, keys, mobile.enabled ? mobile.moveVec : null);
+
+      // триггеры
+      this.checkTriggers();
+
+      // враг
+      if(this.enemy){
+        if(this.enemy.attackCooldown > 0) this.enemy.attackCooldown -= dt;
+        this.enemy.update(dt, this.player, noise);
+      }
+
+      // промпт взаимодействия
+      this.updateInteractPrompt();
+
+      // HUD
+      ui.setStamina(this.player.stamina);
+
+      // случайные события
+      this.checkRandomEvent(dt);
+
+      // камера-шейк
+      if(this.shakeTime > 0){
+        this.shakeTime -= dt;
+        const k = this.shakeTime / 0.6;
+        this.camera.position.x += (Math.random()-0.5) * this.shakeAmp * k;
+        this.camera.position.y += (Math.random()-0.5) * this.shakeAmp * k;
+        if(this.shakeTime <= 0){ this.shakeAmp = 0; }
+      }
+
+      // ambient AI атмосфера
+      if(Math.random() < dt*0.005){
+        aiService.whisper(`игрок исследует ${this.player.floor===this.enemy?.floor?'тот же этаж что и враг':'другой этаж'}`).then(txt=>{
+          if(txt) this.showSubtitle(txt, 2500);
+        });
+      }
+    }
+
+    this.renderer.render(this.scene, this.camera);
+  },
+
+  // ==== Настройки ====
+  settings: { vol:0.7, mus:0.5, sens:1, quality:'medium' },
+
+  applySettings(){
+    audio.setVol(this.settings.vol);
+    audio.setMus(this.settings.mus);
+    if(this.player) this.player.mouseSens = this.settings.sens;
+    // качество
+    if(this.renderer){
+      if(this.settings.quality === 'low'){ this.renderer.setPixelRatio(0.7); this.renderer.shadowMap.enabled = false; }
+      else if(this.settings.quality === 'medium'){ this.renderer.setPixelRatio(1); this.renderer.shadowMap.enabled = true; }
+      else { this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); this.renderer.shadowMap.enabled = true; }
+    }
+    SaveSystem.saveSettings(this.settings);
+  }
+};
+
+/* ==========================================================
+   Меню и обработчики
+   ========================================================== */
+function initMenu(){
+  const $ = id => document.getElementById(id);
+  // Продолжить
+  const save = SaveSystem.load();
+  if(save && save.attempt){
+    $('btnContinue').disabled = false;
+  }
+  $('btnNew').addEventListener('click', ()=>{
+    audio.init();
+    Game.newGame();
+  });
+  $('btnContinue').addEventListener('click', ()=>{
+    const s = SaveSystem.load();
+    if(!s){ alert('Нет сохранения'); return; }
+    Game.newGame();
+    Game.attempt = s.attempt || 1;
+    ui.setAttempt(Game.attempt);
+  });
+  $('btnSettings').addEventListener('click', ()=>{
+    $('menu').classList.add('hidden');
+    $('settings').classList.remove('hidden');
+  });
+  $('btnExit').addEventListener('click', ()=>{
+    if(confirm('Выйти?')){ window.close(); document.body.innerHTML = '<div style="color:#666;padding:40px;font-family:serif">Спасибо за игру.</div>'; }
+  });
+  $('btnBackSettings').addEventListener('click', ()=>{
+    $('settings').classList.add('hidden');
+    if(Game.running){ /* return to game */ document.getElementById('hud').classList.remove('hidden'); }
+    else $('menu').classList.remove('hidden');
+  });
+  // Настройки
+  const setVol = $('setVol'), setMus = $('setMus'), setSens = $('setSens'), setQual = $('setQual');
+  const saved = SaveSystem.loadSettings();
+  if(saved){
+    setVol.value = saved.vol; setMus.value = saved.mus; setSens.value = saved.sens; setQual.value = saved.quality;
+    Object.assign(Game.settings, saved);
+  }
+  const apply = ()=> {
+    Game.settings.vol = parseFloat(setVol.value);
+    Game.settings.mus = parseFloat(setMus.value);
+    Game.settings.sens = parseFloat(setSens.value);
+    Game.settings.quality = setQual.value;
+    Game.applySettings();
+  };
+  setVol.addEventListener('input', apply);
+  setMus.addEventListener('input', apply);
+  setSens.addEventListener('input', apply);
+  setQual.addEventListener('change', apply);
+
+  // Death / Win
+  $('btnRetry').addEventListener('click', ()=>{
+    // сохраним попытку
+    try{ localStorage.setItem('shadow_attempt', String((Game.attempt||1)+1)); }catch(e){}
+    document.getElementById('death').classList.add('hidden');
+    Game.newGame();
+    try{ Game.attempt = parseInt(localStorage.getItem('shadow_attempt')||'2', 10); }catch(e){ Game.attempt = 2; }
+    ui.setAttempt(Game.attempt);
+    SaveSystem.save({attempt:Game.attempt});
+  });
+  $('btnPlayAgain').addEventListener('click', ()=>{
+    document.getElementById('win').classList.add('hidden');
+    Game.newGame();
+  });
+
+  // Code panel
+  $('codeInput').addEventListener('input', (e)=>{
+    e.target.value = e.target.value.replace(/\D/g,'').slice(0,4);
+  });
+  $('codeInput').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') Game.submitCode();
+  });
+  $('codeClose').addEventListener('click', ()=> Game.closeCodePanel());
+}
+
+/* ==========================================================
+   Input
+   ========================================================== */
+document.addEventListener('keydown', (e)=>{
+  const k = e.key.toLowerCase();
+  Game.keys[k] = true;
+  if(k === 'e') Game.interact();
+  if(k === 'q' && Game.inventory.items.length > 0){
+    // выбросить последний
+    const it = Game.inventory.items[Game.inventory.items.length-1];
+    Game.inventory.remove(it.type);
+    ui.updateInventory(Game.inventory);
+    // спавним перед игроком
+    const fwd = new THREE.Vector3(-Math.sin(Game.player.yaw), 0, -Math.cos(Game.player.yaw));
+    it.taken = false;
+    it.group.position.set(
+      Game.player.pos.x + fwd.x * 1.2,
+      FLOOR_Y[Game.player.floor] + 0.5,
+      Game.player.pos.z + fwd.z * 1.2
+    );
+    it.x = it.group.position.x; it.z = it.group.position.z; it.floor = Game.player.floor;
+    Game.scene.add(it.group);
+    audio.drop();
+    noise.emit(it.x, it.z, it.floor, 14, 'drop');
+  }
+  if(k === 'escape'){
+    if(!document.getElementById('settings').classList.contains('hidden')){
+      document.getElementById('settings').classList.add('hidden');
+      document.getElementById('menu').classList.remove('hidden');
+    }
+    if(!document.getElementById('codePanel').classList.contains('hidden')) Game.closeCodePanel();
+  }
+}, false);
+document.addEventListener('keyup', (e)=>{
+  Game.keys[e.key.toLowerCase()] = false;
+}, false);
+
+// мобильные кнопки → keys
+function pollMobileButtons(){
+  if(!mobile.enabled) return;
+  if(mobile.buttons.action && !mobile._lastAction){
+    Game.interact();
+  }
+  mobile._lastAction = mobile.buttons.action;
+  if(mobile.buttons.drop && !mobile._lastDrop){
+    // выбросить последний
+    if(Game.inventory.items.length > 0){
+      const it = Game.inventory.items[Game.inventory.items.length-1];
+      Game.inventory.remove(it.type);
+      ui.updateInventory(Game.inventory);
+      const fwd = new THREE.Vector3(-Math.sin(Game.player.yaw), 0, -Math.cos(Game.player.yaw));
+      it.taken = false;
+      it.group.position.set(Game.player.pos.x + fwd.x*1.2, FLOOR_Y[Game.player.floor]+0.5, Game.player.pos.z + fwd.z*1.2);
+      it.x = it.group.position.x; it.z = it.group.position.z; it.floor = Game.player.floor;
+      Game.scene.add(it.group);
+      audio.drop();
+      noise.emit(it.x, it.z, it.floor, 14, 'drop');
+    }
+  }
+  mobile._lastDrop = mobile.buttons.drop;
+}
+setInterval(pollMobileButtons, 80);
+
+/* ==========================================================
+   Запуск
+   ========================================================== */
+Game.init();
+initMenu();
+
+// автоматическое снижение качества на мобильных
+if(mobile.enabled || window.innerWidth < 700){
+  Game.settings.quality = 'low';
+  const q = document.getElementById('setQual'); if(q) q.value = 'low';
+  Game.applySettings();
+} else {
+  Game.applySettings();
+}
+
+// Применяем сохранённую попытку к меню
+try{
+  const a = localStorage.getItem('shadow_attempt');
+  if(a) ui.setAttempt(parseInt(a,10));
+}catch(e){}
+
+console.log('%cТЕНЬ В ДОМЕ запущена','color:#a08060;font-size:14px');
+console.log('Gemini API:', aiService.enabled ? 'подключён' : 'отключён (используется локальный ИИ)');
+</script>
 </body>
 </html>
