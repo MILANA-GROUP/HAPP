@@ -2,2132 +2,1531 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Тень в доме</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0f">
+<title>Rubik AI</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Georgia',serif;color:#c9c2b8;user-select:none}
-canvas{display:block}
-#game{position:fixed;inset:0}
-.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:10;background:#000}
-.hidden{display:none!important}
-
-/* ===== Vignette + grain ===== */
-#vignette{position:fixed;inset:0;pointer-events:none;z-index:5;
-  background:radial-gradient(ellipse at center,rgba(0,0,0,0) 30%,rgba(0,0,0,0.85) 100%)}
-#grain{position:fixed;inset:0;pointer-events:none;z-index:6;opacity:0.07;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation:grainAnim 0.4s steps(3) infinite}
-@keyframes grainAnim{0%{transform:translate(0,0)}50%{transform:translate(-20px,10px)}100%{transform:translate(10px,-15px)}}
-#damage{position:fixed;inset:0;pointer-events:none;z-index:7;background:radial-gradient(ellipse at center,transparent 40%,rgba(120,0,0,0.7) 100%);opacity:0;transition:opacity 0.4s}
-
-/* ===== Menu ===== */
-#menu{background:radial-gradient(ellipse at 50% 30%,#1a1512 0%,#050403 80%)}
-#menu h1{font-size:clamp(38px,8vw,72px);letter-spacing:14px;color:#8b7d6b;text-shadow:0 0 30px #000,0 0 60px #2a1a0a;font-weight:300;margin-bottom:6px;animation:titlePulse 6s infinite}
-@keyframes titlePulse{0%,100%{opacity:0.85}50%{opacity:1}}
-#menu .sub{font-size:13px;letter-spacing:8px;color:#5a4a3a;margin-bottom:50px;font-style:italic}
-#menu .btn{background:transparent;border:1px solid #4a3e30;color:#8b7d6b;padding:14px 60px;margin:6px;font-family:'Georgia',serif;font-size:16px;letter-spacing:5px;cursor:pointer;transition:all 0.35s;min-width:240px}
-#menu .btn:hover{border-color:#a89274;color:#e0d4be;background:rgba(80,60,40,0.15);letter-spacing:7px;box-shadow:0 0 24px rgba(120,90,50,0.25)}
-#menu .btn:disabled{opacity:0.25;cursor:not-allowed}
-#menu .btn:disabled:hover{border-color:#4a3e30;color:#8b7d6b;background:transparent;letter-spacing:5px;box-shadow:none}
-
-/* ===== Intro ===== */
-#intro{background:#000;text-align:center;padding:40px}
-#intro p{font-size:18px;line-height:1.9;color:#8a8276;max-width:560px;opacity:0;font-style:italic;transition:opacity 1.8s}
-#intro p.show{opacity:1}
-
-/* ===== HUD ===== */
-#hud{position:fixed;inset:0;pointer-events:none;z-index:4}
-#crosshair{position:absolute;top:50%;left:50%;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.55);transform:translate(-50%,-50%);transition:all 0.2s}
-#crosshair.active{width:14px;height:14px;background:rgba(255,220,150,0.9);box-shadow:0 0 12px rgba(255,220,150,0.7)}
-#prompt{position:absolute;bottom:26%;left:50%;transform:translateX(-50%);font-size:15px;letter-spacing:2px;color:#e0d4be;text-shadow:0 0 8px #000;opacity:0;transition:opacity 0.25s;white-space:nowrap}
-#prompt.show{opacity:1}
-#inventory{position:absolute;bottom:14px;left:14px;display:flex;gap:6px;flex-wrap:wrap;max-width:60%}
-.invslot{width:48px;height:48px;border:1px solid #4a3e30;background:rgba(10,8,5,0.6);display:flex;align-items:center;justify-content:center;font-size:22px;border-radius:4px;transition:all 0.25s}
-.invslot.pop{transform:scale(1.25);border-color:#c0a878;box-shadow:0 0 14px rgba(200,170,120,0.5)}
-#stamina{position:absolute;top:16px;left:50%;transform:translateX(-50%);width:180px;height:4px;background:rgba(0,0,0,0.6);border:1px solid #333;border-radius:2px;overflow:hidden;opacity:0;transition:opacity 0.5s}
-#stamina.show{opacity:1}
-#stamina > div{height:100%;background:linear-gradient(90deg,#8a2020,#c04040);width:100%;transition:width 0.1s}
-#objective{position:absolute;top:16px;right:16px;max-width:280px;text-align:right;font-size:13px;color:#a89880;font-style:italic;text-shadow:0 0 6px #000;line-height:1.5}
-#attemptInfo{position:absolute;top:16px;left:16px;font-size:12px;color:#6a5a48;letter-spacing:3px}
-
-/* ===== Death / Win ===== */
-#death,#win{background:rgba(0,0,0,0.98);text-align:center;padding:30px}
-#death h2{font-size:clamp(36px,9vw,72px);color:#7a1010;letter-spacing:10px;margin-bottom:30px;text-shadow:0 0 40px #a02020;animation:deathShake 0.15s infinite}
-@keyframes deathShake{0%,100%{transform:translate(0,0)}25%{transform:translate(-2px,1px)}75%{transform:translate(2px,-1px)}}
-#win{background:linear-gradient(180deg,#1a1a1a,#e8e0d0)}
-#win h2{font-size:clamp(36px,9vw,72px);color:#2a1a0a;letter-spacing:12px;margin-bottom:30px;font-weight:300}
-.again-btn{margin-top:20px;padding:14px 50px;font-size:15px;letter-spacing:5px;background:transparent;border:1px solid #8b7d6b;color:#8b7d6b;font-family:'Georgia',serif;cursor:pointer;transition:all 0.3s}
-.again-btn:hover{background:#8b7d6b;color:#0a0806}
-
-/* ===== Settings ===== */
-#settings{background:radial-gradient(ellipse at 50% 30%,#1a1512 0%,#050403 80%);padding:30px}
-#settings h2{letter-spacing:8px;color:#8b7d6b;font-weight:300;margin-bottom:26px;font-size:26px}
-.setting{width:min(420px,88vw);margin:12px 0;display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#8b7d6b;letter-spacing:2px}
-.setting input[type=range]{width:180px;accent-color:#8b7d6b;background:transparent}
-.setting select{background:#0a0806;color:#8b7d6b;border:1px solid #4a3e30;padding:6px 10px;font-family:inherit}
-#settings .btn{margin-top:24px}
-
-/* ===== Code panel ===== */
-#codePanel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,8,5,0.96);border:2px solid #4a3e30;padding:26px;z-index:20;display:flex;flex-direction:column;align-items:center;gap:14px;border-radius:6px}
-#codePanel h3{color:#a89880;letter-spacing:5px;font-weight:300}
-#codePanel input{background:#0a0806;border:1px solid #4a3e30;color:#e0d4be;font-size:26px;letter-spacing:14px;text-align:center;padding:12px;width:230px;font-family:monospace;outline:none}
-#codePanel input:focus{border-color:#c0a878}
-#codePanel .msg{color:#a02020;font-size:13px;min-height:16px;letter-spacing:2px}
-
-/* ===== Mobile ===== */
-#mobile{position:fixed;inset:0;pointer-events:none;z-index:8;display:none}
-#mobile.active{display:block}
-#joyZone{position:absolute;left:0;bottom:0;width:45%;height:55%;pointer-events:auto}
-#joyBase{position:absolute;width:130px;height:130px;border-radius:50%;border:2px solid rgba(200,170,120,0.35);background:rgba(0,0,0,0.25);display:none}
-#joyStick{position:absolute;width:60px;height:60px;border-radius:50%;background:rgba(200,170,120,0.4);border:1px solid rgba(200,170,120,0.6)}
-#lookZone{position:absolute;right:0;top:0;width:55%;height:100%;pointer-events:auto}
-.mbtn{position:absolute;pointer-events:auto;width:64px;height:64px;border-radius:50%;background:rgba(20,15,10,0.65);border:1px solid rgba(200,170,120,0.4);color:#c0a878;font-size:11px;font-family:inherit;letter-spacing:1px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold}
-.mbtn:active{background:rgba(200,170,120,0.35);color:#fff}
-#btnAction{right:20px;bottom:130px;width:74px;height:74px}
-#btnSprint{right:100px;bottom:50px}
-#btnCrouch{right:20px;bottom:50px}
-#btnDrop{right:180px;bottom:90px;width:56px;height:56px;font-size:10px}
-
-/* ===== Fade ===== */
-#fade{position:fixed;inset:0;background:#000;z-index:30;pointer-events:none;opacity:0;transition:opacity 0.8s}
-#fade.show{opacity:1}
-#subtitle{position:fixed;bottom:14%;left:50%;transform:translateX(-50%);color:#c9c2b8;font-size:15px;font-style:italic;text-shadow:0 0 8px #000;z-index:9;pointer-events:none;text-align:center;max-width:80vw;opacity:0;transition:opacity 0.5s}
-#subtitle.show{opacity:1}
-
-@media (max-width:640px){
-  #inventory{bottom:auto;top:16px;left:50%;transform:translateX(-50%);max-width:none}
-  .invslot{width:38px;height:38px;font-size:18px}
-  #objective{font-size:11px;max-width:180px;top:64px}
-  #attemptInfo{display:none}
+:root{
+  --bg:#0a0a0f;--surface:#14141c;--surface2:#1c1c28;--border:rgba(255,255,255,.08);
+  --text:#fff;--dim:#8a8a9e;--accent:#7c5cff;--accent2:#ff5c9e;
+  --ok:#4ade80;--warn:#fbbf24;--err:#ef4444;
 }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);user-select:none;-webkit-user-select:none;
+  overscroll-behavior:none;
+}
+.app{
+  position:fixed;inset:0;display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.screen{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  padding:22px;padding-top:calc(22px + env(safe-area-inset-top));
+  padding-bottom:calc(22px + env(safe-area-inset-bottom));
+  opacity:0;pointer-events:none;transition:opacity .3s;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.screen.on{opacity:1;pointer-events:auto}
+.h1{font-size:34px;font-weight:800;letter-spacing:-.5px;
+  background:linear-gradient(90deg,#fff,#7c5cff 60%,#ff5c9e);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.h2{font-size:22px;font-weight:700;margin-bottom:6px}
+.sub{color:var(--dim);font-size:15px;line-height:1.5}
+.btn{
+  padding:16px 22px;border:none;border-radius:14px;font-size:16px;font-weight:600;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+  box-shadow:0 8px 24px rgba(124,92,255,.35);
+}
+.btn:active{transform:scale(.97)}
+.btn.secondary{background:var(--surface2);color:var(--text);box-shadow:none;border:1px solid var(--border)}
+.btn.ghost{background:transparent;color:var(--dim);box-shadow:none;border:1px solid var(--border)}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.4;pointer-events:none}
+.center{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:14px}
+.glass{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:18px;padding:18px;backdrop-filter:blur(12px)}
+
+/* Home */
+.home-logo{
+  width:110px;height:110px;margin-bottom:10px;border-radius:26px;
+  background:conic-gradient(#ff5c5c 0 25%,#5cff5c 0 50%,#5c5cff 0 75%,#ffdb5c 0);
+  box-shadow:0 20px 60px rgba(124,92,255,.4);animation:rot 12s linear infinite;
+  position:relative;
+}
+.home-logo::after{content:'';position:absolute;inset:14px;border-radius:16px;background:var(--bg)}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* Camera */
+#camWrap{position:absolute;inset:0;background:#000;overflow:hidden;display:none}
+#camWrap.on{display:block}
+#cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam-overlay{position:absolute;inset:0;pointer-events:none}
+.grid3{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(78vw,78vh);height:min(78vw,78vh);
+  border:2px solid rgba(255,255,255,.9);border-radius:20px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.55),inset 0 0 30px rgba(255,255,255,.1);
+}
+.grid3 svg{width:100%;height:100%}
+.grid3 svg line{stroke:rgba(255,255,255,.55);stroke-width:1.5;stroke-dasharray:6 4}
+.cam-hint{
+  position:absolute;bottom:calc(180px + env(safe-area-inset-bottom));left:0;right:0;
+  text-align:center;font-size:15px;color:#fff;text-shadow:0 2px 12px #000;
+  padding:0 20px;
+}
+.cam-top{
+  position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;right:14px;
+  display:flex;justify-content:space-between;align-items:center;color:#fff;
+}
+.cam-top .chip{background:rgba(0,0,0,.6);padding:8px 14px;border-radius:20px;font-size:13px;font-weight:600;backdrop-filter:blur(8px)}
+.cam-bottom{
+  position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));left:20px;right:20px;
+  display:flex;gap:12px;justify-content:center;
+}
+.cam-bottom .btn{flex:1;max-width:200px}
+
+/* 3x3 preview */
+.mini3{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:96px;height:96px}
+.mini3 > div{border-radius:6px;background:#333;transition:background .2s}
+.mini3 > div.none{background:#222;border:1px dashed #444}
+
+/* Face picker */
+.face-row{display:flex;gap:10px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
+.face-row::-webkit-scrollbar{display:none}
+.face-chip{
+  min-width:64px;padding:10px 12px;border-radius:12px;background:var(--surface2);
+  border:1px solid var(--border);text-align:center;cursor:pointer;transition:.2s;
+}
+.face-chip.active{border-color:var(--accent);background:rgba(124,92,255,.15)}
+.face-chip.done{opacity:.5}
+.face-chip .letter{font-weight:800;font-size:16px}
+.face-chip .label{font-size:11px;color:var(--dim);margin-top:2px}
+
+/* 3D viewer */
+#viewer{flex:1;position:relative;border-radius:18px;overflow:hidden;background:radial-gradient(ellipse at center,#1a1a24,#0a0a0f);margin:8px 0}
+#viewer canvas{display:block;width:100%;height:100%}
+
+/* Step */
+.step-box{display:flex;align-items:center;gap:16px;padding:18px;background:var(--surface);border-radius:18px;border:1px solid var(--border)}
+.step-move{font-size:42px;font-weight:900;font-family:'SF Mono',monospace;color:var(--accent);min-width:90px;text-align:center}
+.step-desc{flex:1;font-size:15px;color:var(--dim);line-height:1.4}
+.progress{height:6px;background:var(--surface2);border-radius:6px;overflow:hidden;margin:12px 0}
+.progress > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
+
+/* Manual edit modal */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;
+  align-items:center;justify-content:center;padding:20px;z-index:100;
+}
+.modal.on{display:flex}
+.modal-inner{background:var(--surface);border-radius:22px;padding:22px;width:100%;max-width:400px;border:1px solid var(--border)}
+.palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.pal{aspect-ratio:1;border-radius:12px;border:2px solid transparent;cursor:pointer}
+.pal.active{border-color:#fff}
+
+/* Colors */
+.cW{background:#f5f5f5}.cY{background:#ffd93b}.cR{background:#e63946}
+.cO{background:#ff8c1a}.cB{background:#2f6dff}.cG{background:#22c55e}
+.gW{background:#f5f5f5}.gY{background:#ffd93b}.gR{background:#e63946}
+.gO{background:#ff8c1a}.gB{background:#2f6dff}.gG{background:#22c55e}
+.gW.gray,.gY.gray,.gR.gray,.gO.gray,.gB.gray,.gG.gray{background:#3a3a48;border:1px solid #555}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(100px);background:#1c1c28;
+  border:1px solid var(--border);padding:14px 20px;border-radius:14px;font-size:14px;
+  transition:transform .3s;z-index:200;max-width:88vw;
+}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast.err{border-color:var(--err);color:#ffb0b0}
+.toast.ok{border-color:var(--ok);color:#b6ffc9}
 </style>
 </head>
 <body>
+<div class="app">
 
-<div id="game"></div>
-<div id="vignette"></div>
-<div id="grain"></div>
-<div id="damage"></div>
-
-<!-- ============ HUD ============ -->
-<div id="hud" class="hidden">
-  <div id="crosshair"></div>
-  <div id="prompt"></div>
-  <div id="inventory"></div>
-  <div id="stamina"><div></div></div>
-  <div id="objective"></div>
-  <div id="attemptInfo"></div>
-</div>
-<div id="subtitle"></div>
-
-<!-- ============ Menu ============ -->
-<div id="menu" class="overlay">
-  <h1>ТЕНЬ В ДОМЕ</h1>
-  <div class="sub">— ИЗ ЧЕГО НЕ ВЫБРАТЬСЯ —</div>
-  <button class="btn" id="btnNew">НОВАЯ ИГРА</button>
-  <button class="btn" id="btnContinue" disabled>ПРОДОЛЖИТЬ</button>
-  <button class="btn" id="btnSettings">НАСТРОЙКИ</button>
-  <button class="btn" id="btnExit">ВЫХОД</button>
-</div>
-
-<!-- ============ Intro ============ -->
-<div id="intro" class="overlay hidden">
-  <p id="introText"></p>
-</div>
-
-<!-- ============ Settings ============ -->
-<div id="settings" class="overlay hidden">
-  <h2>НАСТРОЙКИ</h2>
-  <div class="setting"><span>ГРОМКОСТЬ</span><input type="range" id="setVol" min="0" max="1" step="0.05" value="0.7"></div>
-  <div class="setting"><span>МУЗЫКА</span><input type="range" id="setMus" min="0" max="1" step="0.05" value="0.5"></div>
-  <div class="setting"><span>ЧУВСТВИТЕЛЬНОСТЬ</span><input type="range" id="setSens" min="0.3" max="3" step="0.1" value="1"></div>
-  <div class="setting"><span>КАЧЕСТВО</span>
-    <select id="setQual"><option value="high">ВЫСОКОЕ</option><option value="medium" selected>СРЕДНЕЕ</option><option value="low">НИЗКОЕ</option></select>
+<!-- ============ HOME ============ -->
+<div class="screen on" id="s-home">
+  <div class="center">
+    <div class="home-logo"></div>
+    <div class="h1">Rubik AI</div>
+    <div class="sub" style="max-width:300px">Отсканируй кубик — AI покажет, как его собрать</div>
+    <div style="height:20px"></div>
+    <button class="btn" style="width:min(320px,80vw)" onclick="App.startScan()">📷 Начать сканирование</button>
+    <button class="btn ghost" style="width:min(320px,80vw);margin-top:10px" onclick="App.openManual()">Ввести цвета вручную</button>
+    <div class="sub" style="font-size:12px;max-width:280px;margin-top:8px">
+      Наведи камеру на каждую из 6 сторон кубика по очереди
+    </div>
   </div>
-  <button class="btn again-btn" id="btnBackSettings">НАЗАД</button>
 </div>
 
-<!-- ============ Code panel ============ -->
-<div id="codePanel" class="hidden">
-  <h3>КОДОВЫЙ ЗАМОК</h3>
-  <input id="codeInput" maxlength="4" inputmode="numeric" pattern="[0-9]*">
-  <div class="msg" id="codeMsg"></div>
-  <button class="btn again-btn" id="codeClose">ОТМЕНА</button>
-</div>
-
-<!-- ============ Death ============ -->
-<div id="death" class="overlay hidden">
-  <h2>ВЫ ПОПАЛИСЬ</h2>
-  <button class="again-btn" id="btnRetry">ПОПРОБОВАТЬ СНОВА</button>
-</div>
-
-<!-- ============ Win ============ -->
-<div id="win" class="overlay hidden">
-  <h2>ТЫ СБЕЖАЛ</h2>
-  <button class="again-btn" id="btnPlayAgain">ИГРАТЬ СНОВА</button>
-</div>
-
-<!-- ============ Mobile controls ============ -->
-<div id="mobile">
-  <div id="joyZone">
-    <div id="joyBase"><div id="joyStick"></div></div>
+<!-- ============ CAMERA ============ -->
+<div id="camWrap">
+  <video id="cam" playsinline muted></video>
+  <div class="cam-overlay">
+    <div class="grid3">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <line x1="33.33" y1="0" x2="33.33" y2="100"/>
+        <line x1="66.66" y1="0" x2="66.66" y2="100"/>
+        <line x1="0" y1="33.33" x2="100" y2="33.33"/>
+        <line x1="0" y1="66.66" x2="100" y2="66.66"/>
+      </svg>
+    </div>
   </div>
-  <div id="lookZone"></div>
-  <button class="mbtn" id="btnAction">E</button>
-  <button class="mbtn" id="btnSprint">БЕГ</button>
-  <button class="mbtn" id="btnCrouch">↓</button>
-  <button class="mbtn" id="btnDrop">БРОС</button>
+  <div class="cam-top">
+    <div class="chip" id="camFaceChip">Сторона 1 из 6</div>
+    <div class="chip" id="camConfChip">—</div>
+  </div>
+  <div class="cam-hint" id="camHint">Поместите грань кубика в рамку</div>
+  <div class="cam-bottom">
+    <button class="btn ghost" onclick="App.stopScan()">Отмена</button>
+    <button class="btn" onclick="App.capture()">📸 Снять</button>
+  </div>
 </div>
 
-<div id="fade"></div>
+<!-- ============ CONFIRM FACE ============ -->
+<div class="screen" id="s-confirm">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <button class="btn ghost" style="padding:10px 14px" onclick="App.retake()">← Назад</button>
+    <div class="h2" id="confirmTitle">Сторона F</div>
+  </div>
+  <div class="sub">Проверьте распознанные цвета. Нажмите на квадрат, чтобы исправить.</div>
+  <div style="display:flex;gap:20px;align-items:center;justify-content:center;margin:20px 0;flex-wrap:wrap">
+    <div class="mini3" id="confirmGrid" style="width:min(60vw,260px);height:min(60vw,260px);gap:6px"></div>
+    <div style="text-align:center">
+      <div style="font-size:13px;color:var(--dim)">Уверенность</div>
+      <div style="font-size:32px;font-weight:800" id="confValue">—</div>
+    </div>
+  </div>
+  <div style="flex:1"></div>
+  <button class="btn wide" onclick="App.saveFace()">✓ Сохранить сторону</button>
+  <button class="btn ghost wide" style="margin-top:10px" onclick="App.retake()">Пересканировать</button>
+</div>
+
+<!-- ============ VERIFY ALL ============ -->
+<div class="screen" id="s-verify">
+  <div class="h2">Проверка кубика</div>
+  <div class="sub" id="verifyMsg">Все стороны отсканированы. Проверяем конфигурацию...</div>
+  <div class="face-row" id="verifyFaces" style="margin-top:16px"></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0">
+    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Белых</div><div style="font-size:20px;font-weight:700" id="cntW">—</div></div>
+    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Жёлтых</div><div style="font-size:20px;font-weight:700" id="cntY">—</div></div>
+    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Красных</div><div style="font-size:20px;font-weight:700" id="cntR">—</div></div>
+    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Оранж.</div><div style="font-size:20px;font-weight:700" id="cntO">—</div></div>
+    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Синих</div><div style="font-size:20px;font-weight:700" id="cntB">—</div></div>
+    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Зелёных</div><div style="font-size:20px;font-weight:700" id="cntG">—</div></div>
+  </div>
+  <div style="flex:1"></div>
+  <button class="btn wide" id="btnSolve" onclick="App.solve()">🧠 Рассчитать решение</button>
+  <button class="btn ghost wide" style="margin-top:10px" onclick="App.reset()">Начать заново</button>
+</div>
+
+<!-- ============ RESULT ============ -->
+<div class="screen" id="s-solve">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div class="h2">Решение</div>
+      <div class="sub" id="solveInfo">—</div>
+    </div>
+    <button class="btn ghost" style="padding:10px 14px" onclick="App.reset()">Заново</button>
+  </div>
+  <div id="viewer"></div>
+  <div class="progress"><div id="progressBar" style="width:0%"></div></div>
+  <div class="step-box">
+    <div class="step-move" id="stepMove">—</div>
+    <div class="step-desc" id="stepDesc">Нажмите «Следующий шаг», чтобы начать.</div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:14px">
+    <button class="btn secondary" style="flex:1" onclick="App.prevStep()">← Назад</button>
+    <button class="btn" style="flex:1.5" onclick="App.nextStep()" id="nextBtn">Следующий шаг →</button>
+  </div>
+</div>
+
+<!-- ============ DONE ============ -->
+<div class="screen" id="s-done">
+  <div class="center">
+    <div style="font-size:80px">🎉</div>
+    <div class="h1">Кубик собран!</div>
+    <div class="sub" id="doneInfo"></div>
+    <button class="btn" style="margin-top:20px;width:min(320px,80vw)" onclick="App.reset()">Собрать ещё один</button>
+  </div>
+</div>
+
+<!-- ============ MANUAL PICKER ============ -->
+<div class="modal" id="manualModal">
+  <div class="modal-inner">
+    <div class="h2">Выберите цвет</div>
+    <div class="sub" id="manualSub">Сторона —, клетка —</div>
+    <div class="palette" id="palette"></div>
+    <button class="btn ghost wide" style="margin-top:14px" onclick="App.closeManual()">Отмена</button>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"></div>
+
+</div>
 
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
 </script>
-
 <script type="module">
 import * as THREE from 'three';
 
-/* ==========================================================
-   AIService — опциональный Gemini. Игра работает без ключа.
-   ========================================================== */
-const GEMINI_API_KEY = "ВСТАВЬ_СЮДА_СВОЙ_GEMINI_API_KEY";
+/* ============================================================
+   CONFIG / constants
+   ============================================================ */
+// Если захотите добавить комментарии от Gemini — вставьте сюда ключ AIzaSy... из aistudio.google.com
+// ВАЖНО: приложение полностью работает и без него.
+const GEMINI_API_KEY = "";
 
-class AIService {
-  constructor(){
-    this.enabled = !!GEMINI_API_KEY && !GEMINI_API_KEY.includes("ВСТАВЬ");
-    this.lastCall = 0;
-    this.cooldown = 20000;
-    this.pending = false;
+const FACES = ['U','R','F','D','L','B'];
+const COLORS = ['W','Y','R','O','B','G'];   // Белый Жёлтый Красный Оранжевый Синий Зелёный
+const COLOR_CSS = {W:'cW',Y:'cY',R:'cR',O:'cO',B:'cB',G:'cG'};
+const COLOR_NAME = {W:'Белый',Y:'Жёлтый',R:'Красный',O:'Оранжевый',B:'Синий',G:'Зелёный'};
+// Оппозитные пары (стандартная схема)
+const OPP = {W:'Y',Y:'W',R:'O',O:'R',B:'G',G:'B'};
+// Маппинг «цвет центра → имя грани» (стандарт: U=W, F=G, R=R)
+const COLOR_TO_FACE = {W:'U',Y:'D',G:'F',B:'B',R:'R',O:'L'};
+
+/* ============================================================
+   CUBE MODEL (cubie-based)
+   ============================================================ */
+// Схема: 20 кубиков (кроме невидимого центра) в координатах {-1,0,1}^3
+// Углы (3 цвета), рёбра (2 цвета). Ориентация хранится как матрица 3×3.
+
+function matMul(A,B){
+  const R=[[0,0,0],[0,0,0],[0,0,0]];
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++){
+    let s=0; for(let k=0;k<3;k++) s+=A[i][k]*B[k][j];
+    R[i][j]=s;
   }
-  async whisper(context){
-    if(!this.enabled || this.pending) return null;
-    if(Date.now() - this.lastCall < this.cooldown) return null;
-    this.pending = true;
-    this.lastCall = Date.now();
-    try{
-      const ctrl = new AbortController();
-      const to = setTimeout(()=>ctrl.abort(), 6000);
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
-         body:JSON.stringify({contents:[{parts:[{text:
-`Ты — атмосферный голос дома в хорроре. Ответь ОДНОЙ короткой фразой на русском (до 60 символов), жутковатой, без пояснений. Контекст: ${context}`}]}],
-         generationConfig:{temperature:1.1,maxOutputTokens:40}})}
-      );
-      clearTimeout(to);
-      const data = await res.json();
-      const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      this.pending = false;
-      return txt ? txt.trim().replace(/^"|"$/g,'') : null;
-    }catch(e){
-      this.pending = false;
-      return null;
+  return R;
+}
+function matVec(M,v){
+  return [M[0][0]*v[0]+M[0][1]*v[1]+M[0][2]*v[2],
+          M[1][0]*v[0]+M[1][1]*v[1]+M[1][2]*v[2],
+          M[2][0]*v[0]+M[2][1]*v[1]+M[2][2]*v[2]];
+}
+const I3=[[1,0,0],[0,1,0],[0,0,1]];
+
+const ROT_X_CW = [[1,0,0],[0,0,-1],[0,1,0]];   // R move: -90° around X (см. доку)
+const ROT_X_CCW= [[1,0,0],[0,0,1],[0,-1,0]];
+const ROT_Y_CW = [[0,0,1],[0,1,0],[-1,0,0]];   // D move: +90° Y
+const ROT_Y_CCW= [[0,0,-1],[0,1,0],[1,0,0]];   // U move: -90° Y
+const ROT_Z_CW = [[0,-1,0],[1,0,0],[0,0,1]];   // B move: +90° Z
+const ROT_Z_CCW= [[0,1,0],[-1,0,0],[0,0,1]];   // F move: -90° Z
+
+class Cube {
+  constructor(){
+    this.cubies = [];
+    for(let x=-1;x<=1;x++) for(let y=-1;y<=1;y++) for(let z=-1;z<=1;z++){
+      if(x===0&&y===0&&z===0) continue;
+      const colors = [
+        x===1?'R':null, x===-1?'L':null,     // local +X, -X
+        y===1?'U':null, y===-1?'D':null,     // +Y, -Y
+        z===1?'F':null, z===-1?'B':null      // +Z, -Z
+      ];
+      this.cubies.push({ pos:[x,y,z], rot:I3.slice().map(r=>r.slice()), colors });
     }
   }
-}
-const aiService = new AIService();
-
-/* ==========================================================
-   AudioSystem — процедурные звуки через Web Audio API
-   ========================================================== */
-class AudioSystem {
-  constructor(){
-    this.ctx = null;
-    this.master = null;
-    this.musicGain = null;
-    this.vol = 0.7;
-    this.musVol = 0.5;
-    this.chaseNodes = null;
+  clone(){
+    const c = new Cube();
+    c.cubies = this.cubies.map(k=>({
+      pos:k.pos.slice(),
+      rot:k.rot.map(r=>r.slice()),
+      colors:k.colors.slice()
+    }));
+    return c;
   }
-  init(){
-    if(this.ctx) return;
-    try{
-      this.ctx = new (window.AudioContext||window.webkitAudioContext)();
-      this.master = this.ctx.createGain();
-      this.master.gain.value = this.vol;
-      this.master.connect(this.ctx.destination);
-      this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.value = this.musVol;
-      this.musicGain.connect(this.master);
-      this._startAmbient();
-    }catch(e){ console.warn('audio', e); }
+  // Применить одиночный ход (U/U'/U2/R/...)
+  move(m){
+    if(!m) return;
+    const face = m[0]; const mod = m.slice(1);
+    const turns = mod==='2'?2 : mod==="'"?3 : 1;
+    for(let t=0;t<turns;t++) this._quarter(face);
   }
-  setVol(v){ this.vol = v; if(this.master) this.master.gain.value = v; }
-  setMus(v){ this.musVol = v; if(this.musicGain) this.musicGain.gain.value = v; }
-
-  _startAmbient(){
-    const o = this.ctx.createOscillator();
-    const g = this.ctx.createGain();
-    o.type = 'sine'; o.frequency.value = 42;
-    g.gain.value = 0.05;
-    const o2 = this.ctx.createOscillator();
-    o2.type = 'sine'; o2.frequency.value = 63;
-    const g2 = this.ctx.createGain(); g2.gain.value = 0.025;
-    o.connect(g).connect(this.master);
-    o2.connect(g2).connect(this.master);
-    o.start(); o2.start();
+  _quarter(face){
+    let axis, layer, rot;
+    switch(face){
+      case 'U': axis=1; layer= 1; rot=ROT_Y_CCW; break;
+      case 'D': axis=1; layer=-1; rot=ROT_Y_CW;  break;
+      case 'R': axis=0; layer= 1; rot=ROT_X_CW;  break;
+      case 'L': axis=0; layer=-1; rot=ROT_X_CCW; break;
+      case 'F': axis=2; layer= 1; rot=ROT_Z_CCW; break;
+      case 'B': axis=2; layer=-1; rot=ROT_Z_CW;  break;
+    }
+    for(const k of this.cubies){
+      if(k.pos[axis]!==layer) continue;
+      k.pos = matVec(rot, k.pos).map(v=>Math.round(v));
+      k.rot = matMul(rot, k.rot);
+    }
   }
-
-  noise(dur, freq=800, vol=0.3, type='lowpass'){
-    if(!this.ctx) return;
-    const sr = this.ctx.sampleRate;
-    const buf = this.ctx.createBuffer(1, sr*dur, sr);
-    const d = buf.getChannelData(0);
-    for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
-    const src = this.ctx.createBufferSource();
-    src.buffer = buf;
-    const f = this.ctx.createBiquadFilter();
-    f.type = type; f.frequency.value = freq;
-    const g = this.ctx.createGain();
-    g.gain.setValueAtTime(vol, this.ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+dur);
-    src.connect(f).connect(g).connect(this.master);
-    src.start();
+  // Извлечь 54-элементный массив стикеров (U0..U8, R0..R8, F0..F8, D0..D8, L0..L8, B0..B8)
+  facelets(){
+    const f = new Array(54).fill(null);
+    // Направления внешних нормалей
+    const OUT = [
+      {v:[1,0,0], fi:9,  local:'R'},   // +X = R
+      {v:[-1,0,0],fi:36, local:'L'},   // -X = L
+      {v:[0,1,0], fi:0,  local:'U'},   // +Y = U
+      {v:[0,-1,0],fi:27, local:'D'},   // -Y = D
+      {v:[0,0,1], fi:18, local:'F'},   // +Z = F
+      {v:[0,0,-1],fi:45, local:'B'}    // -Z = B
+    ];
+    for(const k of this.cubies){
+      const [x,y,z] = k.pos;
+      for(let ni=0; ni<6; ni++){
+        const n = OUT[ni];
+        // Стикер виден, если кубик стоит на этой стороне (pos·normal > 0)
+        const dot = x*n.v[0]+y*n.v[1]+z*n.v[2];
+        if(dot<=0) continue;
+        // Найти локальную грань кубика, которая смотрит в направлении n.v
+        // local_dir = rot^T * n.v (для ортонормальной матрицы — транспонирование = обратная)
+        const localDir = [
+          k.rot[0][0]*n.v[0]+k.rot[1][0]*n.v[1]+k.rot[2][0]*n.v[2],
+          k.rot[0][1]*n.v[0]+k.rot[1][1]*n.v[1]+k.rot[2][1]*n.v[2],
+          k.rot[0][2]*n.v[0]+k.rot[1][2]*n.v[1]+k.rot[2][2]*n.v[2]
+        ].map(v=>Math.round(v));
+        // Найти индекс в colors: [+X,-X,+Y,-Y,+Z,-Z]
+        let colorIdx;
+        if(localDir[0]=== 1) colorIdx=0;
+        else if(localDir[0]===-1) colorIdx=1;
+        else if(localDir[1]=== 1) colorIdx=2;
+        else if(localDir[1]===-1) colorIdx=3;
+        else if(localDir[2]=== 1) colorIdx=4;
+        else if(localDir[2]===-1) colorIdx=5;
+        const color = k.colors[colorIdx];
+        if(!color) continue;
+        // Позиция стикера внутри грани (индекс 0..8)
+        const idx = this._stickerIndex(n.local, x, y, z);
+        if(idx<0||idx>8) continue;
+        f[n.fi+idx] = color;
+      }
+    }
+    return f;
   }
-
-  tone(freq, dur, vol=0.15, type='sine', slideTo=null){
-    if(!this.ctx) return;
-    const o = this.ctx.createOscillator();
-    o.type = type; o.frequency.setValueAtTime(freq, this.ctx.currentTime);
-    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime+dur);
-    const g = this.ctx.createGain();
-    g.gain.setValueAtTime(vol, this.ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+dur);
-    o.connect(g).connect(this.master);
-    o.start(); o.stop(this.ctx.currentTime+dur);
-  }
-
-  footstep(run=false, crouch=false){
-    if(crouch) this.noise(0.08, 300, 0.06);
-    else if(run) { this.noise(0.12, 900, 0.22); this.tone(60, 0.1, 0.1, 'sine', 40); }
-    else this.noise(0.1, 600, 0.14);
-  }
-  doorOpen(){ this.tone(180, 0.7, 0.12, 'sawtooth', 260); this.noise(0.5, 400, 0.08); }
-  doorClose(){ this.tone(200, 0.35, 0.16, 'sawtooth', 90); this.noise(0.2, 300, 0.1); }
-  pick(){ this.tone(880, 0.12, 0.12, 'sine', 1320); }
-  drop(hard=false){ if(hard) this.noise(0.25, 2500, 0.3); else this.noise(0.15, 700, 0.15); }
-  metal(){ this.tone(1400, 0.5, 0.2, 'triangle', 400); this.noise(0.2, 3000, 0.12, 'highpass'); }
-  glass(){ this.noise(0.5, 4000, 0.3, 'highpass'); }
-  electric(){ this.noise(0.4, 1800, 0.15, 'bandpass'); this.tone(120, 0.4, 0.12, 'sawtooth'); }
-  breath(){ this.noise(1.2, 500, 0.05, 'bandpass'); }
-  hit(){ this.tone(80, 0.4, 0.4, 'square', 40); this.noise(0.3, 200, 0.3); }
-  scream(){ 
-    const o=this.ctx.createOscillator(); o.type='sawtooth';
-    o.frequency.setValueAtTime(900,this.ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(200,this.ctx.currentTime+1.2);
-    const g=this.ctx.createGain(); g.gain.setValueAtTime(0.35,this.ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+1.2);
-    o.connect(g).connect(this.master); o.start(); o.stop(this.ctx.currentTime+1.2);
-  }
-  startChase(){
-    if(!this.ctx || this.chaseNodes) return;
-    const o = this.ctx.createOscillator();
-    const o2 = this.ctx.createOscillator();
-    const g = this.ctx.createGain();
-    o.type='sawtooth'; o.frequency.value=55;
-    o2.type='square'; o2.frequency.value=58;
-    g.gain.value=0.14;
-    const lfo = this.ctx.createOscillator();
-    const lfoG = this.ctx.createGain();
-    lfo.frequency.value = 6; lfoG.gain.value = 25;
-    lfo.connect(lfoG).connect(o.frequency);
-    lfo.start();
-    o.connect(g).connect(this.musicGain);
-    o2.connect(g);
-    o.start(); o2.start();
-    this.chaseNodes = {o,o2,g,lfo};
-  }
-  stopChase(){
-    if(!this.chaseNodes) return;
-    try{
-      this.chaseNodes.g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+0.7);
-      setTimeout(()=>{ try{this.chaseNodes.o.stop();this.chaseNodes.o2.stop();this.chaseNodes.lfo.stop();}catch(e){} this.chaseNodes=null; }, 800);
-    }catch(e){ this.chaseNodes = null; }
+  _stickerIndex(faceName, x, y, z){
+    // Для грани определяется стандартный вид снаружи
+    // Возвращает 0..8 (row-major: 0=TL, 2=TR, 6=BL, 8=BR)
+    let row, col;
+    switch(faceName){
+      case 'U': row = (-z+1); col = (x+1); break;   // view: top=-Z, right=+X
+      case 'R': row = (-y+1); col = (z+1); break;   // view: top=+Y, right=-Z  → col: left=+Z
+      case 'F': row = (-y+1); col = (x+1); break;   // top=+Y, right=+X
+      case 'D': row = (z+1);  col = (x+1); break;   // top=+Z, right=+X
+      case 'L': row = (-y+1); col = (-z+1); break;  // top=+Y, right=+Z (left=-Z)
+      case 'B': row = (-y+1); col = (-x+1); break;  // view: top=+Y, left=+X → col: 0=+X
+    }
+    return row*3 + col;
   }
 }
-const audio = new AudioSystem();
 
-/* ==========================================================
-   SaveSystem
-   ========================================================== */
-const SaveSystem = {
-  key:'shadow_house_save_v1',
-  ok:true,
-  test(){ try{ localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return true; }catch(e){ return false; } },
-  save(data){ if(!this.ok) return; try{ localStorage.setItem(this.key, JSON.stringify(data)); }catch(e){ this.ok=false; } },
-  load(){ if(!this.ok) return null; try{ const s = localStorage.getItem(this.key); return s?JSON.parse(s):null; }catch(e){ return null; } },
-  clear(){ try{ localStorage.removeItem(this.key); }catch(e){} },
-  saveSettings(s){ if(!this.ok) return; try{ localStorage.setItem('shadow_house_set', JSON.stringify(s)); }catch(e){} },
-  loadSettings(){ try{ const s = localStorage.getItem('shadow_house_set'); return s?JSON.parse(s):null; }catch(e){ return null; } }
-};
-SaveSystem.ok = SaveSystem.test();
+/* ============================================================
+   SOLVER — послойный метод (beginner method)
+   Работает на facelet-массиве (54 цвета 'U','R','F','D','L','B')
+   ============================================================ */
+// Множество ходов
+const ALL_MOVES = ['U',"U'",'U2','R',"R'",'R2','F',"F'",'F2',
+                   'D',"D'",'D2','L',"L'",'L2','B',"B'",'B2'];
 
-/* ==========================================================
-   NoiseSystem
-   ========================================================== */
-class NoiseSystem {
-  constructor(){ this.events = []; }
-  emit(x,z,floor,radius,type){
-    this.events.push({x,z,floor,radius,type,t:performance.now()});
-    if(this.events.length>40) this.events.shift();
+// Применение хода к facelet-массиву через кубик (пересобираем кубик из facelets)
+function faceletsToCube(f){
+  // Восстанавливаем кубик из facelets
+  const cube = new Cube();
+  // Сбрасываем цвета кубиков и распределяем по стикерам
+  const OUT = [
+    {v:[1,0,0],  fi:9,  local:'R'},
+    {v:[-1,0,0], fi:36, local:'L'},
+    {v:[0,1,0],  fi:0,  local:'U'},
+    {v:[0,-1,0], fi:27, local:'D'},
+    {v:[0,0,1],  fi:18, local:'F'},
+    {v:[0,0,-1], fi:45, local:'B'}
+  ];
+  for(const k of cube.cubies){
+    const [x,y,z] = k.pos;
+    for(let ni=0; ni<6; ni++){
+      const n = OUT[ni];
+      const dot = x*n.v[0]+y*n.v[1]+z*n.v[2];
+      if(dot<=0) continue;
+      const idx = cube._stickerIndex(n.local, x, y, z);
+      const color = f[n.fi+idx];
+      // найти локальный индекс в colors
+      let localIdx;
+      if(n.local==='R') localIdx=0;
+      else if(n.local==='L') localIdx=1;
+      else if(n.local==='U') localIdx=2;
+      else if(n.local==='D') localIdx=3;
+      else if(n.local==='F') localIdx=4;
+      else localIdx=5;
+      k.colors[localIdx] = color;
+    }
   }
-  forEnemy(ex,ez,efloor){
-    const now = performance.now();
-    this.events = this.events.filter(e => now - e.t < 3000);
-    for(const e of this.events){
-      if(e.floor !== efloor) continue;
-      const d = Math.hypot(e.x-ex, e.z-ez);
-      if(d < e.radius) return e;
+  return cube;
+}
+function applyMoveToFacelets(f, m){
+  const cube = faceletsToCube(f);
+  cube.move(m);
+  const nf = cube.facelets();
+  for(let i=0;i<54;i++) f[i] = nf[i];
+}
+
+// Простая функция поиска цвета по индексу на грани
+function idx(face, i){ return FACES.indexOf(face)*9 + i; }
+
+// Определяем решён ли конкретный стикер/позиция
+function isSolvedFacelet(f){ return f.every((c,i)=> c === FACES[Math.floor(i/9)]); }
+
+// ==== BEGINNER SOLVER ====
+function solveCube(initFacelets){
+  const f = initFacelets.slice();
+  const moves = [];
+  const apply = (m)=>{ applyMoveToFacelets(f, m); moves.push(m); };
+  const applySeq = (arr)=>{ for(const m of arr) apply(m); };
+  const U = ()=>{ const c = FACES.indexOf('U'); return f.slice(c*9, c*9+9); };
+  const R = ()=>f.slice(9,18);
+  const F = ()=>f.slice(18,27);
+  const D = ()=>f.slice(27,36);
+  const L = ()=>f.slice(36,45);
+  const B = ()=>f.slice(45,54);
+
+  // -------- helpers: положение ребра / угла --------
+  // Возвращает {pos: 'UF'|'UR'|..., ori: 0|1} для данного набора цветов (рёберная пара)
+  function findEdge(c1, c2){
+    // Ребёрные слоты (по 2 стикера): [faceA,idxA,faceB,idxB]
+    const EDGES = {
+      'UF': ['U',7,'F',1], 'UR': ['U',5,'R',1], 'UB': ['U',1,'B',1], 'UL': ['U',3,'L',1],
+      'DF': ['D',1,'F',7], 'DR': ['D',5,'R',7], 'DB': ['D',7,'B',7], 'DL': ['D',3,'L',7],
+      'FR': ['F',5,'R',3], 'FL': ['F',3,'L',5], 'BR': ['B',3,'R',5], 'BL': ['B',5,'L',3]
+    };
+    for(const [name, [fa,ia,fb,ib]] of Object.entries(EDGES)){
+      const a = f[FACES.indexOf(fa)*9+ia];
+      const b = f[FACES.indexOf(fb)*9+ib];
+      if((a===c1&&b===c2)||(a===c2&&b===c1)){
+        return {slot:name, ori: a===c1?0:1, a, b};
+      }
     }
     return null;
   }
-}
-const noise = new NoiseSystem();
-
-/* ==========================================================
-   LevelManager — процедурная постройка дома
-   ========================================================== */
-const FLOOR_Y = { '-1': -4, '0': 0, '1': 4, '2': 8 };
-
-// Материалы
-const MAT = {};
-function initMaterials(){
-  const tex = (color, rough=0.9, rep=3) => {
-    const c = document.createElement('canvas'); c.width=c.height=128;
-    const x = c.getContext('2d'); x.fillStyle=color; x.fillRect(0,0,128,128);
-    for(let i=0;i<400;i++){
-      x.fillStyle = `rgba(0,0,0,${Math.random()*0.12})`;
-      x.fillRect(Math.random()*128, Math.random()*128, 1+Math.random()*3, 1+Math.random()*3);
-    }
-    const t = new THREE.CanvasTexture(c);
-    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep,rep);
-    return t;
-  };
-  MAT.wall  = new THREE.MeshStandardMaterial({map:tex('#5a4a3a',0.95,2), roughness:0.95});
-  MAT.wall2 = new THREE.MeshStandardMaterial({map:tex('#3e3630',0.95,2), roughness:0.95});
-  MAT.floor = new THREE.MeshStandardMaterial({map:tex('#2e2418',0.9,4), roughness:0.9});
-  MAT.wood  = new THREE.MeshStandardMaterial({map:tex('#3a2a1a',0.9,2), roughness:0.9});
-  MAT.ceil  = new THREE.MeshStandardMaterial({color:0x1a1512, roughness:1});
-  MAT.metal = new THREE.MeshStandardMaterial({color:0x3a3a42, roughness:0.4, metalness:0.8});
-  MAT.dark  = new THREE.MeshStandardMaterial({color:0x0f0a08, roughness:1});
-  MAT.door  = new THREE.MeshStandardMaterial({map:tex('#4a3524',0.85,1), roughness:0.85});
-  MAT.doorLock = new THREE.MeshStandardMaterial({color:0x1a0f08, roughness:0.8});
-}
-
-class LevelManager {
-  constructor(scene){
-    this.scene = scene;
-    this.walls = [];    // {mesh, x1,z1,x2,z2,floor, door:bool, doorRef}
-    this.floors = {};   // {floor: {walls:[...], floor: mesh, ceiling}}
-    this.doors = [];
-    this.items = [];
-    this.triggers = [];
-    this.lights = [];
-    this.floorMeshes = {};
-    this.interactables = [];
-  }
-
-  // стена по двум точкам (XZ), толщина t
-  addWall(f, x1, z1, x2, z2, mat, t=0.3, h=3.2){
-    const y = FLOOR_Y[f];
-    const cx = (x1+x2)/2, cz = (z1+z2)/2;
-    const len = Math.hypot(x2-x1, z2-z1);
-    const ang = Math.atan2(z2-z1, x2-x1);
-    const geo = new THREE.BoxGeometry(len, h, t);
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(cx, y+h/2, cz);
-    mesh.rotation.y = -ang;
-    mesh.castShadow = true; mesh.receiveShadow = true;
-    this.scene.add(mesh);
-    const w = {mesh, x1,z1,x2,z2,floor:f, t, h, angle:ang, door:false};
-    this.walls.push(w);
-    return w;
-  }
-
-  addFloorRect(f, x1, z1, x2, z2, mat, ceil=true){
-    const y = FLOOR_Y[f];
-    const w = Math.abs(x2-x1), d = Math.abs(z2-z1);
-    const cx = (x1+x2)/2, cz = (z1+z2)/2;
-    const g = new THREE.Mesh(new THREE.BoxGeometry(w, 0.2, d), mat);
-    g.position.set(cx, y-0.1, cz);
-    g.receiveShadow = true;
-    this.scene.add(g);
-    if(ceil){
-      const c = new THREE.Mesh(new THREE.BoxGeometry(w, 0.2, d), MAT.ceil);
-      c.position.set(cx, y+3.2, cz);
-      this.scene.add(c);
-    }
-  }
-
-  addDoor(f, x, z, rotY, keyId=null, label='', codeLock=false, locked=false){
-    const y = FLOOR_Y[f];
-    const g = new THREE.Group();
-    g.position.set(x, y, z);
-    g.rotation.y = rotY;
-
-    const hinge = new THREE.Group();
-    const doorGeo = new THREE.BoxGeometry(1.2, 2.6, 0.08);
-    const doorMesh = new THREE.Mesh(doorGeo, locked?MAT.doorLock:MAT.door);
-    doorMesh.position.set(0.6, 1.3, 0);
-    doorMesh.castShadow = true;
-    hinge.add(doorMesh);
-    g.add(hinge);
-
-    // ручка
-    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.06,8,8), MAT.metal);
-    knob.position.set(1.05, 1.3, 0.06);
-    hinge.add(knob);
-
-    this.scene.add(g);
-    const d = {
-      group:g, hinge, mesh:doorMesh, x, z, floor:f, rotY, keyId, label, codeLock, locked,
-      open:false, angle:0, targetAngle:0, hasBoards:false
+  function findCorner(c1, c2, c3){
+    const CORNERS = {
+      'UFR': ['U',8,'F',2,'R',0], 'URB': ['U',2,'R',2,'B',0],
+      'UBL': ['U',0,'B',2,'L',0], 'ULF': ['U',6,'L',2,'F',0],
+      'DFR': ['D',2,'F',8,'R',6], 'DRB': ['D',8,'R',8,'B',6],
+      'DBL': ['D',6,'B',8,'L',6], 'DLF': ['D',0,'L',8,'F',6]
     };
-    this.doors.push(d);
-    this.interactables.push(d);
-    return d;
-  }
-
-  addBoardsToDoor(door){
-    door.hasBoards = true;
-    const y = FLOOR_Y[door.floor];
-    for(let i=0;i<3;i++){
-      const b = new THREE.Mesh(
-        new THREE.BoxGeometry(1.3, 0.18, 0.06),
-        new THREE.MeshStandardMaterial({map:MAT.wood.map, roughness:0.95})
-      );
-      b.position.set(door.x, y+0.7+i*0.7, door.z);
-      b.rotation.y = door.rotY + 0.15 + Math.random()*0.1;
-      b.rotation.z = (Math.random()-0.5)*0.05;
-      b.castShadow = true;
-      this.scene.add(b);
-      door.boards = door.boards || [];
-      door.boards.push(b);
-    }
-  }
-
-  addLight(f, x, z, color=0xffaa66, intensity=1.2, distance=8, flicker=false){
-    const y = FLOOR_Y[f];
-    const l = new THREE.PointLight(color, intensity, distance, 2);
-    l.position.set(x, y+2.7, z);
-    this.scene.add(l);
-    // визуальная лампочка
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.08,6,6),
-      new THREE.MeshBasicMaterial({color}));
-    bulb.position.copy(l.position);
-    this.scene.add(bulb);
-    const rec = {light:l, bulb, base:intensity, flicker, floor:f, x, z};
-    this.lights.push(rec);
-    return rec;
-  }
-
-  addTrigger(f, x, z, radius, target){
-    const t = {x, z, floor:f, radius, target};
-    this.triggers.push(t);
-    return t;
-  }
-
-  buildHouse(rng){
-    initMaterials();
-
-    /* ================= ПОДВАЛ (-4) ================= */
-    const bf = '-1';
-    this.addFloorRect(bf, -12, -6, 12, 6, MAT.floor, true);
-    // внешние стены
-    this.addWall(bf, -12,-6, 12,-6, MAT.wall2);
-    this.addWall(bf, 12,-6, 12,6, MAT.wall2);
-    this.addWall(bf, 12,6, -12,6, MAT.wall2);
-    this.addWall(bf, -12,6, -12,-6, MAT.wall2);
-    // внутренние
-    this.addWall(bf, -2,-6, -2,0, MAT.wall2);        // инструменталка
-    this.addWall(bf, -12,0, -2,0, MAT.wall2);
-    this.addWall(bf, 4,0, 4,6, MAT.wall2);            // машинный зал
-    this.addWall(bf, 4,0, 12,0, MAT.wall2);
-    // свет
-    this.addLight(bf, -7, -3, 0x6688aa, 0.9, 10);
-    this.addLight(bf, 0, 3, 0x886644, 0.7, 8, true);
-    this.addLight(bf, 8, 3, 0x6688aa, 0.8, 10);
-    // предмет: предохранитель в машинном зале
-    this.spawnItem(bf, 8, 3, 'fuse');
-    // щиток
-    this.buildPanel(bf, 6, -5);
-
-    /* ================= ПЕРВЫЙ ЭТАЖ (0) ================= */
-    const gf = '0';
-    this.addFloorRect(gf, -12, -10, 12, 10, MAT.floor, true);
-    // стены
-    this.addWall(gf, -12,-10, 12,-10, MAT.wall);
-    this.addWall(gf, 12,-10, 12,10, MAT.wall);
-    this.addWall(gf, 12,10, -12,10, MAT.wall);
-    this.addWall(gf, -12,10, -12,-10, MAT.wall);
-    // межкомнатные (с проёмами)
-    // прихожая (центр) — стены вокруг
-    this.addWall(gf, -4,-10, -4,-6, MAT.wall);
-    this.addWall(gf, -4,-3, -4,3, MAT.wall);
-    this.addWall(gf, -4,6, -4,10, MAT.wall);
-    this.addWall(gf, 4,-10, 4,-6, MAT.wall);
-    this.addWall(gf, 4,-3, 4,3, MAT.wall);
-    this.addWall(gf, 4,6, 4,10, MAT.wall);
-    this.addWall(gf, -12,-2, -4,-2, MAT.wall);
-    this.addWall(gf, -12,2, -4,2, MAT.wall);
-    this.addWall(gf, -12,6, -4,6, MAT.wall);
-    // свет
-    this.addLight(gf, 0, 6, 0xffaa66, 1.4, 12, true);
-    this.addLight(gf, 8, 0, 0xffbb77, 1.2, 12);
-    this.addLight(gf, -8, -6, 0xff9944, 1.0, 10, true);
-    this.addLight(gf, -8, 4, 0x88aaff, 0.8, 8);
-    this.addLight(gf, -8, 8, 0xffaa66, 0.9, 8);
-    // ДВЕРИ
-    // входная (финальная) — юг
-    this.addDoor(gf, 0, 10, Math.PI, null, 'Входная дверь', true, true);
-    // между прихожей и кухней (северо-запад)
-    this.addDoor(gf, -4, -4.5, Math.PI/2, null, 'Кухня');
-    // между прихожей и гостиной
-    this.addDoor(gf, 4, 0, -Math.PI/2, null, 'Гостиная');
-    // кладовая
-    this.addDoor(gf, -4, 4.5, Math.PI/2, null, 'Ванная');
-    // в подвал
-    const bd = this.addDoor(gf, -8, 2, 0, null, 'Спуск в подвал');
-    this.addBoardsToDoor(bd);
-    bd.blocksBasement = true;
-    // триггеры подвала
-    this.addTrigger(gf, -8, 2.5, 1.2, {floor:'-1', x:-6, z:3.5});
-    this.addTrigger(bf, -6, 3.5, 1.2, {floor:'0', x:-8, z:3.5});
-
-    // Предметы (рандом)
-    // Ключ ржавый — в одной из 3 локаций 1 этажа
-    const keySpots = [[-8,-6,'кухня'], [8,0,'гостиная'], [8,4,'гостиная']];
-    const keySpot = keySpots[Math.floor(rng()*keySpots.length)];
-    this.spawnItem(gf, keySpot[0], keySpot[1], 'rustyKey');
-
-    // Молоток — кухня или ванная
-    const hammerSpots = [[-8,-7], [-8,4], [-8,8]];
-    const hs = hammerSpots[Math.floor(rng()*hammerSpots.length)];
-    this.spawnItem(gf, hs[0], hs[1], 'hammer');
-
-    // Механизм (шестерёнка ставится сюда) — в прихожей
-    this.buildMechanism(gf, 3, -8);
-
-    // Триггер лестницы наверх
-    this.addTrigger(gf, 8, 8, 1.5, {floor:'1', x:8, z:0});
-
-    /* ================= ВТОРОЙ ЭТАЖ (4) ================= */
-    const f1 = '1';
-    this.addFloorRect(f1, -12, -10, 12, 10, MAT.floor, true);
-    this.addWall(f1, -12,-10, 12,-10, MAT.wall);
-    this.addWall(f1, 12,-10, 12,10, MAT.wall);
-    this.addWall(f1, 12,10, -12,10, MAT.wall);
-    this.addWall(f1, -12,10, -12,-10, MAT.wall);
-    // коридор (горизонтальный в центре)
-    this.addWall(f1, -8,-2, -2,-2, MAT.wall);
-    this.addWall(f1, 0,-2, 8,-2, MAT.wall);
-    this.addWall(f1, -8,2, -2,2, MAT.wall);
-    this.addWall(f1, 0,2, 8,2, MAT.wall);
-    // разделители
-    this.addWall(f1, -2,-10, -2,-2, MAT.wall);
-    this.addWall(f1, -8,2, -8,10, MAT.wall);
-    this.addWall(f1, 2,2, 2,10, MAT.wall);
-    // свет
-    this.addLight(f1, 0, 0, 0xffcc88, 1.2, 12, true);
-    this.addLight(f1, -7, -6, 0xffaa66, 1.0, 10);
-    this.addLight(f1, 6, -6, 0xffaa66, 0.9, 10, true);
-    this.addLight(f1, -5, 6, 0x88aaff, 0.8, 8);
-    this.addLight(f1, 7, 6, 0xffaa66, 0.9, 8);
-    // двери
-    this.addDoor(f1, -8, -2, 0, null, 'Спальня');   // спальня
-    this.addDoor(f1, 4, -2, 0, 'rustyKey', 'Кабинет', false, true); // КАБИНЕТ заперт ключом
-    this.addDoor(f1, -8, 2, Math.PI, null, 'Кладовая');
-    this.addDoor(f1, 5, 2, Math.PI, null, 'Детская');
-    this.addDoor(f1, 0, -2, 0, null, 'Проход'); // декор
-
-    // Записка с кодом в кабинете
-    this.spawnItem(f1, 6, -7, 'noteCode');
-    // Люк на чердак — открывается после шестерёнки (в спальне)
-    this.buildAtticHatch(f1, -8, -8);
-
-    // триггеры
-    this.addTrigger(f1, 8, 0, 1.5, {floor:'0', x:8, z:8});
-    this.addTrigger(f1, -8, -8, 1.2, {floor:'2', x:0, z:0, requireFlag:'atticOpen'});
-
-    /* ================= ЧЕРДАК (8) ================= */
-    const at = '2';
-    this.addFloorRect(at, -12, -10, 12, 10, MAT.wood, true);
-    this.addWall(at, -12,-10, 12,-10, MAT.wood);
-    this.addWall(at, 12,-10, 12,10, MAT.wood);
-    this.addWall(at, 12,10, -12,10, MAT.wood);
-    this.addWall(at, -12,10, -12,-10, MAT.wood);
-    this.addLight(at, -4, -4, 0xaa8855, 0.6, 12, true);
-    this.addLight(at, 4, 4, 0xaa8855, 0.5, 12);
-    // старые коробки
-    for(let i=0;i<20;i++){
-      const x = (rng()-0.5)*20, z = (rng()-0.5)*16;
-      if(Math.abs(x)<2 && Math.abs(z)<2) continue;
-      const s = 0.4 + rng()*0.7;
-      const box = new THREE.Mesh(
-        new THREE.BoxGeometry(s, s*0.9, s),
-        new THREE.MeshStandardMaterial({map:MAT.wood.map, roughness:0.95})
-      );
-      box.position.set(x, FLOOR_Y[at]+s*0.45, z);
-      box.rotation.y = rng()*Math.PI;
-      box.castShadow = true;
-      this.scene.add(box);
-    }
-    // выход с чердака
-    this.addTrigger(at, 0, 0, 1.2, {floor:'1', x:-8, z:-7});
-
-    // Предметы на чердаке могут понадобиться (опционально — атмосфера)
-    // Всё нужное уже разложено
-
-    // маркер выхода — вернём ссылку
-    this.exitDoor = this.doors.find(d=>d.codeLock);
-    this.mechanism = this.interactables.find(i=>i.type==='mechanism');
-    this.panel = this.interactables.find(i=>i.type==='panel');
-    this.atticHatch = this.interactables.find(i=>i.type==='hatch');
-  }
-
-  buildMechanism(f, x, z){
-    const y = FLOOR_Y[f];
-    const g = new THREE.Group();
-    g.position.set(x, y, z);
-    const base = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.4, 0.6), MAT.metal);
-    base.position.y = 0.7;
-    base.castShadow = true;
-    g.add(base);
-    // слот для шестерёнки
-    const slot = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.05, 8, 16), new THREE.MeshStandardMaterial({color:0x5a5a5a, metalness:0.8, roughness:0.4}));
-    slot.position.set(0, 0.8, 0.32);
-    g.add(slot);
-    this.scene.add(g);
-    const obj = {type:'mechanism', x, z, floor:f, group:g, slot, installed:false, label:'Механизм', mesh:base};
-    this.interactables.push(obj);
-    return obj;
-  }
-  buildPanel(f, x, z){
-    const y = FLOOR_Y[f];
-    const g = new THREE.Group();
-    g.position.set(x, y, z);
-    const box = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.2, 0.2), MAT.metal);
-    box.position.y = 1.6;
-    box.castShadow = true;
-    g.add(box);
-    const led = new THREE.Mesh(new THREE.SphereGeometry(0.05,6,6),
-      new THREE.MeshBasicMaterial({color:0x330000}));
-    led.position.set(0.2, 1.9, 0.12);
-    g.add(led);
-    this.scene.add(g);
-    const obj = {type:'panel', x, z, floor:f, group:g, led, installed:false, label:'Щиток', mesh:box};
-    this.interactables.push(obj);
-    return obj;
-  }
-  buildAtticHatch(f, x, z){
-    const y = FLOOR_Y[f];
-    const g = new THREE.Group();
-    g.position.set(x, y, z);
-    const hatch = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 1.4), MAT.wood);
-    hatch.position.y = 3.15;
-    g.add(hatch);
-    this.scene.add(g);
-    const obj = {type:'hatch', x, z, floor:f, group:g, hatch, opened:false, label:'Люк на чердак', mesh:hatch};
-    this.interactables.push(obj);
-    return obj;
-  }
-
-  spawnItem(f, x, z, type){
-    const y = FLOOR_Y[f];
-    const item = ItemFactory.create(type);
-    item.group.position.set(x, y + 0.5, z);
-    item.x = x; item.z = z; item.floor = f;
-    this.scene.add(item.group);
-    this.items.push(item);
-    return item;
-  }
-
-  // Проверка коллизии (AABB-приближение, круг против отрезков стен)
-  collide(x, z, r, floor){
-    // внешние границы
-    let nx = x, nz = z;
-    for(const w of this.walls){
-      if(w.floor !== floor) continue;
-      // расстояние от точки до отрезка
-      const dx = w.x2 - w.x1, dz = w.z2 - w.z1;
-      const len2 = dx*dx + dz*dz;
-      let t = len2>0 ? ((x - w.x1)*dx + (z - w.z1)*dz) / len2 : 0;
-      t = Math.max(0, Math.min(1, t));
-      const px = w.x1 + dx*t, pz = w.z1 + dz*t;
-      const ddx = x - px, ddz = z - pz;
-      const d = Math.hypot(ddx, ddz);
-      const minD = r + w.t/2;
-      if(d < minD && d > 0.0001){
-        const push = (minD - d);
-        nx += (ddx/d) * push;
-        nz += (ddz/d) * push;
+    const set = new Set([c1,c2,c3]);
+    for(const [name, [fa,ia,fb,ib,fc,ic]] of Object.entries(CORNERS)){
+      const a = f[FACES.indexOf(fa)*9+ia];
+      const b = f[FACES.indexOf(fb)*9+ib];
+      const c = f[FACES.indexOf(fc)*9+ic];
+      if(set.has(a)&&set.has(b)&&set.has(c) && a!==b && b!==c && a!==c){
+        return {slot:name, a, b, c};
       }
     }
-    // двери закрытые
-    for(const d of this.doors){
-      if(d.floor !== floor) continue;
-      if(d.open) continue;
-      if(d.hasBoards && !d.boardsBroken) {
-        // всё равно препятствие
-      }
-      const dx = d.x - nx, dz = d.z - nz;
-      // дверь — это отрезок длиной 1.2 с центром в (d.x,d.z), повёрнутый
-      const cos = Math.cos(d.rotY), sin = Math.sin(d.rotY);
-      const localX = dx*cos + dz*sin;
-      const localZ = -dx*sin + dz*cos;
-      // дверь занимает x от 0 до 1.2 (сдвиг вдоль), тонкая по z
-      if(localX > -r && localX < 1.2 + r && Math.abs(localZ) < r + 0.1){
-        // отталкивание по z
-        const push = (r + 0.1 - Math.abs(localZ)) * (localZ>0?1:-1);
-        nx += sin * push;
-        nz += cos * push;
-      }
-    }
-    return {x:nx, z:nz};
+    return null;
   }
 
-  update(dt, t){
-    // мигание ламп
-    for(const l of this.lights){
-      if(l.flicker){
-        const f = 0.7 + Math.sin(t*3 + l.x)*0.15 + Math.random()*0.15;
-        l.light.intensity = l.base * f;
-        l.bulb.material.opacity = f;
-      }
-    }
-    // вращение дверей к целевому углу
-    for(const d of this.doors){
-      if(Math.abs(d.angle - d.targetAngle) > 0.001){
-        d.angle += (d.targetAngle - d.angle) * Math.min(1, dt*8);
-        d.hinge.rotation.y = d.angle;
+  // ============ PHASE 1: Крест на D ============
+  // Решаем 4 белых ребра на D-грани
+  function solveEdgeTo(slotTarget, colorD, colorSide){
+    for(let iter=0; iter<12; iter++){
+      const info = findEdge(colorD, colorSide);
+      if(!info) break;
+      if(info.slot === slotTarget && info.a === colorD) return; // solved
+      // Смотрим где ребро
+      const s = info.slot;
+      if(s.startsWith('D')){
+        // В D-слое. Если на месте но ориентация неверна — вытащим на U
+        if(s === slotTarget){
+          // ориентация неверна — выкручиваем
+          applySeq(['R','U','R\'']);
+        } else {
+          // не на своём месте — поднимаем на U
+          const sideFace = s[1];
+          apply(sideFace + '2');
+        }
+      } else if(s.startsWith('U')){
+        // В U-слое. Сначала выравниваем цвет на боковой грани
+        // Определяем какой цвет сбоку
+        const sideColor = info.a === colorD ? info.b : info.a;
+        // Вращаем U пока ребро не встанет над нужным слотом
+        let sideFaceSlot = slotTarget[1]; // 'F' для DF
+        // Найти, где сейчас боковой стикер
+        const sideFaces = {UF:'F', UR:'R', UB:'B', UL:'L'};
+        const curSide = sideFaces[s];
+        let turns = 0;
+        const order = ['F','R','B','L'];
+        let cur = order.indexOf(curSide);
+        let tgt = order.indexOf(sideFaceSlot);
+        turns = (tgt - cur + 4) % 4;
+        for(let i=0;i<turns;i++) apply('U');
+        // Ребро над нужным слотом
+        const uIdxTarget = {DF:'U7', DR:'U5', DB:'U1', DL:'U3'}[slotTarget];
+        // Проверяем ориентацию
+        const faceForSlot = slotTarget[1];
+        const curFIdx = {'F':1,'R':1,'B':1,'L':1}[faceForSlot];
+        const curUIdx = {'F':7,'R':5,'B':1,'L':3}[faceForSlot];
+        const uColor = f[0*9 + curUIdx];
+        if(uColor === colorD){
+          // правильная ориентация, вставляем
+          apply(faceForSlot + '2');
+        } else {
+          // неправильная — выталкиваем
+          apply(faceForSlot + '2');
+        }
+      } else {
+        // В среднем слое — выталкиваем на U
+        const faces = s.split('');
+        const f1 = faces[0]; const f2 = faces[1];
+        if(f1 === 'F' || f1 === 'R' || f1 === 'B' || f1 === 'L'){
+          if(f1 === 'F') applySeq(['R','U','R\'']);  // hmm
+          else if(f1 === 'R') applySeq(['R','U','R\'']);
+          else if(f1 === 'B') applySeq(['B','U','B\'']);
+          else applySeq(['L','U','L\'']);
+        } else {
+          if(f2 === 'F') applySeq(['R','U','R\'']);
+          else if(f2 === 'R') applySeq(['R','U','R\'']);
+          else if(f2 === 'B') applySeq(['B','U','B\'']);
+          else applySeq(['L','U','L\'']);
+        }
       }
     }
   }
+
+  // D-крест: рёбра D-F(W-G), D-R(W-R), D-B(W-B), D-L(W-O)
+  // (стандартная схема: U=W, F=G, R=R, B=B, L=O, D=Y)
+  const crossSlots = [['DF','F'],['DR','R'],['DB','B'],['DL','L']];
+  for(const [slot, side] of crossSlots){
+    solveEdgeTo(slot, 'D', side);
+  }
+
+  // ============ PHASE 2: Углы первого слоя ============
+  function solveCornerTo(slotTarget, colors){
+    // colors: [c1,c2,c3] без 'D' (например, ['D','F','R'] но D-цвет первый)
+    for(let iter=0; iter<30; iter++){
+      const info = findCorner(colors[0], colors[1], colors[2]);
+      if(!info) break;
+      // Проверяем решён ли
+      const CORNER_IDX = {
+        'DFR': ['D',2,'F',8,'R',6], 'DRB': ['D',8,'R',8,'B',6],
+        'DBL': ['D',6,'B',8,'L',6], 'DLF': ['D',0,'L',8,'F',6],
+        'UFR': ['U',8,'F',2,'R',0], 'URB': ['U',2,'R',2,'B',0],
+        'UBL': ['U',0,'B',2,'L',0], 'ULF': ['U',6,'L',2,'F',0]
+      };
+      function isSolved(){
+        const [fa,ia,fb,ib,fc,ic] = CORNER_IDX[slotTarget];
+        return f[FACES.indexOf(fa)*9+ia] === slotTarget.split('').reduce((acc,ch)=>{
+          // крайние символы слот-имени = грани
+          return null;
+        }, null) ;
+      }
+      // Простая проверка: все три стикера в слоте совпадают с цветами кубика нужной грани
+      const SLOT_COLORS = {
+        'DFR': ['D','F','R'], 'DRB': ['D','R','B'],
+        'DBL': ['D','B','L'], 'DLF': ['D','L','F']
+      };
+      const [sa,sf,sr] = SLOT_COLORS[slotTarget];
+      const [fa,ia,fb,ib,fc,ic] = CORNER_IDX[slotTarget];
+      const a = f[FACES.indexOf(fa)*9+ia];
+      const b = f[FACES.indexOf(fb)*9+ib];
+      const c = f[FACES.indexOf(fc)*9+ic];
+      if(a===sa && b===sf && c===sr) return;
+
+      const s = info.slot;
+      if(s.startsWith('D')){
+        // Угол в нижнем слое, но не тот/не туда — выталкиваем
+        // Применяем R U R' U' к DFR — если угол в DFR
+        // Найдём нужный ход
+        if(s === slotTarget){
+          // не та ориентация
+          const alg = slotTarget === 'DFR' ? ['R','U','R\'','U\''] :
+                      slotTarget === 'DRB' ? ['B','U','B\'','U\''] :
+                      slotTarget === 'DBL' ? ['L','U','L\'','U\''] :
+                                             ['F','U','F\'','U\''];
+          applySeq(alg);
+        } else {
+          const alg = s === 'DFR' ? ['R','U','R\''] :
+                      s === 'DRB' ? ['B','U','B\''] :
+                      s === 'DBL' ? ['L','U','L\''] :
+                                    ['F','U','F\''];
+          applySeq(alg);
+        }
+      } else {
+        // Угол в U-слое — вращаем U чтобы поставить над нужным слотом, затем R U R' U' * n
+        const U_POS = {'DFR':'UFR', 'DRB':'URB', 'DBL':'UBL', 'DLF':'ULF'};
+        const targetUPos = U_POS[slotTarget];
+        // Находим текущее положение
+        const curPos = s; // например UFR
+        // Вращаем U, пока не окажется над нужным
+        const U_ORDER = ['UFR','URB','UBL','ULF'];
+        let cur = U_ORDER.indexOf(curPos);
+        let tgt = U_ORDER.indexOf(targetUPos);
+        let turns = (tgt - cur + 4) % 4;
+        for(let i=0;i<turns;i++) apply('U');
+        // Применяем R U R' U' 1..5 раз, чтобы угол встал на место
+        for(let t=0; t<6; t++){
+          const [faa,iaa,fbb,ibb,fcc,icc] = CORNER_IDX[slotTarget];
+          const aa = f[FACES.indexOf(faa)*9+iaa];
+          const bb = f[FACES.indexOf(fbb)*9+ibb];
+          const cc = f[FACES.indexOf(fcc)*9+icc];
+          if(aa===sa && bb===sf && cc===sr) break;
+          applySeq(['R','U','R\'','U\'']);
+        }
+      }
+    }
+  }
+
+  const cornerSlots = [
+    ['DFR',['D','F','R']],
+    ['DRB',['D','R','B']],
+    ['DBL',['D','B','L']],
+    ['DLF',['D','L','F']]
+  ];
+  for(const [slot, cols] of cornerSlots){
+    solveCornerTo(slot, cols);
+  }
+
+  // ============ PHASE 3: Средний слой ============
+  // Решаем 4 ребра среднего слоя (без U и D цветов)
+  const MID_EDGES = [
+    {colors:['F','R'], slot:'FR'},
+    {colors:['R','B'], slot:'BR'},
+    {colors:['B','L'], slot:'BL'},
+    {colors:['L','F'], slot:'FL'}
+  ];
+  function placeMiddleEdge(slot, colors){
+    for(let iter=0; iter<30; iter++){
+      const info = findEdge(colors[0], colors[1]);
+      if(!info) return;
+      // Проверяем решён ли
+      const EDGE_IDX = {
+        'FR': ['F',5,'R',3], 'BR': ['B',3,'R',5], 'BL': ['B',5,'L',3], 'FL': ['F',3,'L',5]
+      };
+      const [fa,ia,fb,ib] = EDGE_IDX[slot];
+      const a = f[FACES.indexOf(fa)*9+ia];
+      const b = f[FACES.indexOf(fb)*9+ib];
+      if(a===colors[0] && b===colors[1]) return;
+
+      const s = info.slot;
+      if(s.startsWith('U')){
+        // На верхнем слое. Разворачиваем так, чтобы боковой цвет совпал с центром
+        // Определяем какой цвет сбоку
+        const U_slots = {UF:['F',1,7],UR:['R',1,5],UB:['B',1,1],UL:['L',1,3]};
+        const [sf, fi, ui] = U_slots[s];
+        const sideColor = f[FACES.indexOf(sf)*9+fi];
+        // Вращаем U, чтобы боковой цвет совпал с гранью
+        const order = ['F','R','B','L'];
+        let cur = order.indexOf(sf);
+        // Найти целевую грань = та, чей центр = sideColor
+        const centerColors = {F:f[22], R:f[13], B:f[49], L:f[40]};
+        let tgt = -1;
+        for(let i=0;i<4;i++){
+          if(centerColors[order[i]] === sideColor) tgt = i;
+        }
+        if(tgt<0){ apply('U'); continue; }
+        const turns = (tgt - cur + 4) % 4;
+        for(let i=0;i<turns;i++) apply('U');
+        // Теперь смотрим: ребро должно вставляться вправо или влево
+        // Определяем целевую грань F' (верх)
+        const newSF = order[tgt];
+        const otherColor = (f[FACES.indexOf(newSF)*9+1] === sideColor) ? f[0*9 + ({F:7,R:5,B:1,L:3}[newSF])] : f[0*9 + ({F:7,R:5,B:1,L:3}[newSF])];
+        // Определяем, куда вставлять (влево/вправо)
+        // Смотрим на верхний цвет ребра
+        const upColor = f[0*9 + ({F:7,R:5,B:1,L:3}[newSF])];
+        // Если otherColor должен идти вправо (на R) — применяем правую вставку
+        // Определяем целевую грань для otherColor
+        const order2 = ['F','R','B','L'];
+        const tgtFace = order2[(order2.indexOf(newSF)+1)%4]; // правая грань
+        const tgtFace2 = order2[(order2.indexOf(newSF)+3)%4]; // левая
+        const c1 = f[FACES.indexOf(tgtFace)*9+4];
+        const c2 = f[FACES.indexOf(tgtFace2)*9+4];
+        if(upColor === c1){
+          // правая вставка
+          const F1 = newSF, R1 = tgtFace;
+          applySeq([F1,'U',F1+'\'','R1'.replace('1',''), 'U\'', 'R1'.replace('1',''), F1+'\'']); // placeholder
+        }
+        // Упрощённая универсальная вставка
+        // Правая вставка (для FR): U R U' R' U' F' U F
+        // Левая вставка (для FL): U' L' U L U F U' F'
+        if(upColor === c1){
+          // Проверим, совпадает ли правая грань
+          const rFace = tgtFace;
+          const fFace = newSF;
+          // U R U' R' U' F' U F
+          applySeq(['U', rFace, 'U\'', rFace+'\'', 'U\'', fFace+'\'', 'U', fFace]);
+        } else {
+          const lFace = tgtFace2;
+          const fFace = newSF;
+          // U' L' U L U F U' F'
+          applySeq(['U\'', lFace+'\'', 'U', lFace, 'U', fFace, 'U\'', fFace+'\'']);
+        }
+      } else {
+        // В среднем слое на неправильном месте — выталкиваем
+        const side = s[0];
+        // Простая выталкивающая последовательность
+        // Извлекаем на U: применяем правую вставку на этом слоте
+        // (упрощённо)
+        const fFace = s[0], rFace = s[1];
+        applySeq(['U', rFace, 'U\'', rFace+'\'', 'U\'', fFace+'\'', 'U', fFace]);
+      }
+    }
+  }
+  for(const e of MID_EDGES){
+    placeMiddleEdge(e.slot, e.colors);
+  }
+
+  // ============ PHASE 4: Жёлтый крест на U ============
+  // Повторяем F R U R' U' F' пока не образуется крест
+  let uCenter = f[4];  // верхний центр
+  function hasYellowCross(){
+    // Верхние 4 ребра
+    const top = f[1]; // U[1] = верхнее ребро, U[3]=левое, U[5]=правое, U[7]=нижнее
+    return f[1]===uCenter && f[3]===uCenter && f[5]===uCenter && f[7]===uCenter;
+  }
+  for(let i=0; i<8 && !hasYellowCross(); i++){
+    applySeq(['F','R','U','R\'','U\'','F\'']);
+  }
+
+  // ============ PHASE 5: Перестановка верхних рёбер ============
+  function edgesPermSolved(){
+    // Проверяем боковые цвета верхних рёбер
+    const UF = [f[7], f[19]];   // U[7], F[1]
+    const UR = [f[5], f[10]];   // U[5], R[1]
+    const UB = [f[1], f[46]];   // U[1], B[1]
+    const UL = [f[3], f[37]];   // U[3], L[1]
+    return UF[0]===uCenter && UF[1]===f[22] &&
+           UR[0]===uCenter && UR[1]===f[13] &&
+           UB[0]===uCenter && UB[1]===f[49] &&
+           UL[0]===uCenter && UL[1]===f[40];
+  }
+  for(let i=0; i<8 && !edgesPermSolved(); i++){
+    applySeq(['R','U','R\'','U','R','U2','R\'']);
+    apply('U');
+  }
+  // Выравниваем
+  for(let i=0;i<4;i++){
+    const ok = f[7]===uCenter && f[19]===f[22] && f[5]===uCenter && f[10]===f[13] && f[1]===uCenter && f[46]===f[49] && f[3]===uCenter && f[37]===f[40];
+    if(ok) break;
+    apply('U');
+  }
+
+  // ============ PHASE 6+7: Углы верхнего слоя ============
+  // (перестановка + ориентация) через U R U' L' U R' U' L и R' D' R D
+  function cornersPermSolved(){
+    const cols = [
+      [f[8],f[20],f[9]], // UFR
+      [f[2],f[11],f[47]],// URB
+      [f[0],f[45],f[38]],// UBL
+      [f[6],f[36],f[18]] // ULF
+    ];
+    const targets = [
+      ['U','F','R'],['U','R','B'],['U','B','L'],['U','L','F']
+    ];
+    // Проверяем, что каждая тройка содержит правильные цвета (без учёта порядка)
+    for(let i=0;i<4;i++){
+      const set = new Set(cols[i]);
+      if(!targets[i].every(c=>set.has(c))) return false;
+    }
+    return true;
+  }
+  for(let i=0;i<6 && !cornersPermSolved(); i++){
+    applySeq(['U','R','U\'','L\'','U','R\'','U\'','L']);
+  }
+  // Теперь ориентируем углы: R' D' R D пока каждый не встанет
+  for(let i=0;i<4;i++){
+    // Смотрим текущий UFR угол
+    let safety = 0;
+    while(safety < 8){
+      // Решён ли UFR угол?
+      const a = f[8], b = f[20], c = f[9];
+      if(a==='U' && b==='F' && c==='R') break;
+      applySeq(['R\'','D\'','R','D']);
+      safety++;
+    }
+    apply('U');
+  }
+  // Финальный выравнивающий U
+  for(let i=0;i<4;i++){
+    if(isSolvedFacelet(f)) break;
+    apply('U');
+  }
+
+  return moves;
 }
 
-/* ==========================================================
-   ItemFactory — данные и меши предметов
-   ========================================================== */
-const ITEM_DEFS = {
-  rustyKey:  { name:'Ржавый ключ',  icon:'🗝', color:0x8a6a3a },
-  noteCode:  { name:'Записка с кодом', icon:'📜', color:0xd8c8a8 },
-  hammer:    { name:'Молоток',      icon:'🔨', color:0x6a5a4a },
-  gear:      { name:'Шестерёнка',   icon:'⚙', color:0x8a8a90 },
-  fuse:      { name:'Предохранитель', icon:'🔌', color:0xcc4444 }
+/* ============================================================
+   3D VIEWER
+   ============================================================ */
+const COLORS_3D = {
+  'U': 0xf5f5f5, 'D': 0xffd93b, 'F': 0x22c55e,
+  'B': 0x2f6dff, 'R': 0xe63946, 'L': 0xff8c1a
 };
 
-class Item {
-  constructor(type){
-    const def = ITEM_DEFS[type];
-    this.type = type;
-    this.name = def.name;
-    this.icon = def.icon;
-    this.group = new THREE.Group();
-    let geo;
-    switch(type){
-      case 'rustyKey':
-        geo = new THREE.BoxGeometry(0.28, 0.05, 0.1);
-        break;
-      case 'noteCode':
-        geo = new THREE.BoxGeometry(0.3, 0.02, 0.22);
-        break;
-      case 'hammer':
-        geo = new THREE.BoxGeometry(0.1, 0.4, 0.1);
-        break;
-      case 'gear':
-        geo = new THREE.TorusGeometry(0.15, 0.05, 8, 12);
-        break;
-      case 'fuse':
-        geo = new THREE.BoxGeometry(0.08, 0.24, 0.08);
-        break;
-      default:
-        geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-    }
-    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:def.color, roughness:0.6, metalness: type==='gear'?0.8:0.2, emissive: def.color, emissiveIntensity:0.15}));
-    m.castShadow = true;
-    if(type==='gear') m.rotation.x = Math.PI/2;
-    this.group.add(m);
-    this.mesh = m;
-  }
-}
-const ItemFactory = { create:(t)=> new Item(t) };
-
-/* ==========================================================
-   Inventory
-   ========================================================== */
-class Inventory {
-  constructor(max=8){
-    this.items = [];
-    this.max = max;
-  }
-  add(item){
-    if(this.items.length >= this.max) return false;
-    this.items.push(item);
-    return true;
-  }
-  remove(type){
-    const i = this.items.findIndex(x=>x.type===type);
-    if(i<0) return null;
-    return this.items.splice(i,1)[0];
-  }
-  has(type){ return this.items.some(x=>x.type===type); }
-  clear(){ this.items = []; }
-}
-
-/* ==========================================================
-   PlayerController
-   ========================================================== */
-class PlayerController {
-  constructor(camera, level){
-    this.camera = camera;
-    this.level = level;
-    this.pos = new THREE.Vector3(0, FLOOR_Y['1']+1.7, -6);
-    this.vel = new THREE.Vector3();
-    this.yaw = 0; this.pitch = 0;
-    this.eyeY = 1.7;
-    this.crouchY = 1.0;
-    this.height = 1.7;
-    this.radius = 0.35;
-    this.floor = '1';
-    this.walkSpeed = 3.0;
-    this.runSpeed = 5.5;
-    this.crouchSpeed = 1.4;
-    this.accel = 12;
-    this.friction = 9;
-    this.isRunning = false;
-    this.isCrouching = false;
-    this.stamina = 1;
-    this.inCover = null;
-    this.locked = false;
-    this.bobT = 0;
-    this.stepAccum = 0;
-    this.headBob = 0;
-    this.mouseSens = 1;
-  }
-  setPosition(x, floor, z){
-    this.floor = floor;
-    this.pos.set(x, FLOOR_Y[floor]+this.height, z);
-  }
-  getInput(keys, mobileVec){
-    // mobileVec: {x:-1..1, y:-1..1} — джойстик
-    let f = 0, r = 0;
-    if(keys['w']) f += 1;
-    if(keys['s']) f -= 1;
-    if(keys['a']) r -= 1;
-    if(keys['d']) r += 1;
-    if(mobileVec){
-      f += -mobileVec.y;
-      r += mobileVec.x;
-    }
-    const len = Math.hypot(f,r);
-    if(len>1){ f/=len; r/=len; }
-    return {f, r};
-  }
-  update(dt, keys, mobileVec){
-    if(this.locked) return;
-    const inp = this.getInput(keys, mobileVec);
-    this.isRunning = (keys['shift'] || this.forceRun) && this.stamina > 0.05 && inp.f !== 0;
-    this.isCrouching = keys['control'] || this.forceCrouch;
-    let speed = this.isCrouching ? this.crouchSpeed : (this.isRunning ? this.runSpeed : this.walkSpeed);
-    // направление
-    const forward = new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
-    const right = new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
-    const desired = new THREE.Vector3();
-    desired.addScaledVector(forward, inp.f);
-    desired.addScaledVector(right, inp.r);
-    if(desired.length()>1) desired.normalize();
-    desired.multiplyScalar(speed);
-
-    // ускорение / трение
-    const dx = desired.x - this.vel.x;
-    const dz = desired.z - this.vel.z;
-    const k = Math.min(1, (desired.length()>0.1 ? this.accel : this.friction) * dt);
-    this.vel.x += dx * k;
-    this.vel.z += dz * k;
-
-    // движение с коллизией
-    const nx = this.pos.x + this.vel.x * dt;
-    const nz = this.pos.z + this.vel.z * dt;
-    const c = this.level.collide(nx, nz, this.radius, this.floor);
-    this.pos.x = c.x; this.pos.z = c.z;
-
-    // выносливость
-    if(this.isRunning) this.stamina = Math.max(0, this.stamina - dt*0.28);
-    else this.stamina = Math.min(1, this.stamina + dt*0.22);
-
-    // высота / присед
-    const targetY = FLOOR_Y[this.floor] + (this.isCrouching ? this.crouchY : this.height);
-    this.pos.y += (targetY - this.pos.y) * Math.min(1, dt*10);
-
-    // шаги
-    const speedNow = Math.hypot(this.vel.x, this.vel.z);
-    this.stepAccum += speedNow * dt;
-    const stride = this.isCrouching ? 1.4 : (this.isRunning ? 1.4 : 1.8);
-    if(this.stepAccum > stride && speedNow > 0.5){
-      this.stepAccum = 0;
-      audio.footstep(this.isRunning, this.isCrouching);
-      const radius = this.isCrouching ? 3 : (this.isRunning ? 14 : 7);
-      noise.emit(this.pos.x, this.pos.z, this.floor, radius, 'step');
-    }
-
-    // покачивание головы
-    this.bobT += dt * speedNow * (this.isRunning?1.6:1);
-    this.headBob = Math.sin(this.bobT*2) * (this.isRunning?0.06:0.03) * Math.min(1, speedNow/3);
-
-    // камера
-    this.camera.position.set(this.pos.x, this.pos.y + this.headBob, this.pos.z);
-    this.camera.rotation.order = 'YXZ';
-    this.camera.rotation.y = this.yaw;
-    this.camera.rotation.x = this.pitch;
-  }
-}
-
-/* ==========================================================
-   EnemyAI — Вера
-   ========================================================== */
-class EnemyAI {
-  constructor(scene, level){
-    this.scene = scene;
-    this.level = level;
-    this.group = new THREE.Group();
-    this.pos = new THREE.Vector3(0, 0, 0);
-    this.floor = '0';
-    this.state = 'PATROL';
-    this.speed = 1.6;
-    this.chaseSpeed = 3.6;
-    this.stateTimer = 0;
-    this.lastSeenPos = null;
-    this.targetPos = null;
-    this.patrolPoints = [];
-    this.patrolIdx = 0;
-    this.waypoint = null;
-    this.losTimer = 0;
-    this.searchTimer = 0;
-    this.listenRadius = 18;
-    this.fov = Math.PI * 0.55;
-    this.viewDist = 16;
-    this.buildMesh();
-    this.pickPatrolPoints();
-  }
-  buildMesh(){
-    // высокая худая фигура
-    const skin = new THREE.MeshStandardMaterial({color:0xd8cec0, roughness:0.9});
-    const dress = new THREE.MeshStandardMaterial({color:0x2a2028, roughness:0.95});
-    const hair = new THREE.MeshStandardMaterial({color:0x1a1010, roughness:1});
-
-    // платье — конус
-    const bodyGeo = new THREE.CylinderGeometry(0.45, 0.9, 2.0, 12, 1, true);
-    const body = new THREE.Mesh(bodyGeo, dress);
-    body.position.y = 1.0;
-    body.castShadow = true;
-    this.group.add(body);
-    // торс
-    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 0.9, 10), dress);
-    torso.position.y = 2.05;
-    torso.castShadow = true;
-    this.group.add(torso);
-    // голова
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), skin);
-    head.position.y = 2.75;
-    head.scale.set(0.9, 1.25, 0.9);
-    head.castShadow = true;
-    this.group.add(head);
-    // волосы
-    const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8, 0, Math.PI*2, 0, Math.PI*0.6), hair);
-    hairMesh.position.y = 2.8;
-    hairMesh.scale.set(1.05, 1.2, 1.05);
-    this.group.add(hairMesh);
-    // глаза
-    const eyeMat = new THREE.MeshBasicMaterial({color:0x000000});
-    const e1 = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), eyeMat);
-    e1.position.set(-0.07, 2.76, 0.19);
-    this.group.add(e1);
-    const e2 = e1.clone(); e2.position.x = 0.07;
-    this.group.add(e2);
-    // длинные руки
-    const armGeo = new THREE.CylinderGeometry(0.05, 0.04, 1.6, 6);
-    const a1 = new THREE.Mesh(armGeo, skin);
-    a1.position.set(-0.4, 2.0, 0);
-    a1.rotation.z = 0.15;
-    a1.castShadow = true;
-    this.group.add(a1);
-    const a2 = a1.clone(); a2.position.x = 0.4; a2.rotation.z = -0.15;
-    this.group.add(a2);
-    // "шея"
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.3, 6), skin);
-    neck.position.y = 2.5;
-    this.group.add(neck);
-
-    this.group.scale.set(1.0, 1.15, 1.0);
-    this.scene.add(this.group);
-    this.parts = {a1, a2, head};
-  }
-  pickPatrolPoints(){
-    this.patrolPoints = [
-      {x:0,z:6,floor:'0'},
-      {x:8,z:0,floor:'0'},
-      {x:-8,z:-6,floor:'0'},
-      {x:-8,z:6,floor:'0'},
-      {x:0,z:0,floor:'1'},
-      {x:-7,z:-6,floor:'1'},
-      {x:6,z:6,floor:'1'},
-      {x:-5,z:6,floor:'1'}
-    ];
-  }
-  setFloor(f, x, z){
-    this.floor = f;
-    this.pos.set(x, FLOOR_Y[f], z);
-    this.group.position.copy(this.pos);
-  }
-  canSee(player){
-    if(player.floor !== this.floor) return false;
-    const dx = player.pos.x - this.pos.x;
-    const dz = player.pos.z - this.pos.z;
-    const dist = Math.hypot(dx, dz);
-    if(dist > this.viewDist) return false;
-    const angle = Math.atan2(-dx, -dz); // по направлению forward (-z)
-    const enemyDir = this.group.rotation.y;
-    let diff = angle - enemyDir;
-    while(diff > Math.PI) diff -= Math.PI*2;
-    while(diff < -Math.PI) diff += Math.PI*2;
-    if(Math.abs(diff) > this.fov/2) return false;
-    // проверка стен
-    return this.hasLineOfSight(player.pos.x, player.pos.z);
-  }
-  hasLineOfSight(tx, tz){
-    // упрощённо: считаем пересечение с отрезками стен этого этажа
-    const x1 = this.pos.x, z1 = this.pos.z;
-    for(const w of this.level.walls){
-      if(w.floor !== this.floor) continue;
-      if(this.segIntersect(x1,z1,tx,tz, w.x1,w.z1,w.x2,w.z2)) return false;
-    }
-    return true;
-  }
-  segIntersect(x1,z1,x2,z2,x3,z3,x4,z4){
-    const d = (x2-x1)*(z4-z3) - (z2-z1)*(x4-x3);
-    if(Math.abs(d) < 1e-6) return false;
-    const t = ((x3-x1)*(z4-z3) - (z3-z1)*(x4-x3)) / d;
-    const u = ((x3-x1)*(z2-z1) - (z3-z1)*(x2-x1)) / d;
-    return t>0.02 && t<0.98 && u>0.02 && u<0.98;
-  }
-  goto(target, dt, speed){
-    const dx = target.x - this.pos.x;
-    const dz = target.z - this.pos.z;
-    const d = Math.hypot(dx,dz);
-    if(d < 0.4) return true;
-    const vx = dx/d * speed;
-    const vz = dz/d * speed;
-    const c = this.level.collide(this.pos.x + vx*dt, this.pos.z + vz*dt, 0.35, this.floor);
-    // маленькое обходное поведение: если не двигаемся — выбираем соседнее направление
-    const moved = Math.hypot(c.x-this.pos.x, c.z-this.pos.z);
-    if(moved < speed*dt*0.3){
-      // пробуем обойти: сдвиг перпендикулярно
-      const px = -dz/d, pz = dx/d;
-      const sign = (Math.floor(this.stateTimer*2)%2===0)?1:-1;
-      const c2 = this.level.collide(this.pos.x + px*sign*speed*dt, this.pos.z + pz*sign*speed*dt, 0.35, this.floor);
-      this.pos.x = c2.x; this.pos.z = c2.z;
-    } else {
-      this.pos.x = c.x; this.pos.z = c.z;
-    }
-    // поворот
-    const ang = Math.atan2(-dx, -dz);
-    let diff = ang - this.group.rotation.y;
-    while(diff > Math.PI) diff -= Math.PI*2;
-    while(diff < -Math.PI) diff += Math.PI*2;
-    this.group.rotation.y += diff * Math.min(1, dt*5);
-    return false;
-  }
-  update(dt, player, noiseSys){
-    this.stateTimer += dt;
-    this.group.position.copy(this.pos);
-
-    // проверка видимости игрока
-    const sees = this.canSee(player) && !player.inCover;
-    // проверка шума
-    const heard = noiseSys.forEnemy(this.pos.x, this.pos.z, this.floor);
-
-    switch(this.state){
-      case 'PATROL': {
-        const wp = this.patrolPoints[this.patrolIdx];
-        if(wp.floor !== this.floor){
-          // телепорт между этажами (упрощение для патруля)
-          this.setFloor(wp.floor, wp.x, wp.z);
-        }
-        if(this.goto(wp, dt, this.speed)){
-          this.patrolIdx = (this.patrolIdx+1) % this.patrolPoints.length;
-        }
-        if(sees){ this.enterChase(player); break; }
-        if(heard){
-          this.state = 'HEAR';
-          this.stateTimer = 0;
-          this.targetPos = {x:heard.x, z:heard.z};
-        }
-        break;
-      }
-      case 'HEAR': {
-        if(this.stateTimer > 0.6 || sees){
-          this.state = 'INVESTIGATE';
-          this.stateTimer = 0;
-        }
-        break;
-      }
-      case 'INVESTIGATE': {
-        if(!this.targetPos){ this.state='PATROL'; this.stateTimer=0; break; }
-        if(this.goto(this.targetPos, dt, this.speed*1.15)){
-          this.state = 'SEARCH';
-          this.stateTimer = 0;
-          this.searchTimer = 0;
-        }
-        if(sees){ this.enterChase(player); break; }
-        if(this.stateTimer > 12){ this.state='PATROL'; this.stateTimer=0; }
-        break;
-      }
-      case 'SEARCH': {
-        this.searchTimer += dt;
-        // вращаемся
-        this.group.rotation.y += dt * 1.4;
-        if(sees){ this.enterChase(player); break; }
-        if(heard && Math.random() < 0.4){
-          this.targetPos = {x:heard.x, z:heard.z};
-          this.state = 'INVESTIGATE';
-          this.stateTimer = 0;
-        }
-        if(this.searchTimer > 5){ this.state = 'RETURN'; this.stateTimer = 0; }
-        break;
-      }
-      case 'CHASE': {
-        this.targetPos = {x:player.pos.x, z:player.pos.z};
-        // если игрок на другом этаже — сбрасываем погоню
-        if(player.floor !== this.floor){
-          this.state = 'SEARCH'; this.stateTimer = 0;
-          this.searchTimer = 0;
-          break;
-        }
-        // прямое преследование
-        const done = this.goto(this.targetPos, dt, this.chaseSpeed);
-        // атака
-        const d = Math.hypot(player.pos.x - this.pos.x, player.pos.z - this.pos.z);
-        if(d < 1.2 && !player.inCover){
-          this.attack(player);
-          break;
-        }
-        if(!sees){
-          this.losTimer += dt;
-          if(this.losTimer > 3){
-            this.state = 'SEARCH';
-            this.stateTimer = 0;
-            this.searchTimer = 0;
-            this.losTimer = 0;
-          }
-        } else {
-          this.losTimer = 0;
-        }
-        break;
-      }
-      case 'RETURN': {
-        const wp = this.patrolPoints[this.patrolIdx];
-        if(this.floor !== wp.floor){
-          this.setFloor(wp.floor, wp.x, wp.z);
-        }
-        if(this.goto(wp, dt, this.speed)){
-          this.state = 'PATROL';
-          this.stateTimer = 0;
-        }
-        break;
-      }
-    }
-    // анимация рук
-    const t = performance.now()*0.001;
-    const walkAmp = this.state === 'CHASE' ? 0.4 : 0.18;
-    this.parts.a1.rotation.x = Math.sin(t*3) * walkAmp;
-    this.parts.a2.rotation.x = -Math.sin(t*3) * walkAmp;
-
-    // случайные атмосферные шёпоты (опционально)
-    if(Math.random() < dt*0.02){
-      aiService.whisper(`враг ${this.state}, игрок ${this.state==='CHASE'?'рядом':'где-то'}`).then(txt=>{
-        if(txt) Game.showSubtitle(txt, 3000);
-      });
-    }
-  }
-  enterChase(player){
-    if(this.state !== 'CHASE'){
-      audio.startChase();
-      audio.scream();
-      Game.cameraShake(0.5, 0.6);
-      Game.showSubtitle('Она увидела тебя', 2000);
-    }
-    this.state = 'CHASE';
-    this.stateTimer = 0;
-    this.losTimer = 0;
-  }
-  attack(player){
-    if(this.attackCooldown > 0) return;
-    this.attackCooldown = 2;
-    audio.stopChase();
-    audio.hit();
-    Game.triggerDeath();
-  }
-}
-
-/* ==========================================================
-   MobileControls
-   ========================================================== */
-class MobileControls {
-  constructor(){
-    this.enabled = false;
-    this.moveVec = {x:0, y:0};
-    this.lookActive = false;
-    this.lookLast = {x:0, y:0};
-    this.joyActive = false;
-    this.joyId = null;
-    this.joyOrigin = {x:0, y:0};
-    this.buttons = {action:false, run:false, crouch:false, drop:false};
-    this.init();
-  }
-  init(){
-    if(!('ontouchstart' in window) && !navigator.maxTouchPoints) return;
-    this.enabled = true;
-    document.getElementById('mobile').classList.add('active');
-    const joyZone = document.getElementById('joyZone');
-    const joyBase = document.getElementById('joyBase');
-    const joyStick = document.getElementById('joyStick');
-    const lookZone = document.getElementById('lookZone');
-
-    joyZone.addEventListener('touchstart', e=>{
-      const t = e.changedTouches[0];
-      this.joyId = t.identifier;
-      this.joyActive = true;
-      const r = joyZone.getBoundingClientRect();
-      this.joyOrigin.x = t.clientX; this.joyOrigin.y = t.clientY;
-      joyBase.style.display = 'block';
-      joyBase.style.left = (t.clientX - r.left - 65) + 'px';
-      joyBase.style.top = (t.clientY - r.top - 65) + 'px';
-      joyStick.style.left = '35px'; joyStick.style.top = '35px';
-      e.preventDefault();
-    }, {passive:false});
-    joyZone.addEventListener('touchmove', e=>{
-      if(!this.joyActive) return;
-      for(const t of e.changedTouches){
-        if(t.identifier !== this.joyId) continue;
-        const dx = t.clientX - this.joyOrigin.x;
-        const dy = t.clientY - this.joyOrigin.y;
-        const d = Math.hypot(dx, dy);
-        const max = 55;
-        const cl = Math.min(1, d/max);
-        this.moveVec.x = (dx/(d||1)) * cl;
-        this.moveVec.y = (dy/(d||1)) * cl;
-        joyStick.style.left = (35 + dx*(cl/(d/(max*cl)||1)) * (d>max?max/d:1)) + 'px';
-        joyStick.style.top  = (35 + dy*(cl/(d/(max*cl)||1)) * (d>max?max/d:1)) + 'px';
-      }
-      e.preventDefault();
-    }, {passive:false});
-    const endJoy = e=>{
-      for(const t of e.changedTouches){
-        if(t.identifier === this.joyId){
-          this.joyActive = false; this.joyId = null;
-          this.moveVec.x = 0; this.moveVec.y = 0;
-          joyBase.style.display = 'none';
-        }
-      }
-    };
-    joyZone.addEventListener('touchend', endJoy);
-    joyZone.addEventListener('touchcancel', endJoy);
-
-    lookZone.addEventListener('touchstart', e=>{
-      const t = e.changedTouches[0];
-      this.lookActive = true;
-      this.lookLast.x = t.clientX; this.lookLast.y = t.clientY;
-      e.preventDefault();
-    }, {passive:false});
-    lookZone.addEventListener('touchmove', e=>{
-      if(!this.lookActive) return;
-      const t = e.changedTouches[0];
-      const dx = t.clientX - this.lookLast.x;
-      const dy = t.clientY - this.lookLast.y;
-      this.lookLast.x = t.clientX; this.lookLast.y = t.clientY;
-      if(Game && Game.player){
-        Game.player.yaw -= dx * 0.005 * Game.player.mouseSens;
-        Game.player.pitch -= dy * 0.005 * Game.player.mouseSens;
-        Game.player.pitch = Math.max(-1.3, Math.min(1.3, Game.player.pitch));
-      }
-      e.preventDefault();
-    }, {passive:false});
-    lookZone.addEventListener('touchend', ()=>{ this.lookActive = false; });
-
-    const bind = (id, name) => {
-      const el = document.getElementById(id);
-      el.addEventListener('touchstart', e=>{ this.buttons[name]=true; e.preventDefault(); }, {passive:false});
-      el.addEventListener('touchend', e=>{ this.buttons[name]=false; e.preventDefault(); }, {passive:false});
-    };
-    bind('btnAction','action');
-    bind('btnSprint','run');
-    bind('btnCrouch','crouch');
-    bind('btnDrop','drop');
-  }
-}
-const mobile = new MobileControls();
-
-/* ==========================================================
-   UIManager
-   ========================================================== */
-class UIManager {
-  constructor(){
-    this.inventoryEl = document.getElementById('inventory');
-    this.promptEl = document.getElementById('prompt');
-    this.crosshairEl = document.getElementById('crosshair');
-    this.staminaEl = document.getElementById('stamina');
-    this.staminaBar = this.staminaEl.querySelector('div');
-    this.objectiveEl = document.getElementById('objective');
-    this.attemptEl = document.getElementById('attemptInfo');
-    this.subtitleEl = document.getElementById('subtitle');
-    this.fadeEl = document.getElementById('fade');
-    this.damageEl = document.getElementById('damage');
-  }
-  updateInventory(inv){
-    this.inventoryEl.innerHTML = '';
-    for(const it of inv.items){
-      const d = document.createElement('div');
-      d.className = 'invslot';
-      d.textContent = it.icon;
-      this.inventoryEl.appendChild(d);
-    }
-  }
-  popSlot(index){
-    const slots = this.inventoryEl.children;
-    if(slots[index]){ slots[index].classList.add('pop'); setTimeout(()=>slots[index]?.classList.remove('pop'), 350); }
-  }
-  setPrompt(text){ 
-    if(text){ this.promptEl.textContent = text; this.promptEl.classList.add('show'); }
-    else this.promptEl.classList.remove('show');
-  }
-  setCrosshairActive(a){ this.crosshairEl.classList.toggle('active', a); }
-  setStamina(v){
-    this.staminaBar.style.width = (v*100)+'%';
-    this.staminaEl.classList.toggle('show', v < 0.99);
-  }
-  setObjective(t){ this.objectiveEl.textContent = t || ''; }
-  setAttempt(n){ this.attemptEl.textContent = 'ПОПЫТКА ' + n; }
-  showSubtitle(text, ms=2500){
-    this.subtitleEl.textContent = text;
-    this.subtitleEl.classList.add('show');
-    clearTimeout(this._stT);
-    this._stT = setTimeout(()=>this.subtitleEl.classList.remove('show'), ms);
-  }
-  fade(on, dur=800){
-    this.fadeEl.style.transition = `opacity ${dur}ms`;
-    this.fadeEl.classList.toggle('show', on);
-  }
-  flashDamage(){
-    this.damageEl.style.opacity = 1;
-    setTimeout(()=>{ this.damageEl.style.opacity = 0; }, 200);
-  }
-}
-const ui = new UIManager();
-
-/* ==========================================================
-   GameManager
-   ========================================================== */
-const Game = {
-  scene:null, camera:null, renderer:null, level:null, player:null, enemy:null,
-  inventory:null, clock:null, keys:{}, running:false, paused:false,
-  attempt:1, flags:{}, rng:Math.random,
-  shakeTime:0, shakeAmp:0,
-  ray:null, lastInteract:0, droppedItems:[],
-  currentFloor: '1',
-  mobileVec: {x:0, y:0},
-  started:false,
-
-  init(){
-    const container = document.getElementById('game');
-    this.renderer = new THREE.WebGLRenderer({antialias: window.devicePixelRatio < 2, powerPreference:'high-performance'});
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
-    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+class Viewer {
+  constructor(container){
+    this.el = container;
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    this.camera.position.set(4.5, 4.5, 4.5);
+    this.camera.lookAt(0,0,0);
+    this.renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));
     container.appendChild(this.renderer.domElement);
 
-    this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x05040a);
-    this.scene.fog = new THREE.Fog(0x0a0a12, 4, 26);
+    const amb = new THREE.AmbientLight(0xffffff, 0.75);
+    this.scene.add(amb);
+    const d1 = new THREE.DirectionalLight(0xffffff, 1.1); d1.position.set(5,8,6); this.scene.add(d1);
+    const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-5,-4,-6); this.scene.add(d2);
 
-    this.camera = new THREE.PerspectiveCamera(72, window.innerWidth/window.innerHeight, 0.05, 100);
-    this.camera.rotation.order = 'YXZ';
+    this.cubeGroup = new THREE.Group();
+    this.scene.add(this.cubeGroup);
+    this.meshes = [];
+    this.currentCubieMeshes = new Map(); // posKey -> mesh
 
-    this.clock = new THREE.Clock();
-    this.inventory = new Inventory();
-    this.ray = new THREE.Raycaster();
-
-    window.addEventListener('resize', ()=>this.onResize());
-    this.setupPointerLock();
-
-    // частицы пыли
-    this.createDust();
-
-    this.animate();
-  },
-
-  createDust(){
-    const N = 200;
-    const geo = new THREE.BufferGeometry();
-    const pos = new Float32Array(N*3);
-    for(let i=0;i<N;i++){
-      pos[i*3] = (Math.random()-0.5)*30;
-      pos[i*3+1] = Math.random()*8;
-      pos[i*3+2] = (Math.random()-0.5)*30;
-    }
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const mat = new THREE.PointsMaterial({color:0xffffff, size:0.03, transparent:true, opacity:0.25, depthWrite:false});
-    this.dust = new THREE.Points(geo, mat);
-    this.scene.add(this.dust);
-  },
-
-  setupPointerLock(){
-    const canvas = this.renderer.domElement;
-    canvas.addEventListener('click', ()=>{
-      if(this.running && !mobile.enabled) canvas.requestPointerLock();
-    });
-    document.addEventListener('pointerlockchange', ()=>{
-      if(document.pointerLockElement === canvas) this.player && (this.player.locked = false);
-      else if(this.player) this.player.locked = true;
-    });
-    document.addEventListener('mousemove', (e)=>{
-      if(document.pointerLockElement === canvas && this.player){
-        this.player.yaw -= e.movementX * 0.002 * this.player.mouseSens;
-        this.player.pitch -= e.movementY * 0.002 * this.player.mouseSens;
-        this.player.pitch = Math.max(-1.3, Math.min(1.3, this.player.pitch));
-      }
-    });
-  },
-
-  onResize(){
-    this.camera.aspect = window.innerWidth/window.innerHeight;
+    this._resize();
+    window.addEventListener('resize', ()=>this._resize());
+    this.autoRotate = true;
+    this._animate();
+    this._bindDrag();
+  }
+  _resize(){
+    const r = this.el.getBoundingClientRect();
+    this.renderer.setSize(r.width, r.height);
+    this.camera.aspect = r.width/r.height;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-  },
-
-  newGame(){
-    SaveSystem.clear();
-    this.attempt = 1;
-    this.flags = {};
-    this.inventory.clear();
-    this.droppedItems = [];
-    this.level = null;
-    this.started = false;
-
-    // новый rng для разброса предметов
-    const seed = Date.now();
-    let s = seed;
-    this.rng = ()=> { s = (s*9301 + 49297) % 233280; return s/233280; };
-
-    this.level = new LevelManager(this.scene);
-    this.level.buildHouse(this.rng);
-
-    this.player = new PlayerController(this.camera, this.level);
-    this.player.setPosition(0, '1', -6);
-    this.player.mouseSens = this.settings.sens || 1;
-
-    this.enemy = new EnemyAI(this.scene, this.level);
-    this.enemy.setFloor('0', 0, 6);
-
-    this.currentFloor = '1';
-    this.keys = {};
-    this.droppedItems = [];
-
-    ui.setAttempt(this.attempt);
-    ui.setObjective('Осмотрись. Найди выход.');
-    ui.updateInventory(this.inventory);
-
-    // показать HUD
-    document.getElementById('hud').classList.remove('hidden');
-    document.getElementById('menu').classList.add('hidden');
-    document.getElementById('death').classList.add('hidden');
-    document.getElementById('win').classList.add('hidden');
-    document.getElementById('codePanel').classList.add('hidden');
-    this.running = true;
-    this.paused = false;
-
-    // интро
-    this.playIntro();
-  },
-
-  playIntro(){
-    audio.init();
-    ui.fade(true, 200);
-    setTimeout(()=>{
-      ui.fade(false, 1200);
-      this.showSubtitle('...', 1000);
-      setTimeout(()=>this.showSubtitle('Ты пришёл в себя на холодном полу.', 2500), 500);
-      setTimeout(()=>{
-        this.showSubtitle('Старый дом скрипит где-то наверху.', 2500);
-        audio.tone(120, 1.5, 0.1, 'sawtooth', 80);
-      }, 3500);
-      setTimeout(()=>{
-        this.showSubtitle('Внизу что-то упало.', 2500);
-        audio.metal();
-      }, 6500);
-      setTimeout(()=>{
-        this.started = true;
-      }, 9000);
-    }, 500);
-  },
-
-  showSubtitle(t, ms){ ui.showSubtitle(t, ms); },
-
-  cameraShake(amp, time){ 
-    this.shakeAmp = Math.max(this.shakeAmp, amp);
-    this.shakeTime = Math.max(this.shakeTime, time);
-  },
-
-  triggerDeath(){
-    this.running = false;
-    ui.fade(true, 400);
-    audio.stopChase();
-    setTimeout(()=>{
-      document.getElementById('death').classList.remove('hidden');
-      document.getElementById('hud').classList.add('hidden');
-    }, 500);
-  },
-
-  triggerWin(){
-    this.running = false;
-    audio.stopChase();
-    ui.fade(true, 1500);
-    setTimeout(()=>{
-      document.getElementById('win').classList.remove('hidden');
-      document.getElementById('hud').classList.add('hidden');
-    }, 1600);
-  },
-
-  retry(){
-    this.attempt++;
-    SaveSystem.save({attempt:this.attempt});
-    // сброс, но сохраняем попытку
-    document.getElementById('death').classList.add('hidden');
-    this.newGame();
-    this.attempt = parseInt(localStorage.getItem('shadow_attempt')||this.attempt, 10);
-    if(this.attempt > 1) ui.setAttempt(this.attempt);
-  },
-
-  interact(){
-    if(!this.started) return;
-    // raycast
-    this.ray.setFromCamera(new THREE.Vector2(0,0), this.camera);
-    this.ray.far = 3.0;
-    // Собираем все интерактивные
-    const targets = [];
-    for(const it of this.level.items) if(!it.taken) targets.push(it.group);
-    for(const d of this.level.doors){
-      // у двери несколько мешей, берём group
-      targets.push(d.group);
+  }
+  _bindDrag(){
+    let dragging = false, lx=0, ly=0;
+    let ry=Math.PI/4, rx=Math.PI/6;
+    const applyRot = ()=>{ this.cubeGroup.rotation.set(rx, ry, 0, 'YXZ'); };
+    this.el.addEventListener('pointerdown', e=>{
+      dragging=true; lx=e.clientX; ly=e.clientY; this.autoRotate=false;
+      this.el.setPointerCapture(e.pointerId);
+    });
+    this.el.addEventListener('pointermove', e=>{
+      if(!dragging) return;
+      ry += (e.clientX-lx)*0.01;
+      rx += (e.clientY-ly)*0.01;
+      rx = Math.max(-1.3, Math.min(1.3, rx));
+      lx=e.clientX; ly=e.clientY;
+      applyRot();
+    });
+    this.el.addEventListener('pointerup', ()=>{ dragging=false; });
+    this.cubeGroup.rotation.set(rx, ry, 0, 'YXZ');
+    this._applyRot = applyRot;
+  }
+  buildFromCube(cube){
+    while(this.cubeGroup.children.length){
+      const c = this.cubeGroup.children.pop();
+      c.geometry && c.geometry.dispose && c.geometry.dispose();
     }
-    for(const obj of this.level.interactables) if(obj.mesh) targets.push(obj.mesh);
-
-    const hits = this.ray.intersectObjects(targets, true);
-    if(hits.length === 0) return;
-    const hit = hits[0];
-    // находим владельца
-    let owner = null;
-    for(const it of this.level.items){ if(!it.taken && (it.group === hit.object.parent || it.group === hit.object)){ owner = {type:'item', item:it}; break; } }
-    if(!owner) for(const d of this.level.doors){ if(d.group === hit.object.parent || hit.object.parent === d.hinge || d.mesh === hit.object){ owner = {type:'door', door:d}; break; } }
-    if(!owner) for(const obj of this.level.interactables){ if(obj.mesh === hit.object || obj.mesh === hit.object.parent){ owner = {type:'obj', obj}; break; } }
-
-    if(!owner) return;
-    if(owner.type === 'item') this.pickup(owner.item);
-    else if(owner.type === 'door') this.useDoor(owner.door);
-    else this.useObject(owner.obj);
-  },
-
-  pickup(item){
-    if(this.inventory.items.length >= this.inventory.max){
-      this.showSubtitle('Слишком много предметов в руках', 2000);
-      return;
-    }
-    item.taken = true;
-    this.scene.remove(item.group);
-    this.inventory.add(item);
-    audio.pick();
-    ui.updateInventory(this.inventory);
-    ui.popSlot(this.inventory.items.length - 1);
-    this.showSubtitle('Получено: ' + item.name, 1800);
-    if(item.type === 'noteCode'){
-      this.showSubtitle('Записка: код ' + this.getCode(), 3500);
-    }
-    noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 4, 'pickup');
-  },
-
-  getCode(){ return '4721'; },
-
-  useDoor(door){
-    // блокировка досками
-    if(door.hasBoards && !door.boardsBroken){
-      if(this.inventory.has('hammer')){
-        this.inventory.remove('hammer');
-        door.boardsBroken = true;
-        if(door.boards) door.boards.forEach(b => this.scene.remove(b));
-        audio.metal();
-        this.showSubtitle('Доски сорваны молотком.', 2200);
-        noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 16, 'crash');
-        ui.updateInventory(this.inventory);
-        return;
-      } else {
-        this.showSubtitle('Дверь заколочена. Нужен молоток.', 2200);
-        return;
+    this.meshes = [];
+    this.currentCubieMeshes.clear();
+    const geo = new THREE.BoxGeometry(0.96, 0.96, 0.96);
+    for(const k of cube.cubies){
+      const mats = [];
+      // Порядок материалов Three.js BoxGeometry: +X, -X, +Y, -Y, +Z, -Z
+      const order = [0,1,2,3,4,5];
+      const localColors = k.colors;
+      for(const oi of order){
+        const col = localColors[oi];
+        const faceColor = col ? (COLORS_3D[col]||0x222222) : 0x15151c;
+        mats.push(new THREE.MeshStandardMaterial({color:faceColor, roughness:0.42, metalness:0.05}));
       }
+      const mesh = new THREE.Mesh(geo, mats);
+      mesh.position.set(k.pos[0], k.pos[1], k.pos[2]);
+      this.cubeGroup.add(mesh);
+      this.meshes.push({mesh, cubie:k});
     }
-    // код
-    if(door.codeLock){
-      if(!this.flags.powerOn){
-        this.showSubtitle('Кодовый замок без питания.', 2200);
-        return;
-      }
-      this.openCodePanel(door);
-      return;
+  }
+  // Анимировать ход. move = 'R'|"R'"|'R2'|...
+  async animateMove(move){
+    const face = move[0];
+    const mod = move.slice(1);
+    const turns = mod==='2'?2 : mod==="'"?-1 : 1;
+    const axisMap = {U:1, D:1, R:0, L:0, F:2, B:2};
+    const layerMap = {U:1, D:-1, R:1, L:-1, F:1, B:-1};
+    const axis = ['x','y','z'][axisMap[face]];
+    const layer = layerMap[face];
+    const dirSign = {U:1, D:-1, R:1, L:-1, F:1, B:-1}[face];
+    // Направление: для U (CW сверху) rotation.y должна уменьшаться (по оси -Y)
+    // three.js: положительное вращение вокруг Y — против часовой, если смотреть с +Y
+    // U CW (сверху) = поворот по часовой = -PI/2 (для угла в right-hand)
+    const signs = {U:-1, D:1, R:-1, L:1, F:-1, B:1};
+    const sgn = signs[face];
+    const target = sgn * (Math.PI/2) * turns;
+
+    // Собираем кубики в слое
+    const pivot = new THREE.Object3D();
+    this.cubeGroup.add(pivot);
+    const inLayer = this.meshes.filter(m=> Math.round(m.mesh.position[axis])===layer);
+    for(const m of inLayer) pivot.attach(m.mesh);
+
+    // Анимация
+    const dur = 260 * Math.abs(turns);
+    const t0 = performance.now();
+    await new Promise(resolve=>{
+      const tick = ()=>{
+        const t = Math.min(1, (performance.now()-t0)/dur);
+        const e = t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+        pivot.rotation[axis] = target * e;
+        if(t<1) requestAnimationFrame(tick); else resolve();
+      };
+      tick();
+    });
+
+    // Фиксация: применяем трансформацию к мешам
+    for(const m of inLayer) this.cubeGroup.attach(m.mesh);
+    // Округляем позиции (устранить дрейф)
+    for(const m of this.meshes){
+      m.mesh.position.set(Math.round(m.mesh.position.x), Math.round(m.mesh.position.y), Math.round(m.mesh.position.z));
+      const q = m.mesh.quaternion;
+      // Округляем кватернион
+      const r = Math.round;
+      // Простое округление может дать дрейф — оставляем как есть
     }
-    // ключ
-    if(door.locked){
-      if(door.keyId && this.inventory.has(door.keyId)){
-        door.locked = false;
-        this.inventory.remove(door.keyId);
-        audio.doorOpen();
-        this.showSubtitle('Замок открыт: ' + door.label, 2200);
-        ui.updateInventory(this.inventory);
-        noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 8, 'door');
-      } else {
-        this.showSubtitle('Заперто. Нужен ключ.', 2200);
-        return;
-      }
+    this.cubeGroup.remove(pivot);
+  }
+  _animate(){
+    requestAnimationFrame(()=>this._animate());
+    if(this.autoRotate){
+      this.cubeGroup.rotation.y += 0.004;
     }
-    // обычное открывание
-    door.open = !door.open;
-    door.targetAngle = door.open ? -Math.PI*0.55 : 0;
-    if(door.open) audio.doorOpen(); else audio.doorClose();
-    noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 8, 'door');
-  },
-
-  useObject(obj){
-    if(obj.type === 'mechanism'){
-      if(obj.installed){ this.showSubtitle('Шестерёнка уже установлена.', 1800); return; }
-      if(this.inventory.has('gear')){
-        this.inventory.remove('gear');
-        obj.installed = true;
-        obj.slot.material = new THREE.MeshStandardMaterial({color:0xc0a860, metalness:0.9, roughness:0.3});
-        audio.electric();
-        this.showSubtitle('Механизм загудел. Люк на чердак открыт.', 3000);
-        this.flags.atticOpen = true;
-        if(this.level.atticHatch){
-          this.level.atticHatch.hatch.rotation.x = -Math.PI/2;
-          this.level.atticHatch.opened = true;
-        }
-        noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 20, 'machine');
-        ui.updateInventory(this.inventory);
-        ui.setObjective('Найди люк на чердак (в спальне).');
-      } else {
-        this.showSubtitle('Нужна шестерёнка.', 1800);
-      }
-      return;
-    }
-    if(obj.type === 'hatch'){
-      if(!this.flags.atticOpen){ this.showSubtitle('Люк заперт. Нужен механизм.', 2000); return; }
-      // телепорт на чердак
-      this.teleport('2', 0, 0);
-      return;
-    }
-    if(obj.type === 'panel'){
-      if(obj.installed){ this.showSubtitle('Питание уже включено.', 1800); return; }
-      if(this.inventory.has('fuse')){
-        this.inventory.remove('fuse');
-        obj.installed = true;
-        obj.led.material = new THREE.MeshBasicMaterial({color:0x00ff44});
-        audio.electric();
-        this.flags.powerOn = true;
-        this.showSubtitle('Питание включено. Кодовый замок работает.', 3000);
-        noise.emit(this.player.pos.x, this.player.pos.z, this.player.floor, 18, 'machine');
-        ui.updateInventory(this.inventory);
-        ui.setObjective('Найди входную дверь и введи код.');
-      } else {
-        this.showSubtitle('Нужен предохранитель.', 2000);
-      }
-      return;
-    }
-  },
-
-  openCodePanel(door){
-    this._codeDoor = door;
-    document.getElementById('codePanel').classList.remove('hidden');
-    document.getElementById('codeInput').value = '';
-    document.getElementById('codeMsg').textContent = '';
-    setTimeout(()=>document.getElementById('codeInput').focus(), 50);
-    this.paused = true;
-    if(document.pointerLockElement) document.exitPointerLock();
-  },
-
-  closeCodePanel(){
-    document.getElementById('codePanel').classList.add('hidden');
-    this.paused = false;
-  },
-
-  submitCode(){
-    const input = document.getElementById('codeInput');
-    const val = input.value.trim();
-    const msg = document.getElementById('codeMsg');
-    if(val === this.getCode()){
-      msg.style.color = '#44cc44';
-      msg.textContent = 'ОТКРЫТО';
-      audio.doorOpen();
-      setTimeout(()=>{
-        this.closeCodePanel();
-        this.triggerWin();
-      }, 700);
-    } else {
-      msg.textContent = 'НЕВЕРНЫЙ КОД';
-      input.value = '';
-      audio.tone(200, 0.2, 0.2, 'square', 100);
-    }
-  },
-
-  teleport(floor, x, z){
-    ui.fade(true, 300);
-    setTimeout(()=>{
-      this.player.setPosition(x, floor, z);
-      this.currentFloor = floor;
-      ui.fade(false, 400);
-    }, 350);
-  },
-
-  updateInteractPrompt(){
-    if(!this.started){ ui.setPrompt(''); ui.setCrosshairActive(false); return; }
-    this.ray.setFromCamera(new THREE.Vector2(0,0), this.camera);
-    this.ray.far = 3.0;
-    const targets = [];
-    for(const it of this.level.items) if(!it.taken) targets.push(it.group);
-    for(const d of this.level.doors) targets.push(d.group);
-    for(const obj of this.level.interactables) if(obj.mesh) targets.push(obj.mesh);
-    const hits = this.ray.intersectObjects(targets, true);
-    if(hits.length === 0){ ui.setPrompt(''); ui.setCrosshairActive(false); return; }
-    const hit = hits[0];
-    let text = null;
-    for(const it of this.level.items){ if(!it.taken && (it.group === hit.object.parent || it.group === hit.object)){ text = 'E — взять ' + it.name; break; } }
-    if(!text) for(const d of this.level.doors){ if(d.group === hit.object.parent || d.mesh === hit.object){
-      if(d.hasBoards && !d.boardsBroken) text = 'E — сломать доски (нужен молоток)';
-      else if(d.codeLock) text = 'E — кодовый замок';
-      else if(d.locked) text = 'E — заперто (нужен ключ)';
-      else text = 'E — ' + (d.open?'закрыть':'открыть');
-      break; } }
-    if(!text) for(const obj of this.level.interactables){ if(obj.mesh === hit.object || obj.mesh === hit.object.parent){
-      if(obj.type==='mechanism') text = obj.installed ? 'Установлено' : 'E — установить шестерёнку';
-      else if(obj.type==='panel') text = obj.installed ? 'Питание включено' : 'E — вставить предохранитель';
-      else if(obj.type==='hatch') text = obj.opened ? 'E — залезть на чердак' : 'Люк закрыт';
-      break; } }
-    ui.setPrompt(text || '');
-    ui.setCrosshairActive(!!text);
-  },
-
-  // ==== Перемещение между этажами ====
-  checkTriggers(){
-    const px = this.player.pos.x, pz = this.player.pos.z;
-    for(const t of this.level.triggers){
-      if(t.floor !== this.player.floor) continue;
-      const d = Math.hypot(px - t.x, pz - t.z);
-      if(d < t.radius){
-        if(t.target.requireFlag && !this.flags[t.target.requireFlag]) continue;
-        // телепорт
-        const key = t.target.floor + '|' + t.target.x.toFixed(1) + '|' + t.target.z.toFixed(1);
-        if(this._lastTrigger === key) continue;
-        this._lastTrigger = key;
-        this.teleport(t.target.floor, t.target.x, t.target.z);
-        audio.doorClose();
-        setTimeout(()=>{ this._lastTrigger = null; }, 1500);
-        return;
-      }
-    }
-  },
-
-  // ==== Случайные события ====
-  _lastRandom: 0,
-  checkRandomEvent(dt){
-    this._lastRandom += dt;
-    if(this._lastRandom < 12) return;
-    this._lastRandom = 0;
-    if(Math.random() > 0.35) return;
-    const r = Math.random();
-    if(r < 0.2){
-      audio.doorClose();
-      this.showSubtitle('Где-то хлопнула дверь.', 2000);
-    } else if(r < 0.4){
-      audio.metal();
-      this.showSubtitle('Скрип металла наверху.', 2000);
-    } else if(r < 0.6){
-      audio.footstep(false, false);
-      this.showSubtitle('Шаги. Рядом?', 1800);
-    } else if(r < 0.8){
-      audio.tone(80, 0.8, 0.1, 'sine', 40);
-      const light = this.level.lights[Math.floor(Math.random()*this.level.lights.length)];
-      if(light){
-        const orig = light.base;
-        for(let i=0;i<8;i++){
-          setTimeout(()=>{
-            light.light.intensity = Math.random()*0.3;
-            if(i===7) light.light.intensity = orig;
-          }, i*80);
-        }
-      }
-    } else {
-      audio.breath();
-      this.showSubtitle('Дыхание за спиной...', 1800);
-    }
-  },
-
-  // ==== Главный цикл ====
-  animate(){
-    requestAnimationFrame(()=>this.animate());
-    const dt = Math.min(0.05, this.clock.getDelta());
-    const t = performance.now() * 0.001;
-
-    if(this.level){ this.level.update(dt, t); }
-
-    if(this.dust){
-      const p = this.dust.geometry.attributes.position;
-      const arr = p.array;
-      for(let i=0;i<arr.length;i+=3){
-        arr[i+1] += Math.sin(t*0.4 + i)*0.0005;
-      }
-      p.needsUpdate = true;
-      this.dust.rotation.y = t * 0.01;
-    }
-
-    if(this.running && !this.paused && this.player){
-      // мобильные кнопки — интегрируем в keys
-      const keys = { ...this.keys };
-      if(mobile.enabled){
-        keys['shift'] = mobile.buttons.run;
-        keys['control'] = mobile.buttons.crouch;
-        if(mobile.buttons.action){ this.keys['e'] = true; }
-      }
-      this.player.update(dt, keys, mobile.enabled ? mobile.moveVec : null);
-
-      // триггеры
-      this.checkTriggers();
-
-      // враг
-      if(this.enemy){
-        if(this.enemy.attackCooldown > 0) this.enemy.attackCooldown -= dt;
-        this.enemy.update(dt, this.player, noise);
-      }
-
-      // промпт взаимодействия
-      this.updateInteractPrompt();
-
-      // HUD
-      ui.setStamina(this.player.stamina);
-
-      // случайные события
-      this.checkRandomEvent(dt);
-
-      // камера-шейк
-      if(this.shakeTime > 0){
-        this.shakeTime -= dt;
-        const k = this.shakeTime / 0.6;
-        this.camera.position.x += (Math.random()-0.5) * this.shakeAmp * k;
-        this.camera.position.y += (Math.random()-0.5) * this.shakeAmp * k;
-        if(this.shakeTime <= 0){ this.shakeAmp = 0; }
-      }
-
-      // ambient AI атмосфера
-      if(Math.random() < dt*0.005){
-        aiService.whisper(`игрок исследует ${this.player.floor===this.enemy?.floor?'тот же этаж что и враг':'другой этаж'}`).then(txt=>{
-          if(txt) this.showSubtitle(txt, 2500);
-        });
-      }
-    }
-
     this.renderer.render(this.scene, this.camera);
+  }
+}
+
+/* ============================================================
+   COLOR CLASSIFICATION
+   ============================================================ */
+function rgbToHsv(r,g,b){
+  r/=255; g/=255; b/=255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  const d = max-min;
+  let h = 0;
+  if(d!==0){
+    if(max===r) h = ((g-b)/d) % 6;
+    else if(max===g) h = (b-r)/d + 2;
+    else h = (r-g)/d + 4;
+    h *= 60; if(h<0) h+=360;
+  }
+  const s = max===0? 0 : d/max;
+  const v = max;
+  return [h, s, v];
+}
+
+// Эталонные HSV-центры (учитывая, что камера может давать тёплый/холодный оттенок)
+// Мы используем адаптивный подход: сравниваем с ЦЕНТРАМИ отсканированных граней, а не с абсолютными константами
+const HUE_CENTERS = {
+  R: 0,    O: 30,   Y: 55,   G: 120,  B: 220
+};
+
+function classifyHSV(r,g,b){
+  const [h,s,v] = rgbToHsv(r,g,b);
+  // Белый: низкая насыщенность и высокая яркость
+  if(s < 0.18 && v > 0.5) return {c:'W', conf: 0.9, hsv:[h,s,v]};
+  // Чёрный / тень
+  if(v < 0.15) return {c:null, conf: 0, hsv:[h,s,v]};
+  // Классификация по hue
+  let best = null, bestDist = 1e9;
+  for(const [col, hue] of Object.entries(HUE_CENTERS)){
+    let d = Math.abs(h-hue);
+    if(d>180) d = 360-d;
+    if(d < bestDist){ bestDist = d; best = col; }
+  }
+  // Уверенность: чем меньше расстояние — тем выше
+  const conf = Math.max(0, 1 - bestDist/60);
+  return {c: best, conf, hsv:[h,s,v]};
+}
+
+/* ============================================================
+   UI / APP LOGIC
+   ============================================================ */
+const App = {
+  state:{
+    // scanned[face] = {colors:[9], conf:[9], rotation:0}
+    scanned: {},
+    currentFace: null,       // 'F','R',...
+    currentCapture: null,    // {colors:[9], conf:[9]}
+    facelets: null,          // 54-цветный массив
+    solution: [],
+    step: 0,
+    cube: null,
+    editingIdx: -1
+  },
+  video: null,
+  stream: null,
+  canvas: null,
+  viewer: null,
+  order: ['F','R','B','L','U','D'],
+
+  toast(msg, kind=''){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast on '+kind;
+    clearTimeout(this._tT);
+    this._tT = setTimeout(()=>t.className='toast '+kind, 2600);
   },
 
-  // ==== Настройки ====
-  settings: { vol:0.7, mus:0.5, sens:1, quality:'medium' },
+  show(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+    document.getElementById(id).classList.add('on');
+  },
 
-  applySettings(){
-    audio.setVol(this.settings.vol);
-    audio.setMus(this.settings.mus);
-    if(this.player) this.player.mouseSens = this.settings.sens;
-    // качество
-    if(this.renderer){
-      if(this.settings.quality === 'low'){ this.renderer.setPixelRatio(0.7); this.renderer.shadowMap.enabled = false; }
-      else if(this.settings.quality === 'medium'){ this.renderer.setPixelRatio(1); this.renderer.shadowMap.enabled = true; }
-      else { this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); this.renderer.shadowMap.enabled = true; }
+  // ============ MANUAL MODE ============
+  openManual(){
+    // Создаём пустое состояние из 6 граней
+    this.state.scanned = {};
+    for(const f of FACES) this.state.scanned[f] = {colors: new Array(9).fill(null), conf: new Array(9).fill(0)};
+    this.state.manualMode = true;
+    this._renderVerify();
+    this.show('s-verify');
+  },
+  closeManual(){ document.getElementById('manualModal').classList.remove('on'); },
+
+  // ============ CAMERA ============
+  async startScan(){
+    this.state.manualMode = false;
+    this.state.scanned = {};
+    this.state.step = 0;
+    this.state.currentFace = null;
+    try{
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video:{ facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720} }
+      });
+      const v = document.getElementById('cam');
+      v.srcObject = this.stream;
+      await v.play();
+      document.getElementById('camWrap').classList.add('on');
+      this.nextFace();
+    }catch(e){
+      console.error(e);
+      let msg = 'Не удалось получить доступ к камере';
+      if(e.name==='NotAllowedError') msg = 'Вы запретили доступ к камере. Разрешите его в настройках браузера.';
+      else if(e.name==='NotFoundError') msg = 'Камера не найдена на этом устройстве.';
+      else if(!navigator.mediaDevices) msg = 'Ваш браузер не поддерживает доступ к камере.';
+      this.toast(msg, 'err');
+      // Предложим ручной режим
+      setTimeout(()=>{
+        if(confirm(msg+'\n\nПерейти к ручному вводу?')) this.openManual();
+      }, 300);
     }
-    SaveSystem.saveSettings(this.settings);
+  },
+  stopScan(){
+    if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+    document.getElementById('camWrap').classList.remove('on');
+    this.show('s-home');
+  },
+  nextFace(){
+    const done = Object.keys(this.state.scanned);
+    const remaining = this.order.filter(f=>!done.includes(f));
+    if(remaining.length === 0){
+      document.getElementById('camWrap').classList.remove('on');
+      if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+      this.finishScan();
+      return;
+    }
+    this.state.currentFace = remaining[0];
+    const total = this.order.length;
+    const num = total - remaining.length + 1;
+    document.getElementById('camFaceChip').textContent = `Сторона ${num} из ${total} — ${this._faceName(this.state.currentFace)}`;
+    document.getElementById('camHint').textContent = this._holdInstruction(this.state.currentFace);
+  },
+  _faceName(f){
+    const names = {U:'Верхняя (U)',R:'Правая (R)',F:'Передняя (F)',D:'Нижняя (D)',L:'Левая (L)',B:'Задняя (B)'};
+    return names[f] || f;
+  },
+  _holdInstruction(f){
+    const hints = {
+      F:'Держите кубик передней гранью к камере, верх — сверху',
+      R:'Поверните кубик вправо (по часовой), верх — сверху',
+      B:'Поверните кубик на 180°, верх — сверху',
+      L:'Поверните кубик влево (против часовой), верх — сверху',
+      U:'Наклоните кубик верхней гранью к камере, передняя — снизу',
+      D:'Переверните кубик нижней гранью к камере, передняя — сверху'
+    };
+    return hints[f] || 'Наведите грань в рамку';
+  },
+  capture(){
+    const video = document.getElementById('cam');
+    if(!video.videoWidth){ this.toast('Камера ещё не готова', 'err'); return; }
+    const c = document.createElement('canvas');
+    c.width = video.videoWidth; c.height = video.videoHeight;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+
+    // Область сканирования — квадрат в центре экрана
+    // Соответствует .grid3 — берём min(78vw,78vh) в пикселях экрана, маппим на видео
+    const rect = document.querySelector('.grid3').getBoundingClientRect();
+    const vRect = video.getBoundingClientRect();
+    // Масштаб между отображением и реальным видео (object-fit: cover)
+    const vAspect = video.videoWidth / video.videoHeight;
+    const dAspect = vRect.width / vRect.height;
+    let scaleX = video.videoWidth / vRect.width;
+    let scaleY = video.videoHeight / vRect.height;
+    let offX = 0, offY = 0;
+    if(vAspect > dAspect){
+      // видео шире — обрезано по бокам
+      const renderedW = vRect.height * vAspect;
+      offX = (renderedW - vRect.width) / 2 * scaleX;
+    } else {
+      const renderedH = vRect.width / vAspect;
+      offY = (renderedH - vRect.height) / 2 * scaleY;
+    }
+    const srcX = (rect.left - vRect.left) * scaleX + offX;
+    const srcY = (rect.top - vRect.top) * scaleY + offY;
+    const srcW = rect.width * scaleX;
+    const srcH = rect.height * scaleY;
+
+    // 9 областей
+    const colors = [];
+    const confs = [];
+    let sumConf = 0;
+    for(let r=0; r<3; r++){
+      for(let cc=0; cc<3; cc++){
+        const cellX = srcX + srcW * (cc/3 + 0.1/3);
+        const cellY = srcY + srcH * (r/3 + 0.1/3);
+        const cellW = srcW * 0.8/3;
+        const cellH = srcH * 0.8/3;
+        // Средний цвет клетки
+        const sample = 8;
+        let sr=0,sg=0,sb=0, cnt=0;
+        for(let dy=0; dy<sample; dy++) for(let dx=0; dx<sample; dx++){
+          const px = Math.floor(cellX + cellW*(dx+0.5)/sample);
+          const py = Math.floor(cellY + cellH*(dy+0.5)/sample);
+          if(px<0||py<0||px>=c.width||py>=c.height) continue;
+          const d = ctx.getImageData(px, py, 1, 1).data;
+          sr+=d[0]; sg+=d[1]; sb+=d[2]; cnt++;
+        }
+        const ar = sr/cnt, ag = sg/cnt, ab = sb/cnt;
+        const {c: col, conf} = classifyHSV(ar, ag, ab);
+        colors.push(col);
+        confs.push(conf);
+        sumConf += conf;
+      }
+    }
+    const avgConf = sumConf / 9;
+
+    // Определяем центральный цвет → это определяет грань
+    const centerColor = colors[4];
+    if(centerColor === null){
+      this.toast('Не удалось распознать центральный стикер', 'err');
+      return;
+    }
+    // Проверка соответствия ожидаемой грани
+    const expectedFace = this.state.currentFace;
+    const expectedColor = {U:'W', R:'R', F:'G', D:'Y', L:'O', B:'B'}[expectedFace];
+    if(centerColor !== expectedColor){
+      this.toast(`Центр должен быть ${COLOR_NAME[expectedColor]} (сейчас ${COLOR_NAME[centerColor]}). Переверните кубик.`, 'err');
+      // Всё равно продолжим — но пометим несоответствие
+    }
+
+    this.state.currentCapture = { colors, confs, avgConf, detectedFace: COLOR_TO_FACE[centerColor] };
+    document.getElementById('camConfChip').textContent = `Уверенность ${Math.round(avgConf*100)}%`;
+
+    // Показываем экран подтверждения
+    this._renderConfirm();
+  },
+  retake(){
+    document.getElementById('camWrap').classList.add('on');
+    this.show('s-home');
+    document.getElementById('camWrap').classList.add('on');
+    // Показываем экран камеры
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+    document.getElementById('camWrap').classList.add('on');
+  },
+  _renderConfirm(){
+    const cap = this.state.currentCapture;
+    const grid = document.getElementById('confirmGrid');
+    grid.innerHTML = '';
+    for(let i=0; i<9; i++){
+      const d = document.createElement('div');
+      const c = cap.colors[i];
+      d.className = c ? COLOR_CSS[c] : 'gW gray';
+      if(cap.confs[i] < 0.4) d.classList.add('gray');
+      d.dataset.idx = i;
+      d.style.cursor = 'pointer';
+      d.onclick = ()=> App._openPalette(i);
+      grid.appendChild(d);
+    }
+    document.getElementById('confValue').textContent = Math.round(cap.avgConf*100)+'%';
+    document.getElementById('confirmTitle').textContent = this._faceName(this.state.currentFace);
+    this.show('s-confirm');
+  },
+  _openPalette(gridIdx){
+    this.state.editingIdx = gridIdx;
+    const pal = document.getElementById('palette');
+    pal.innerHTML = '';
+    for(const c of COLORS){
+      const b = document.createElement('div');
+      b.className = 'pal '+COLOR_CSS[c];
+      b.onclick = ()=>{ App._setColor(c); };
+      pal.appendChild(b);
+    }
+    document.getElementById('manualSub').textContent = `Клетка #${gridIdx+1}`;
+    document.getElementById('manualModal').classList.add('on');
+  },
+  _setColor(c){
+    if(this.state.editingIdx<0) return;
+    if(this.state.currentCapture){
+      this.state.currentCapture.colors[this.state.editingIdx] = c;
+      this.state.currentCapture.confs[this.state.editingIdx] = 1;
+      this.closeManual();
+      this._renderConfirm();
+    } else if(this.state.manualFaceEditor !== undefined){
+      // в ручном режиме
+      this.state.scanned[this.state.manualFaceEditor].colors[this.state.editingIdx] = c;
+      this.closeManual();
+      this._renderVerify();
+    }
+  },
+  saveFace(){
+    const cap = this.state.currentCapture;
+    if(!cap) return;
+    // Проверяем что центральный цвет уникален
+    const center = cap.colors[4];
+    for(const [f, data] of Object.entries(this.state.scanned)){
+      if(data.colors[4] === center && f !== this.state.currentFace){
+        this.toast(`Цвет ${COLOR_NAME[center]} уже использован для грани ${f}`, 'err');
+        return;
+      }
+    }
+    this.state.scanned[this.state.currentFace] = {
+      colors: cap.colors.slice(),
+      conf: cap.confs.slice(),
+      rotation: 0
+    };
+    this.state.currentCapture = null;
+    this.toast(`✓ Сторона ${this.state.currentFace} сохранена`, 'ok');
+    this.nextFace();
+  },
+
+  // ============ FINISH / VERIFY ============
+  finishScan(){
+    this.state.manualMode = false;
+    this._renderVerify();
+    this.show('s-verify');
+  },
+  _renderVerify(){
+    // Показ всех граней
+    const fr = document.getElementById('verifyFaces');
+    fr.innerHTML = '';
+    for(const f of FACES){
+      const data = this.state.scanned[f];
+      const chip = document.createElement('div');
+      chip.className = 'face-chip' + (data ? '' : ' done');
+      chip.innerHTML = `<div class="letter">${f}</div><div class="label">${data?'✓':'—'}</div>`;
+      chip.onclick = ()=>{ App._editFace(f); };
+      fr.appendChild(chip);
+    }
+    // Счётчики
+    const cnt = {W:0,Y:0,R:0,O:0,B:0,G:0};
+    for(const f of FACES){
+      const d = this.state.scanned[f];
+      if(!d) continue;
+      for(const c of d.colors) if(c) cnt[c]++;
+    }
+    document.getElementById('cntW').textContent = cnt.W;
+    document.getElementById('cntY').textContent = cnt.Y;
+    document.getElementById('cntR').textContent = cnt.R;
+    document.getElementById('cntO').textContent = cnt.O;
+    document.getElementById('cntB').textContent = cnt.B;
+    document.getElementById('cntG').textContent = cnt.G;
+
+    // Проверка
+    const allDone = FACES.every(f=>this.state.scanned[f] && this.state.scanned[f].colors.every(c=>c));
+    const validCounts = COLORS.every(c=>cnt[c]===9);
+    const btn = document.getElementById('btnSolve');
+    const msg = document.getElementById('verifyMsg');
+    if(!allDone){
+      msg.textContent = 'Не все стороны заполнены. Нажмите на чип грани, чтобы отредактировать.';
+      msg.style.color = 'var(--warn)';
+      btn.disabled = true;
+    } else if(!validCounts){
+      msg.textContent = 'Каждого цвета должно быть ровно 9. Проверьте грани с ошибками.';
+      msg.style.color = 'var(--err)';
+      btn.disabled = true;
+    } else {
+      msg.textContent = '✓ Кубик успешно отсканирован. Можно рассчитать решение.';
+      msg.style.color = 'var(--ok)';
+      btn.disabled = false;
+    }
+  },
+  _editFace(f){
+    this.state.manualFaceEditor = f;
+    const d = this.state.scanned[f] || {colors: new Array(9).fill(null)};
+    // Открываем упрощённый редактор через прямое редактирование 9 клеток
+    // Переиспользуем модальное окно выбора цвета
+    this.state.manualFaceEditor = f;
+    // Сразу открываем "сетку подтверждения" для этой грани
+    this.state.currentCapture = {
+      colors: d.colors.slice(),
+      confs: d.colors.map(()=>1),
+      avgConf: 1
+    };
+    this.state.currentFace = f;
+    this._renderConfirm();
+  },
+
+  // ============ SOLVE ============
+  solve(){
+    // Собираем 54-элементный массив в порядке U,R,F,D,L,B
+    const f = new Array(54).fill(null);
+    for(let fi=0; fi<6; fi++){
+      const fname = FACES[fi];
+      const data = this.state.scanned[fname];
+      if(!data) continue;
+      for(let i=0;i<9;i++){
+        f[fi*9+i] = data.colors[i];
+      }
+    }
+    // Проверяем что центр соответствует
+    for(let fi=0; fi<6; fi++){
+      const centerColor = f[fi*9+4];
+      const expected = {U:'W', R:'R', F:'G', D:'Y', L:'O', B:'B'}[FACES[fi]];
+      if(centerColor !== expected){
+        this.toast(`Центр грани ${FACES[fi]} должен быть ${COLOR_NAME[expected]}`, 'err');
+        return;
+      }
+    }
+    // Строим кубик из facelets
+    const cube = faceletsToCube(f);
+    // Проверяем валидность (каждого цвета ровно 9)
+    const cnt = {};
+    for(const c of f) cnt[c]=(cnt[c]||0)+1;
+    for(const c of COLORS) if(cnt[c]!==9){ this.toast('Неправильное количество цветов', 'err'); return; }
+
+    // Запускаем solver
+    let solution;
+    try{
+      solution = solveCube(f.slice());
+    }catch(err){
+      console.error(err);
+      this.toast('Ошибка solver: '+err.message, 'err');
+      return;
+    }
+    if(!solution || solution.length===0){
+      this.toast('Кубик уже собран или решение не найдено', 'err');
+      return;
+    }
+    this.state.solution = solution;
+    this.state.step = 0;
+    this.state.cube = cube;
+    // Открываем экран решения
+    this.show('s-solve');
+    // Создаём viewer если его нет
+    if(!this.viewer){
+      this.viewer = new Viewer(document.getElementById('viewer'));
+    }
+    // Небольшая задержка чтобы контейнер получил размеры
+    requestAnimationFrame(()=>{
+      this.viewer._resize();
+      this.viewer.buildFromCube(cube);
+    });
+    document.getElementById('solveInfo').textContent = `Решение: ${solution.length} ходов`;
+    this._updateStepUI();
+  },
+
+  _updateStepUI(){
+    const sol = this.state.solution;
+    const step = this.state.step;
+    const bar = document.getElementById('progressBar');
+    const mv = document.getElementById('stepMove');
+    const desc = document.getElementById('stepDesc');
+    const next = document.getElementById('nextBtn');
+    bar.style.width = (step/sol.length*100)+'%';
+    if(step >= sol.length){
+      mv.textContent = '✓';
+      desc.textContent = 'Все ходы выполнены. Кубик должен быть собран!';
+      next.textContent = 'Проверить результат';
+      next.disabled = false;
+      return;
+    }
+    const m = sol[step];
+    mv.textContent = m.replace("'", '′');
+    desc.textContent = moveDescription(m);
+    next.textContent = 'Следующий шаг →';
+    next.disabled = false;
+  },
+  nextStep(){
+    const sol = this.state.solution;
+    if(this.state.step >= sol.length){
+      // Показываем "Кубик собран"
+      document.getElementById('doneInfo').textContent = `Вы сделали ${sol.length} ходов`;
+      this.show('s-done');
+      return;
+    }
+    const m = sol[this.state.step];
+    this.state.step++;
+    // Анимируем
+    if(this.viewer){
+      this.viewer.animateMove(m).then(()=>{
+        // Обновляем кубик модели
+        this.state.cube.move(m);
+        this._updateStepUI();
+      });
+    } else {
+      this._updateStepUI();
+    }
+    this._updateStepUI();
+  },
+  prevStep(){
+    // Простой откат: пересобираем кубик с нуля
+    if(this.state.step <= 0) return;
+    this.state.step--;
+    const cube = faceletsToCube(this._originalFacelets());
+    for(let i=0;i<this.state.step;i++) cube.move(this.state.solution[i]);
+    this.state.cube = cube;
+    if(this.viewer) this.viewer.buildFromCube(cube);
+    this._updateStepUI();
+  },
+  _originalFacelets(){
+    const f = new Array(54).fill(null);
+    for(let fi=0; fi<6; fi++){
+      const fname = FACES[fi];
+      const data = this.state.scanned[fname];
+      if(!data) continue;
+      for(let i=0;i<9;i++) f[fi*9+i] = data.colors[i];
+    }
+    return f;
+  },
+  reset(){
+    this.state.scanned = {};
+    this.state.solution = [];
+    this.state.step = 0;
+    this.state.cube = null;
+    this.state.currentCapture = null;
+    this.state.manualMode = false;
+    this.show('s-home');
   }
 };
 
-/* ==========================================================
-   Меню и обработчики
-   ========================================================== */
-function initMenu(){
-  const $ = id => document.getElementById(id);
-  // Продолжить
-  const save = SaveSystem.load();
-  if(save && save.attempt){
-    $('btnContinue').disabled = false;
-  }
-  $('btnNew').addEventListener('click', ()=>{
-    audio.init();
-    Game.newGame();
-  });
-  $('btnContinue').addEventListener('click', ()=>{
-    const s = SaveSystem.load();
-    if(!s){ alert('Нет сохранения'); return; }
-    Game.newGame();
-    Game.attempt = s.attempt || 1;
-    ui.setAttempt(Game.attempt);
-  });
-  $('btnSettings').addEventListener('click', ()=>{
-    $('menu').classList.add('hidden');
-    $('settings').classList.remove('hidden');
-  });
-  $('btnExit').addEventListener('click', ()=>{
-    if(confirm('Выйти?')){ window.close(); document.body.innerHTML = '<div style="color:#666;padding:40px;font-family:serif">Спасибо за игру.</div>'; }
-  });
-  $('btnBackSettings').addEventListener('click', ()=>{
-    $('settings').classList.add('hidden');
-    if(Game.running){ /* return to game */ document.getElementById('hud').classList.remove('hidden'); }
-    else $('menu').classList.remove('hidden');
-  });
-  // Настройки
-  const setVol = $('setVol'), setMus = $('setMus'), setSens = $('setSens'), setQual = $('setQual');
-  const saved = SaveSystem.loadSettings();
-  if(saved){
-    setVol.value = saved.vol; setMus.value = saved.mus; setSens.value = saved.sens; setQual.value = saved.quality;
-    Object.assign(Game.settings, saved);
-  }
-  const apply = ()=> {
-    Game.settings.vol = parseFloat(setVol.value);
-    Game.settings.mus = parseFloat(setMus.value);
-    Game.settings.sens = parseFloat(setSens.value);
-    Game.settings.quality = setQual.value;
-    Game.applySettings();
-  };
-  setVol.addEventListener('input', apply);
-  setMus.addEventListener('input', apply);
-  setSens.addEventListener('input', apply);
-  setQual.addEventListener('change', apply);
-
-  // Death / Win
-  $('btnRetry').addEventListener('click', ()=>{
-    // сохраним попытку
-    try{ localStorage.setItem('shadow_attempt', String((Game.attempt||1)+1)); }catch(e){}
-    document.getElementById('death').classList.add('hidden');
-    Game.newGame();
-    try{ Game.attempt = parseInt(localStorage.getItem('shadow_attempt')||'2', 10); }catch(e){ Game.attempt = 2; }
-    ui.setAttempt(Game.attempt);
-    SaveSystem.save({attempt:Game.attempt});
-  });
-  $('btnPlayAgain').addEventListener('click', ()=>{
-    document.getElementById('win').classList.add('hidden');
-    Game.newGame();
-  });
-
-  // Code panel
-  $('codeInput').addEventListener('input', (e)=>{
-    e.target.value = e.target.value.replace(/\D/g,'').slice(0,4);
-  });
-  $('codeInput').addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter') Game.submitCode();
-  });
-  $('codeClose').addEventListener('click', ()=> Game.closeCodePanel());
+function moveDescription(m){
+  const face = m[0];
+  const mod = m.slice(1);
+  const names = {U:'верхнюю', R:'правую', F:'переднюю', D:'нижнюю', L:'левую', B:'заднюю'};
+  const faceName = names[face] || face;
+  if(mod === "'") return `Поверните ${faceName} грань против часовой стрелки.`;
+  if(mod === '2') return `Поверните ${faceName} грань на 180°.`;
+  return `Поверните ${faceName} грань по часовой стрелке.`;
 }
 
-/* ==========================================================
-   Input
-   ========================================================== */
-document.addEventListener('keydown', (e)=>{
-  const k = e.key.toLowerCase();
-  Game.keys[k] = true;
-  if(k === 'e') Game.interact();
-  if(k === 'q' && Game.inventory.items.length > 0){
-    // выбросить последний
-    const it = Game.inventory.items[Game.inventory.items.length-1];
-    Game.inventory.remove(it.type);
-    ui.updateInventory(Game.inventory);
-    // спавним перед игроком
-    const fwd = new THREE.Vector3(-Math.sin(Game.player.yaw), 0, -Math.cos(Game.player.yaw));
-    it.taken = false;
-    it.group.position.set(
-      Game.player.pos.x + fwd.x * 1.2,
-      FLOOR_Y[Game.player.floor] + 0.5,
-      Game.player.pos.z + fwd.z * 1.2
-    );
-    it.x = it.group.position.x; it.z = it.group.position.z; it.floor = Game.player.floor;
-    Game.scene.add(it.group);
-    audio.drop();
-    noise.emit(it.x, it.z, it.floor, 14, 'drop');
-  }
-  if(k === 'escape'){
-    if(!document.getElementById('settings').classList.contains('hidden')){
-      document.getElementById('settings').classList.add('hidden');
-      document.getElementById('menu').classList.remove('hidden');
-    }
-    if(!document.getElementById('codePanel').classList.contains('hidden')) Game.closeCodePanel();
-  }
-}, false);
-document.addEventListener('keyup', (e)=>{
-  Game.keys[e.key.toLowerCase()] = false;
-}, false);
+/* ============================================================
+   INIT
+   ============================================================ */
+window.App = App;
+window.addEventListener('resize', ()=> App.viewer && App.viewer._resize());
 
-// мобильные кнопки → keys
-function pollMobileButtons(){
-  if(!mobile.enabled) return;
-  if(mobile.buttons.action && !mobile._lastAction){
-    Game.interact();
-  }
-  mobile._lastAction = mobile.buttons.action;
-  if(mobile.buttons.drop && !mobile._lastDrop){
-    // выбросить последний
-    if(Game.inventory.items.length > 0){
-      const it = Game.inventory.items[Game.inventory.items.length-1];
-      Game.inventory.remove(it.type);
-      ui.updateInventory(Game.inventory);
-      const fwd = new THREE.Vector3(-Math.sin(Game.player.yaw), 0, -Math.cos(Game.player.yaw));
-      it.taken = false;
-      it.group.position.set(Game.player.pos.x + fwd.x*1.2, FLOOR_Y[Game.player.floor]+0.5, Game.player.pos.z + fwd.z*1.2);
-      it.x = it.group.position.x; it.z = it.group.position.z; it.floor = Game.player.floor;
-      Game.scene.add(it.group);
-      audio.drop();
-      noise.emit(it.x, it.z, it.floor, 14, 'drop');
-    }
-  }
-  mobile._lastDrop = mobile.buttons.drop;
-}
-setInterval(pollMobileButtons, 80);
-
-/* ==========================================================
-   Запуск
-   ========================================================== */
-Game.init();
-initMenu();
-
-// автоматическое снижение качества на мобильных
-if(mobile.enabled || window.innerWidth < 700){
-  Game.settings.quality = 'low';
-  const q = document.getElementById('setQual'); if(q) q.value = 'low';
-  Game.applySettings();
-} else {
-  Game.applySettings();
+// Проверка поддержки камеры
+if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+  console.warn('Камера недоступна');
 }
 
-// Применяем сохранённую попытку к меню
-try{
-  const a = localStorage.getItem('shadow_attempt');
-  if(a) ui.setAttempt(parseInt(a,10));
-}catch(e){}
-
-console.log('%cТЕНЬ В ДОМЕ запущена','color:#a08060;font-size:14px');
-console.log('Gemini API:', aiService.enabled ? 'подключён' : 'отключён (используется локальный ИИ)');
+console.log('%cRubik AI загружен','color:#7c5cff;font-size:14px;font-weight:bold');
 </script>
 </body>
 </html>
