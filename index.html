@@ -40,6 +40,20 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
     will-change:transform,opacity;
 }
 
+/* НОВАЯ НАДПИСЬ (Водяной знак) */
+.watermark-text {
+    position: absolute;
+    top: calc(20px + env(safe-area-inset-top, 0px));
+    right: 18px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    color: rgba(79, 210, 247, 0.45); /* Голубой цвет с прозрачностью */
+    text-transform: uppercase;
+    pointer-events: none; /* Чтобы не мешала нажатиям */
+    z-index: 10;
+}
+
 /* Экраны: 1 - Главный, 2 - Оплата */
 .screen-main{z-index:1}
 .screen-payment{z-index:2;transform:translateX(100%);opacity:0;pointer-events:none;background:transparent}
@@ -70,27 +84,6 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
 .header h1{font-size:clamp(20px,6.6vw,30px);font-weight:800;line-height:1.14;letter-spacing:-.02em;text-wrap:balance;overflow-wrap:anywhere}
 .acc{color:var(--cyan)}
 .header p{margin-top:10px;font-size:12px;font-weight:600;line-height:1.3}
-
-/* Новый премиальный бейдж MOROF VPN */
-.brand-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--cyan);
-    margin-bottom: 12px;
-    opacity: 0.95;
-}
-.brand-badge::before {
-    content: '';
-    width: 24px;
-    height: 1px;
-    background: currentColor;
-    box-shadow: 0 0 8px currentColor;
-}
 
 .logo-container{position:relative;display:flex;align-items:center;justify-content:center;flex:1 1 0;min-height:56px}
 .logo-container::before{content:"";position:absolute;width:62%;max-width:240px;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,rgba(48,112,255,.4),transparent);animation:glow 4s ease-in-out infinite}
@@ -130,23 +123,10 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
 .pay-btn:active{transform:scale(.965);filter:brightness(.94);box-shadow:0 6px 16px rgba(0,20,90,.3),inset 0 -2px 0 rgba(110,150,255,.25)}
 
 /* --- СТИЛИ ЭКРАНА ОПЛАТЫ --- */
-.payment-header{opacity:0;transform:translateY(-10px);transition:all .5s var(--ease);display:flex;flex-direction:column;gap:15px;}
+.payment-header{opacity:0;transform:translateY(-10px);transition:all .5s var(--ease)}
 .screens-container.payment-mode .payment-header{opacity:1;transform:translateY(0);transition-delay:.15s}
 
-/* Бейдж на экране оплаты */
-.payment-brand {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    color: rgba(255,255,255,0.4);
-    text-transform: uppercase;
-    margin-top: 10px;
-}
-
-.back-btn{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,.7);font-weight:600;font-size:14px;padding:10px 0;transition:color .2s; align-self:flex-start;}
+.back-btn{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,.7);font-weight:600;font-size:14px;padding:10px 0;transition:color .2s}
 .back-btn:active{color:#fff}
 .back-btn svg{width:20px;height:20px;fill:currentColor}
 
@@ -215,11 +195,12 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
         
         <!-- ================= ЭКРАН 1: ГЛАВНЫЙ ================= -->
         <div class="screen screen-main">
+            
+            <!-- НАДПИСЬ В ПУСТОМ МЕСТЕ -->
+            <div class="watermark-text">MOROF VPN</div>
+
             <!-- Заголовок -->
             <div class="header enter">
-                <!-- Добавленный бренд MOROF VPN -->
-                <div class="brand-badge">MOROF VPN</div>
-                
                 <h1><span class="acc">VPN</span> после которого вы забудете о <span class="acc">любых ограничениях!</span></h1>
                 <p class="swap" id="subtitle-devices">Все тарифы = 2 устройства.</p>
             </div>
@@ -304,13 +285,15 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
 
         <!-- ================= ЭКРАН 2: ОПЛАТА ================= -->
         <div class="screen screen-payment">
+            
+            <!-- НАДПИСЬ В ПУСТОМ МЕСТЕ (и здесь тоже) -->
+            <div class="watermark-text">MOROF VPN</div>
+
             <div class="payment-header">
                 <button class="back-btn" onclick="closePaymentScreen()">
                     <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
                     Назад
                 </button>
-                <!-- Тот же бренд на экране оплаты для консистентности -->
-                <div class="payment-brand">MOROF VPN</div>
             </div>
 
             <div class="payment-content">
@@ -329,7 +312,7 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
                     <!-- СБП -->
                     <button class="pay-method-card" onclick="selectPaymentMethod('sbp')">
                         <div class="icon-box">
-                            <!-- Премиальная иконка СБП (стилизованный символ мгновенного перевода) -->
+                            <!-- Премиальная иконка СБП -->
                             <svg viewBox="0 0 24 24">
                                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
                             </svg>
@@ -387,7 +370,6 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
     const $ = id => document.getElementById(id);
     const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-    // Тактильная отдача
     function hapticFeedback(kind = 'light') {
         try {
             if (tgSupports('6.1') && tg.HapticFeedback) {
@@ -405,7 +387,6 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
         document.querySelector('.device-toggle').dataset.active = String(currentDevices);
     }
 
-    // Анимация смены тарифов (Внутри главного экрана)
     function swapSection(dir) {
         clearTimeout(swapTimer);
         if (reduceMotion) { render(); return; }
@@ -479,29 +460,20 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
         }
     }
 
-    // === ЛОГИКА ПЕРЕХОДА НА ЭКРАН ОПЛАТЫ ===
-    
     function openPaymentScreen() {
         hapticFeedback('medium');
-        
-        // Обновляем сумму на экране оплаты
         const totalPrice = pricing[currentDevices][currentPeriod].total;
         document.getElementById('payment-total-display').innerText = `${totalPrice} ₽`;
-        
-        // Запускаем CSS-анимацию слайда
         document.getElementById('screens-container').classList.add('payment-mode');
     }
 
     function closePaymentScreen() {
         hapticFeedback('light');
-        // Обратная анимация
         document.getElementById('screens-container').classList.remove('payment-mode');
     }
 
     function selectPaymentMethod(method) {
-        hapticFeedback('heavy'); // Сильная вибрация при выборе метода оплаты
-        
-        // Небольшая задержка, чтобы пользователь увидел нажатие кнопки перед тем, как Mini App закроется
+        hapticFeedback('heavy');
         setTimeout(() => {
             const data = {
                 action: "buy_subscription",
@@ -514,7 +486,6 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
         }, 200);
     }
 
-    // Клавиатура
     document.addEventListener('keydown', e => {
         if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('plan-card')) {
             e.preventDefault();
