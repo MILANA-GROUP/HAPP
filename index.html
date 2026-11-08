@@ -40,20 +40,6 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
     will-change:transform,opacity;
 }
 
-/* НОВАЯ НАДПИСЬ (Водяной знак) */
-.watermark-text {
-    position: absolute;
-    top: calc(20px + env(safe-area-inset-top, 0px));
-    right: 18px;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.2em;
-    color: rgba(79, 210, 247, 0.45); /* Голубой цвет с прозрачностью */
-    text-transform: uppercase;
-    pointer-events: none; /* Чтобы не мешала нажатиям */
-    z-index: 10;
-}
-
 /* Экраны: 1 - Главный, 2 - Оплата */
 .screen-main{z-index:1}
 .screen-payment{z-index:2;transform:translateX(100%);opacity:0;pointer-events:none;background:transparent}
@@ -195,10 +181,6 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
         
         <!-- ================= ЭКРАН 1: ГЛАВНЫЙ ================= -->
         <div class="screen screen-main">
-            
-            <!-- НАДПИСЬ В ПУСТОМ МЕСТЕ -->
-            <div class="watermark-text">MOROF VPN</div>
-
             <!-- Заголовок -->
             <div class="header enter">
                 <h1><span class="acc">VPN</span> после которого вы забудете о <span class="acc">любых ограничениях!</span></h1>
@@ -285,10 +267,6 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
 
         <!-- ================= ЭКРАН 2: ОПЛАТА ================= -->
         <div class="screen screen-payment">
-            
-            <!-- НАДПИСЬ В ПУСТОМ МЕСТЕ (и здесь тоже) -->
-            <div class="watermark-text">MOROF VPN</div>
-
             <div class="payment-header">
                 <button class="back-btn" onclick="closePaymentScreen()">
                     <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
@@ -312,7 +290,7 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
                     <!-- СБП -->
                     <button class="pay-method-card" onclick="selectPaymentMethod('sbp')">
                         <div class="icon-box">
-                            <!-- Премиальная иконка СБП -->
+                            <!-- Премиальная иконка СБП (стилизованный символ мгновенного перевода) -->
                             <svg viewBox="0 0 24 24">
                                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
                             </svg>
@@ -370,6 +348,7 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
     const $ = id => document.getElementById(id);
     const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
+    // Тактильная отдача
     function hapticFeedback(kind = 'light') {
         try {
             if (tgSupports('6.1') && tg.HapticFeedback) {
@@ -387,6 +366,7 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
         document.querySelector('.device-toggle').dataset.active = String(currentDevices);
     }
 
+    // Анимация смены тарифов (Внутри главного экрана)
     function swapSection(dir) {
         clearTimeout(swapTimer);
         if (reduceMotion) { render(); return; }
@@ -460,20 +440,29 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
         }
     }
 
+    // === ЛОГИКА ПЕРЕХОДА НА ЭКРАН ОПЛАТЫ ===
+    
     function openPaymentScreen() {
         hapticFeedback('medium');
+        
+        // Обновляем сумму на экране оплаты
         const totalPrice = pricing[currentDevices][currentPeriod].total;
         document.getElementById('payment-total-display').innerText = `${totalPrice} ₽`;
+        
+        // Запускаем CSS-анимацию слайда
         document.getElementById('screens-container').classList.add('payment-mode');
     }
 
     function closePaymentScreen() {
         hapticFeedback('light');
+        // Обратная анимация
         document.getElementById('screens-container').classList.remove('payment-mode');
     }
 
     function selectPaymentMethod(method) {
-        hapticFeedback('heavy');
+        hapticFeedback('heavy'); // Сильная вибрация при выборе метода оплаты
+        
+        // Небольшая задержка, чтобы пользователь увидел нажатие кнопки перед тем, как Mini App закроется
         setTimeout(() => {
             const data = {
                 action: "buy_subscription",
@@ -486,6 +475,7 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
         }, 200);
     }
 
+    // Клавиатура
     document.addEventListener('keydown', e => {
         if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('plan-card')) {
             e.preventDefault();
