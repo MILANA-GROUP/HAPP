@@ -1,1226 +1,450 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#0a0a0f">
-<title>Rubik AI</title>
-<style>
-:root{
-  --bg:#0a0a0f;--surface:#14141c;--surface2:#1c1c28;--border:rgba(255,255,255,.08);
-  --text:#fff;--dim:#8a8a9e;--accent:#7c5cff;--accent2:#ff5c9e;
-  --ok:#4ade80;--warn:#fbbf24;--err:#ef4444;
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
-  background:var(--bg);color:var(--text);user-select:none;-webkit-user-select:none;
-  overscroll-behavior:none}
-.app{position:fixed;inset:0;display:flex;flex-direction:column;
-  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-.screen{position:absolute;inset:0;display:flex;flex-direction:column;padding:22px;
-  padding-top:calc(22px + env(safe-area-inset-top));padding-bottom:calc(22px + env(safe-area-inset-bottom));
-  opacity:0;pointer-events:none;transition:opacity .3s;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.screen.on{opacity:1;pointer-events:auto}
-.h1{font-size:34px;font-weight:800;letter-spacing:-.5px;
-  background:linear-gradient(90deg,#fff,#7c5cff 60%,#ff5c9e);
-  -webkit-background-clip:text;background-clip:text;color:transparent}
-.h2{font-size:22px;font-weight:700;margin-bottom:6px}
-.sub{color:var(--dim);font-size:15px;line-height:1.5}
-.btn{padding:16px 22px;border:none;border-radius:14px;font-size:16px;font-weight:600;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
-  cursor:pointer;transition:transform .15s,box-shadow .15s;
-  box-shadow:0 8px 24px rgba(124,92,255,.35)}
-.btn:active{transform:scale(.97)}
-.btn.secondary{background:var(--surface2);color:var(--text);box-shadow:none;border:1px solid var(--border)}
-.btn.ghost{background:transparent;color:var(--dim);box-shadow:none;border:1px solid var(--border)}
-.btn.wide{width:100%}
-.btn:disabled{opacity:.4;pointer-events:none}
-.btn.small{padding:10px 14px;font-size:13px}
-.center{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:14px}
-.glass{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:18px;padding:18px;backdrop-filter:blur(12px)}
-.home-logo{width:110px;height:110px;margin-bottom:10px;border-radius:26px;
-  background:conic-gradient(#ff5c5c 0 25%,#5cff5c 0 50%,#5c5cff 0 75%,#ffdb5c 0);
-  box-shadow:0 20px 60px rgba(124,92,255,.4);animation:rot 12s linear infinite;position:relative}
-.home-logo::after{content:'';position:absolute;inset:14px;border-radius:16px;background:var(--bg)}
-@keyframes rot{to{transform:rotate(360deg)}}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MOROF VPN</title>
+    <!-- Подключаем скрипт Telegram Mini Apps -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* --- БАЗОВЫЕ СТИЛИ И ШРИФТЫ --- */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 
-#camWrap{position:absolute;inset:0;background:#000;overflow:hidden;display:none}
-#camWrap.on{display:block}
-#cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.cam-overlay{position:absolute;inset:0;pointer-events:none}
-.grid3{position:absolute;top:calc(50% - 20px);left:50%;transform:translate(-50%,-50%);
-  width:min(72vw,72vh);height:min(72vw,72vh);
-  border:2px solid rgba(255,255,255,.9);border-radius:20px;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.55),inset 0 0 30px rgba(255,255,255,.1)}
-.grid3 svg{width:100%;height:100%}
-.grid3 svg line{stroke:rgba(255,255,255,.55);stroke-width:1.5;stroke-dasharray:6 4}
-.cam-top{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;right:14px;
-  display:flex;justify-content:space-between;align-items:center;color:#fff;gap:8px}
-.cam-top .chip{background:rgba(0,0,0,.65);padding:8px 14px;border-radius:20px;
-  font-size:13px;font-weight:600;backdrop-filter:blur(8px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cam-hint{position:absolute;bottom:calc(220px + env(safe-area-inset-bottom));left:0;right:0;
-  text-align:center;font-size:14px;color:#fff;text-shadow:0 2px 12px #000;padding:0 20px}
-.cam-bottom{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom));left:14px;right:14px;
-  display:flex;flex-direction:column;gap:10px}
-.cam-buttons{display:flex;gap:10px}
-.cam-buttons .btn{flex:1}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-/* Live preview */
-.live-panel{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.65);
-  padding:10px 14px;border-radius:16px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)}
-.live-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:66px;height:66px;flex-shrink:0}
-.live-mini > div{border-radius:5px;background:#333;transition:background .12s}
-.live-mini > div.none{background:#222;border:1px dashed #555}
-.live-mini > div.gray{filter:brightness(0.4) saturate(0.3)}
-.live-info{flex:1;min-width:0}
-.live-info .lbl{font-size:11px;color:var(--dim);margin-bottom:2px}
-.live-info .val{font-size:20px;font-weight:800;color:#fff}
+        body {
+            /* Темный градиентный фон как на фото */
+            background: radial-gradient(circle at 50% 0%, #1c2b4a 0%, #090d16 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            padding-bottom: 120px; /* Место для нижней кнопки */
+        }
 
-.mini3{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
-.mini3 > div{border-radius:6px;background:#333;transition:background .2s}
-.mini3 > div.none{background:#222;border:1px dashed #444}
-.mini3 > div.gray{filter:brightness(0.4) saturate(0.3)}
+        /* --- ВЕРХНЯЯ ЧАСТЬ (ЗАГОЛОВКИ) --- */
+        .header {
+            padding: 30px 20px 10px;
+            text-align: left;
+        }
 
-.face-row{display:flex;gap:10px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
-.face-row::-webkit-scrollbar{display:none}
-.face-chip{min-width:64px;padding:10px 12px;border-radius:12px;background:var(--surface2);
-  border:1px solid var(--border);text-align:center;cursor:pointer;transition:.2s}
-.face-chip.active{border-color:var(--accent);background:rgba(124,92,255,.15)}
-.face-chip.done{opacity:.5}
-.face-chip .letter{font-weight:800;font-size:16px}
-.face-chip .label{font-size:11px;color:var(--dim);margin-top:2px}
+        .header h1 {
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+        
+        .header h1 span {
+            color: #3b82f6; /* Синий акцент */
+        }
 
-#viewer{flex:1;position:relative;border-radius:18px;overflow:hidden;
-  background:radial-gradient(ellipse at center,#1a1a24,#0a0a0f);margin:8px 0;min-height:240px}
-#viewer canvas{display:block;width:100%;height:100%}
+        .header p {
+            font-size: 14px;
+            color: #a1a1aa;
+            font-weight: 600;
+        }
 
-.step-box{display:flex;align-items:center;gap:16px;padding:18px;background:var(--surface);
-  border-radius:18px;border:1px solid var(--border)}
-.step-move{font-size:42px;font-weight:900;font-family:'SF Mono',monospace;color:var(--accent);min-width:90px;text-align:center}
-.step-desc{flex:1;font-size:15px;color:var(--dim);line-height:1.4}
-.ai-tip{margin-top:8px;font-size:13px;color:var(--accent);font-style:italic;min-height:18px}
-.progress{height:6px;background:var(--surface2);border-radius:6px;overflow:hidden;margin:12px 0}
-.progress > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
+        /* --- 3D ЛОГОТИП (БУКВА М) --- */
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0 30px;
+        }
 
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;
-  align-items:center;justify-content:center;padding:20px;z-index:100}
-.modal.on{display:flex}
-.modal-inner{background:var(--surface);border-radius:22px;padding:22px;width:100%;max-width:400px;border:1px solid var(--border)}
-.palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
-.pal{aspect-ratio:1;border-radius:12px;border:2px solid transparent;cursor:pointer}
-.pal.active{border-color:#fff}
+        .logo-box {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #1e40af, #0f172a);
+            border-radius: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.5),
+                inset 0 2px 5px rgba(255, 255, 255, 0.3),
+                inset 0 -5px 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            transform: perspective(500px) rotateX(10deg);
+        }
 
-.cW,.gW{background:#f5f5f5}.cY,.gY{background:#ffd93b}.cR,.gR{background:#e63946}
-.cO,.gO{background:#ff8c1a}.cB,.gB{background:#2f6dff}.cG,.gG{background:#22c55e}
+        /* Сама буква М */
+        .logo-letter {
+            font-size: 55px;
+            font-weight: 900;
+            color: #e2e8f0;
+            text-shadow: 
+                0 2px 0 #94a3b8,
+                0 4px 10px rgba(0, 0, 0, 0.8);
+            margin-top: -5px;
+        }
 
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));
-  transform:translateX(-50%) translateY(100px);background:#1c1c28;
-  border:1px solid var(--border);padding:14px 20px;border-radius:14px;font-size:14px;
-  transition:transform .3s;z-index:200;max-width:88vw;text-align:center}
-.toast.on{transform:translateX(-50%) translateY(0)}
-.toast.err{border-color:var(--err);color:#ffb0b0}
-.toast.ok{border-color:var(--ok);color:#b6ffc9}
-</style>
+        /* --- ПЕРЕКЛЮЧАТЕЛЬ УСТРОЙСТВ --- */
+        .device-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 5px;
+            margin: 0 20px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .device-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #a1a1aa;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .device-btn.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+        }
+
+        /* --- КАРТОЧКИ ТАРИФОВ --- */
+        .plans-container {
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .plan-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .plan-card:active {
+            transform: scale(0.98);
+        }
+
+        .plan-card.selected {
+            border: 2px solid #3b82f6;
+            background: rgba(59, 130, 246, 0.15);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Плашки "Лучший выбор" и "Популярный" */
+        .badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 6px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            border-bottom-left-radius: 16px;
+        }
+
+        .badge-best {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .badge-popular {
+            background: #06b6d4;
+            color: #ffffff;
+        }
+
+        .plan-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .plan-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .plan-price-total {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .old-price {
+            font-size: 14px;
+            color: #71717a;
+            text-decoration: line-through;
+            font-weight: 400;
+        }
+
+        .plan-price-monthly {
+            text-align: right;
+        }
+
+        .price-monthly-val {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .price-monthly-label {
+            font-size: 12px;
+            color: #a1a1aa;
+        }
+
+        /* --- НИЖНЯЯ ПАНЕЛЬ С КНОПКОЙ --- */
+        .bottom-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 20px 25px;
+            background: linear-gradient(to top, #090d16 80%, transparent);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .cancel-text {
+            text-align: center;
+            font-size: 12px;
+            color: #a1a1aa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .cancel-text svg {
+            width: 14px;
+            height: 14px;
+            fill: #06b6d4;
+        }
+
+        .pay-btn {
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 16px;
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 800;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .pay-btn:active {
+            background: #e2e8f0;
+            transform: scale(0.98);
+        }
+    </style>
 </head>
 <body>
-<div class="app">
 
-<!-- HOME -->
-<div class="screen on" id="s-home">
-  <div class="center">
-    <div class="home-logo"></div>
-    <div class="h1">Rubik AI</div>
-    <div class="sub" style="max-width:300px">Отсканируй кубик — AI покажет, как его собрать</div>
-    <div style="height:20px"></div>
-    <button class="btn" style="width:min(320px,80vw)" onclick="App.startScan()">📷 Начать сканирование</button>
-    <button class="btn ghost" style="width:min(320px,80vw);margin-top:10px" onclick="App.openManual()">Ввести цвета вручную</button>
-    <div class="sub" style="font-size:12px;max-width:280px;margin-top:8px">
-      Наведи камеру на каждую из 6 сторон кубика по очереди
+    <!-- Заголовок -->
+    <div class="header">
+        <h1>VPN, который<br>не придётся <span>менять.</span></h1>
+        <p id="subtitle-devices">Все тарифы = 2 устройства.</p>
     </div>
-  </div>
-</div>
 
-<!-- CAMERA -->
-<div id="camWrap">
-  <video id="cam" playsinline muted autoplay></video>
-  <div class="cam-overlay">
-    <div class="grid3">
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-        <line x1="33.33" y1="0" x2="33.33" y2="100"/>
-        <line x1="66.66" y1="0" x2="66.66" y2="100"/>
-        <line x1="0" y1="33.33" x2="100" y2="33.33"/>
-        <line x1="0" y1="66.66" x2="100" y2="66.66"/>
-      </svg>
+    <!-- Логотип -->
+    <div class="logo-container">
+        <div class="logo-box">
+            <span class="logo-letter">M</span>
+        </div>
     </div>
-  </div>
-  <div class="cam-top">
-    <div class="chip" id="camFaceChip">Сторона 1 из 6</div>
-    <div class="chip" id="camConfChip">—</div>
-  </div>
-  <div class="cam-hint" id="camHint">Поместите грань кубика в рамку</div>
-  <div class="cam-bottom">
-    <div class="live-panel">
-      <div class="live-mini" id="liveMini"></div>
-      <div class="live-info">
-        <div class="lbl">Реальное время</div>
-        <div class="val" id="liveConf">—</div>
-      </div>
-      <button class="btn secondary small" onclick="App.proceed()">Правка</button>
+
+    <!-- Переключатель устройств -->
+    <div class="device-toggle">
+        <div class="device-btn active" onclick="changeDevices(2)" id="btn-dev-2">2 устройства</div>
+        <div class="device-btn" onclick="changeDevices(5)" id="btn-dev-5">5 устройств</div>
     </div>
-    <div class="cam-buttons">
-      <button class="btn ghost" onclick="App.stopScan()">Отмена</button>
-      <button class="btn" onclick="App.proceed()">Дальше →</button>
+
+    <!-- Карточки тарифов -->
+    <div class="plans-container">
+        <!-- 12 месяцев -->
+        <div class="plan-card selected" onclick="selectPlan(12, 'plan-12')" id="plan-12">
+            <div class="badge badge-best">Лучший выбор</div>
+            <div class="plan-info">
+                <div class="plan-title">12 месяцев</div>
+                <div class="plan-price-total">
+                    <span class="old-price" id="old-price-12">2989₽</span>
+                    <span id="total-price-12">1590₽</span>
+                </div>
+            </div>
+            <div class="plan-price-monthly">
+                <div class="price-monthly-val" id="monthly-price-12">132₽/</div>
+                <div class="price-monthly-label">месяц</div>
+            </div>
+        </div>
+
+        <!-- 3 месяца -->
+        <div class="plan-card" onclick="selectPlan(3, 'plan-3')" id="plan-3">
+            <div class="badge badge-popular">Популярный</div>
+            <div class="plan-info">
+                <div class="plan-title">3 месяца</div>
+                <div class="plan-price-total">
+                    <span class="old-price" id="old-price-3">747₽</span>
+                    <span id="total-price-3">499₽</span>
+                </div>
+            </div>
+            <div class="plan-price-monthly">
+                <div class="price-monthly-val" id="monthly-price-3">166₽/</div>
+                <div class="price-monthly-label">месяц</div>
+            </div>
+        </div>
+
+        <!-- 1 месяц -->
+        <div class="plan-card" onclick="selectPlan(1, 'plan-1')" id="plan-1">
+            <div class="plan-info">
+                <div class="plan-title">1 месяц</div>
+                <div class="plan-price-total">
+                    <span id="total-price-1">199₽</span>
+                </div>
+            </div>
+            <div class="plan-price-monthly">
+                <div class="price-monthly-val" id="monthly-price-1">199₽/</div>
+                <div class="price-monthly-label">месяц</div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- CONFIRM -->
-<div class="screen" id="s-confirm">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <button class="btn ghost small" onclick="App.retake()">← Назад</button>
-    <div class="h2" id="confirmTitle">Сторона F</div>
-  </div>
-  <div class="sub">Проверьте цвета. Тапните на квадрат, чтобы исправить.</div>
-  <div style="display:flex;gap:20px;align-items:center;justify-content:center;margin:20px 0;flex-wrap:wrap">
-    <div class="mini3" id="confirmGrid" style="width:min(60vw,260px);height:min(60vw,260px);gap:6px"></div>
-    <div style="text-align:center">
-      <div style="font-size:13px;color:var(--dim)">Уверенность</div>
-      <div style="font-size:32px;font-weight:800" id="confValue">—</div>
+    <!-- Нижняя панель с кнопкой -->
+    <div class="bottom-panel">
+        <div class="cancel-text">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            Можно отменить в любое время
+        </div>
+        <button class="pay-btn" onclick="pay()" id="main-pay-btn">Оплатить 1590 ₽</button>
     </div>
-  </div>
-  <div style="flex:1"></div>
-  <button class="btn wide" onclick="App.saveFace()">✓ Сохранить сторону</button>
-  <button class="btn ghost wide" style="margin-top:10px" onclick="App.retake()">Пересканировать</button>
-</div>
 
-<!-- VERIFY -->
-<div class="screen" id="s-verify">
-  <div class="h2">Проверка кубика</div>
-  <div class="sub" id="verifyMsg">Все стороны отсканированы. Проверяем конфигурацию...</div>
-  <div class="face-row" id="verifyFaces" style="margin-top:16px"></div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0">
-    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Белых</div><div style="font-size:20px;font-weight:700" id="cntW">—</div></div>
-    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Жёлтых</div><div style="font-size:20px;font-weight:700" id="cntY">—</div></div>
-    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Красных</div><div style="font-size:20px;font-weight:700" id="cntR">—</div></div>
-    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Оранж.</div><div style="font-size:20px;font-weight:700" id="cntO">—</div></div>
-    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Синих</div><div style="font-size:20px;font-weight:700" id="cntB">—</div></div>
-    <div class="glass" style="text-align:center;padding:12px"><div style="font-size:11px;color:var(--dim)">Зелёных</div><div style="font-size:20px;font-weight:700" id="cntG">—</div></div>
-  </div>
-  <div style="flex:1"></div>
-  <button class="btn wide" id="btnSolve" onclick="App.solve()">🧠 Рассчитать решение</button>
-  <button class="btn ghost wide" style="margin-top:10px" onclick="App.reset()">Начать заново</button>
-</div>
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем на весь экран
+        tg.ready();
 
-<!-- SOLVE -->
-<div class="screen" id="s-solve">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <div>
-      <div class="h2">Решение</div>
-      <div class="sub" id="solveInfo">—</div>
-    </div>
-    <button class="btn ghost small" onclick="App.reset()">Заново</button>
-  </div>
-  <div id="viewer"></div>
-  <div class="progress"><div id="progressBar" style="width:0%"></div></div>
-  <div class="step-box">
-    <div class="step-move" id="stepMove">—</div>
-    <div class="step-desc" id="stepDesc">Нажмите «Следующий шаг», чтобы начать.</div>
-  </div>
-  <div class="ai-tip" id="aiTip"></div>
-  <div style="display:flex;gap:10px;margin-top:14px">
-    <button class="btn secondary" style="flex:1" onclick="App.prevStep()">← Назад</button>
-    <button class="btn" style="flex:1.5" onclick="App.nextStep()" id="nextBtn">Следующий шаг →</button>
-  </div>
-</div>
+        // Настройки цветов шапки Telegram под наш темный дизайн
+        tg.setHeaderColor('#090d16');
+        tg.setBackgroundColor('#090d16');
 
-<!-- DONE -->
-<div class="screen" id="s-done">
-  <div class="center">
-    <div style="font-size:80px">🎉</div>
-    <div class="h1">Кубик собран!</div>
-    <div class="sub" id="doneInfo"></div>
-    <button class="btn" style="margin-top:20px;width:min(320px,80vw)" onclick="App.reset()">Собрать ещё один</button>
-  </div>
-</div>
+        // Данные о ценах
+        const pricing = {
+            2: {
+                1: { total: 199, monthly: 199, old: null },
+                3: { total: 499, monthly: 166, old: 747 },
+                12: { total: 1590, monthly: 132, old: 2989 }
+            },
+            5: {
+                1: { total: 259, monthly: 259, old: null },
+                3: { total: 649, monthly: 216, old: 897 },
+                12: { total: 2090, monthly: 174, old: 3589 }
+            }
+        };
 
-<!-- MANUAL PICKER -->
-<div class="modal" id="manualModal">
-  <div class="modal-inner">
-    <div class="h2">Выберите цвет</div>
-    <div class="sub" id="manualSub">—</div>
-    <div class="palette" id="palette"></div>
-    <button class="btn ghost wide" style="margin-top:14px" onclick="App.closeManual()">Отмена</button>
-  </div>
-</div>
+        // Текущее состояние
+        let currentDevices = 2;
+        let currentPeriod = 12;
 
-<div class="toast" id="toast"></div>
-</div>
+        // Функция переключения устройств
+        function changeDevices(count) {
+            currentDevices = count;
+            
+            // Меняем активную кнопку
+            document.getElementById('btn-dev-2').classList.remove('active');
+            document.getElementById('btn-dev-5').classList.remove('active');
+            document.getElementById(`btn-dev-${count}`).classList.add('active');
+            
+            // Меняем подзаголовок
+            document.getElementById('subtitle-devices').innerText = `Все тарифы = ${count} устройства.`;
 
-<script type="importmap">
-{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
-</script>
-<script type="module">
-import * as THREE from 'three';
-
-/* ============================================================
-   API KEY — вставлен по требованию. Если он не от Gemini —
-   AI-подсказки просто не будут работать, приложение не сломается.
-   Для рабочего Gemini-ключа нужен формат "AIzaSy..." из
-   https://aistudio.google.com/app/apikey
-   ============================================================ */
-const GEMINI_API_KEY = "AQ.Ab8RN6LhZP3Y3eg6a_jSTOt_rMCF4gWIu5zD3tKi69gVJwDeoA";
-
-class AIService{
-  constructor(){
-    this.enabled = !!GEMINI_API_KEY && GEMINI_API_KEY.length > 10;
-    this.cache = new Map();
-    this.cooldown = 8000;
-    this.lastCall = 0;
-    this.pending = false;
-    this.available = this.enabled; // станет false после первой ошибки
-  }
-  async tip(context){
-    if(!this.enabled || !this.available || this.pending) return null;
-    if(Date.now() - this.lastCall < this.cooldown) return null;
-    if(this.cache.has(context)) return this.cache.get(context);
-    this.pending = true;
-    this.lastCall = Date.now();
-    try{
-      const ctrl = new AbortController();
-      const to = setTimeout(()=>ctrl.abort(), 4500);
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
-         body:JSON.stringify({
-           contents:[{parts:[{text:
-`Ты помощник в приложении для сборки кубика Рубика. Ответь ОДНОЙ короткой фразой на русском (до 60 символов), подбадривающей или подсказывающей. Контекст: ${context}`
-           }]}],
-           generationConfig:{temperature:0.9, maxOutputTokens:40}
-         })}
-      );
-      clearTimeout(to);
-      if(!res.ok){ this.available = false; this.pending=false; return null; }
-      const data = await res.json();
-      const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      this.pending = false;
-      if(txt){ const clean = txt.trim().replace(/^"|"$/g,''); this.cache.set(context, clean); return clean; }
-      return null;
-    }catch(e){
-      this.pending = false;
-      this.available = false;
-      console.warn('AI недоступен:', e.message);
-      return null;
-    }
-  }
-}
-const aiService = new AIService();
-
-/* ============================================================
-   CONSTANTS
-   ============================================================ */
-const FACES = ['U','R','F','D','L','B'];
-const COLORS = ['W','Y','R','O','B','G'];
-const COLOR_CSS = {W:'cW',Y:'cY',R:'cR',O:'cO',B:'cB',G:'cG'};
-const COLOR_NAME = {W:'Белый',Y:'Жёлтый',R:'Красный',O:'Оранжевый',B:'Синий',G:'Зелёный'};
-const COLOR_TO_FACE = {W:'U',Y:'D',G:'F',B:'B',R:'R',O:'L'};
-const EXPECTED_CENTER = {U:'W',R:'R',F:'G',D:'Y',L:'O',B:'B'};
-
-/* ============================================================
-   CUBE MODEL
-   ============================================================ */
-function matMul(A,B){const R=[[0,0,0],[0,0,0],[0,0,0]];for(let i=0;i<3;i++)for(let j=0;j<3;j++){let s=0;for(let k=0;k<3;k++)s+=A[i][k]*B[k][j];R[i][j]=s;}return R;}
-function matVec(M,v){return[M[0][0]*v[0]+M[0][1]*v[1]+M[0][2]*v[2],M[1][0]*v[0]+M[1][1]*v[1]+M[1][2]*v[2],M[2][0]*v[0]+M[2][1]*v[1]+M[2][2]*v[2]];}
-const I3=[[1,0,0],[0,1,0],[0,0,1]];
-const ROT_X_CW=[[1,0,0],[0,0,-1],[0,1,0]],ROT_X_CCW=[[1,0,0],[0,0,1],[0,-1,0]];
-const ROT_Y_CW=[[0,0,1],[0,1,0],[-1,0,0]],ROT_Y_CCW=[[0,0,-1],[0,1,0],[1,0,0]];
-const ROT_Z_CW=[[0,-1,0],[1,0,0],[0,0,1]],ROT_Z_CCW=[[0,1,0],[-1,0,0],[0,0,1]];
-
-class Cube{
-  constructor(){
-    this.cubies=[];
-    for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++){
-      if(x===0&&y===0&&z===0)continue;
-      const colors=[x===1?'R':null,x===-1?'L':null,y===1?'U':null,y===-1?'D':null,z===1?'F':null,z===-1?'B':null];
-      this.cubies.push({pos:[x,y,z],rot:I3.slice().map(r=>r.slice()),colors});
-    }
-  }
-  move(m){if(!m)return;const f=m[0],mod=m.slice(1);const turns=mod==='2'?2:mod==="'"?3:1;for(let t=0;t<turns;t++)this._quarter(f);}
-  _quarter(f){
-    let axis,layer,rot;
-    switch(f){
-      case'U':axis=1;layer=1;rot=ROT_Y_CCW;break;
-      case'D':axis=1;layer=-1;rot=ROT_Y_CW;break;
-      case'R':axis=0;layer=1;rot=ROT_X_CW;break;
-      case'L':axis=0;layer=-1;rot=ROT_X_CCW;break;
-      case'F':axis=2;layer=1;rot=ROT_Z_CCW;break;
-      case'B':axis=2;layer=-1;rot=ROT_Z_CW;break;
-    }
-    for(const k of this.cubies){
-      if(k.pos[axis]!==layer)continue;
-      k.pos=matVec(rot,k.pos).map(v=>Math.round(v));
-      k.rot=matMul(rot,k.rot);
-    }
-  }
-  facelets(){
-    const f=new Array(54).fill(null);
-    const OUT=[
-      {v:[1,0,0],fi:9,local:'R'},{v:[-1,0,0],fi:36,local:'L'},
-      {v:[0,1,0],fi:0,local:'U'},{v:[0,-1,0],fi:27,local:'D'},
-      {v:[0,0,1],fi:18,local:'F'},{v:[0,0,-1],fi:45,local:'B'}
-    ];
-    for(const k of this.cubies){
-      const[x,y,z]=k.pos;
-      for(let ni=0;ni<6;ni++){
-        const n=OUT[ni];
-        const dot=x*n.v[0]+y*n.v[1]+z*n.v[2];
-        if(dot<=0)continue;
-        const ld=[
-          k.rot[0][0]*n.v[0]+k.rot[1][0]*n.v[1]+k.rot[2][0]*n.v[2],
-          k.rot[0][1]*n.v[0]+k.rot[1][1]*n.v[1]+k.rot[2][1]*n.v[2],
-          k.rot[0][2]*n.v[0]+k.rot[1][2]*n.v[1]+k.rot[2][2]*n.v[2]
-        ].map(v=>Math.round(v));
-        let ci;
-        if(ld[0]===1)ci=0;else if(ld[0]===-1)ci=1;
-        else if(ld[1]===1)ci=2;else if(ld[1]===-1)ci=3;
-        else if(ld[2]===1)ci=4;else ci=5;
-        const color=k.colors[ci];
-        if(!color)continue;
-        const idx=this._stickerIndex(n.local,x,y,z);
-        if(idx<0||idx>8)continue;
-        f[n.fi+idx]=color;
-      }
-    }
-    return f;
-  }
-  _stickerIndex(name,x,y,z){
-    let row,col;
-    switch(name){
-      case'U':row=(-z+1);col=(x+1);break;
-      case'R':row=(-y+1);col=(z+1);break;
-      case'F':row=(-y+1);col=(x+1);break;
-      case'D':row=(z+1);col=(x+1);break;
-      case'L':row=(-y+1);col=(-z+1);break;
-      case'B':row=(-y+1);col=(-x+1);break;
-    }
-    return row*3+col;
-  }
-}
-
-function faceletsToCube(f){
-  const cube=new Cube();
-  const OUT=[
-    {v:[1,0,0],fi:9,local:'R'},{v:[-1,0,0],fi:36,local:'L'},
-    {v:[0,1,0],fi:0,local:'U'},{v:[0,-1,0],fi:27,local:'D'},
-    {v:[0,0,1],fi:18,local:'F'},{v:[0,0,-1],fi:45,local:'B'}
-  ];
-  for(const k of cube.cubies){
-    const[x,y,z]=k.pos;
-    for(let ni=0;ni<6;ni++){
-      const n=OUT[ni];
-      const dot=x*n.v[0]+y*n.v[1]+z*n.v[2];
-      if(dot<=0)continue;
-      const idx=cube._stickerIndex(n.local,x,y,z);
-      const color=f[n.fi+idx];
-      let li;
-      if(n.local==='R')li=0;else if(n.local==='L')li=1;
-      else if(n.local==='U')li=2;else if(n.local==='D')li=3;
-      else if(n.local==='F')li=4;else li=5;
-      k.colors[li]=color;
-    }
-  }
-  return cube;
-}
-function applyMoveToFacelets(f,m){const c=faceletsToCube(f);c.move(m);const nf=c.facelets();for(let i=0;i<54;i++)f[i]=nf[i];}
-
-/* ============================================================
-   SOLVER (beginner method)
-   ============================================================ */
-function solveCube(initFacelets){
-  const f=initFacelets.slice();
-  const moves=[];
-  const apply=(m)=>{applyMoveToFacelets(f,m);moves.push(m);};
-  const applySeq=(arr)=>{for(const m of arr)apply(m);};
-
-  function findEdge(c1,c2){
-    const E={
-      'UF':['U',7,'F',1],'UR':['U',5,'R',1],'UB':['U',1,'B',1],'UL':['U',3,'L',1],
-      'DF':['D',1,'F',7],'DR':['D',5,'R',7],'DB':['D',7,'B',7],'DL':['D',3,'L',7],
-      'FR':['F',5,'R',3],'FL':['F',3,'L',5],'BR':['B',3,'R',5],'BL':['B',5,'L',3]
-    };
-    for(const[name,[fa,ia,fb,ib]]of Object.entries(E)){
-      const a=f[FACES.indexOf(fa)*9+ia],b=f[FACES.indexOf(fb)*9+ib];
-      if((a===c1&&b===c2)||(a===c2&&b===c1))return{slot:name,ori:a===c1?0:1};
-    }
-    return null;
-  }
-  function findCorner(c1,c2,c3){
-    const C={
-      'UFR':['U',8,'F',2,'R',0],'URB':['U',2,'R',2,'B',0],
-      'UBL':['U',0,'B',2,'L',0],'ULF':['U',6,'L',2,'F',0],
-      'DFR':['D',2,'F',8,'R',6],'DRB':['D',8,'R',8,'B',6],
-      'DBL':['D',6,'B',8,'L',6],'DLF':['D',0,'L',8,'F',6]
-    };
-    const set=new Set([c1,c2,c3]);
-    for(const[name,[fa,ia,fb,ib,fc,ic]]of Object.entries(C)){
-      const a=f[FACES.indexOf(fa)*9+ia],b=f[FACES.indexOf(fb)*9+ib],c=f[FACES.indexOf(fc)*9+ic];
-      if(set.has(a)&&set.has(b)&&set.has(c)&&a!==b&&b!==c&&a!==c)return{slot:name,a,b,c};
-    }
-    return null;
-  }
-
-  // D-крест
-  const D_EDGE_SLOTS=[
-    {slot:'DF',side:'F',sideColor:'G'},
-    {slot:'DR',side:'R',sideColor:'R'},
-    {slot:'DB',side:'B',sideColor:'B'},
-    {slot:'DL',side:'L',sideColor:'O'}
-  ];
-  const U_POS_FOR_D={'DF':'UF','DR':'UR','DB':'UB','DL':'UL'};
-  const SIDE_OF_U={'UF':'F','UR':'R','UB':'B','UL':'L'};
-
-  for(const cfg of D_EDGE_SLOTS){
-    for(let iter=0;iter<15;iter++){
-      const info=findEdge('D',cfg.sideColor);
-      if(!info)break;
-      // решён?
-      const [fa,ia,fb,ib]={'DF':['D',1,'F',7],'DR':['D',5,'R',7],'DB':['D',7,'B',7],'DL':['D',3,'L',7]}[cfg.slot];
-      if(f[FACES.indexOf(fa)*9+ia]==='D'&&f[FACES.indexOf(fb)*9+ib]===cfg.sideColor)break;
-      const s=info.slot;
-      if(s.startsWith('D')){
-        apply(cfg.slot[1]+'2');
-      }else if(s.startsWith('U')){
-        const curSide=SIDE_OF_U[s];
-        const order=['F','R','B','L'];
-        const turns=(order.indexOf(cfg.side)-order.indexOf(curSide)+4)%4;
-        for(let i=0;i<turns;i++)apply('U');
-        const uFace=f[0*9+({F:7,R:5,B:1,L:3}[cfg.side])];
-        apply(cfg.side+'2');
-      }else{
-        // средний слой — выталкиваем
-        const sideFaces=['F','R','B','L'];
-        const pushFace=sideFaces.find(ff=>{
-          const e=findEdge('D',cfg.sideColor);
-          if(!e)return false;
-          const E={
-            'UF':['U',7,'F',1],'UR':['U',5,'R',1],'UB':['U',1,'B',1],'UL':['U',3,'L',1]
-          };
-          return false;
-        })||'R';
-        const inv=s.includes('F')||s.includes('B')?'R':'F';
-        applySeq([inv,'U',inv+"'"]);
-      }
-    }
-  }
-
-  // Углы D
-  const D_CORNERS=[
-    {slot:'DFR',cols:['D','F','R']},
-    {slot:'DRB',cols:['D','R','B']},
-    {slot:'DBL',cols:['D','B','L']},
-    {slot:'DLF',cols:['D','L','F']}
-  ];
-  const C_IDX={
-    'DFR':['D',2,'F',8,'R',6],'DRB':['D',8,'R',8,'B',6],
-    'DBL':['D',6,'B',8,'L',6],'DLF':['D',0,'L',8,'F',6]
-  };
-  const C_IDX_U={
-    'UFR':['U',8,'F',2,'R',0],'URB':['U',2,'R',2,'B',0],
-    'UBL':['U',0,'B',2,'L',0],'ULF':['U',6,'L',2,'F',0]
-  };
-  const U_POS={'DFR':'UFR','DRB':'URB','DBL':'UBL','DLF':'ULF'};
-
-  for(const cfg of D_CORNERS){
-    for(let iter=0;iter<30;iter++){
-      const info=findCorner(cfg.cols[0],cfg.cols[1],cfg.cols[2]);
-      if(!info)break;
-      const[fa,ia,fb,ib,fc,ic]=C_IDX[cfg.slot];
-      if(f[FACES.indexOf(fa)*9+ia]===cfg.cols[0]&&f[FACES.indexOf(fb)*9+ib]===cfg.cols[1]&&f[FACES.indexOf(fc)*9+ic]===cfg.cols[2])break;
-      const s=info.slot;
-      if(s.startsWith('D')){
-        if(s===cfg.slot){
-          applySeq(['R','U','R\'','U\'']);
-        }else{
-          const alg=s==='DFR'?['R','U','R\'']:s==='DRB'?['B','U','B\'']:s==='DBL'?['L','U','L\'']:['F','U','F\''];
-          applySeq(alg);
+            // Обновляем цены на карточках
+            updatePrices();
         }
-      }else{
-        const U_ORDER=['UFR','URB','UBL','ULF'];
-        const turns=(U_ORDER.indexOf(U_POS[cfg.slot])-U_ORDER.indexOf(s)+4)%4;
-        for(let i=0;i<turns;i++)apply('U');
-        for(let t=0;t<6;t++){
-          const[faa,iaa,fbb,ibb,fcc,icc]=C_IDX[cfg.slot];
-          if(f[FACES.indexOf(faa)*9+iaa]===cfg.cols[0]&&f[FACES.indexOf(fbb)*9+ibb]===cfg.cols[1]&&f[FACES.indexOf(fcc)*9+icc]===cfg.cols[2])break;
-          applySeq(['R','U','R\'','U\'']);
+
+        // Функция выбора тарифа
+        function selectPlan(period, elementId) {
+            currentPeriod = period;
+            
+            // Снимаем выделение со всех карточек
+            document.querySelectorAll('.plan-card').forEach(el => el.classList.remove('selected'));
+            
+            // Выделяем выбранную
+            document.getElementById(elementId).classList.add('selected');
+            
+            // Обновляем текст на большой кнопке
+            updateButton();
         }
-      }
-    }
-  }
 
-  // Средний слой
-  const MID=[
-    {slot:'FR',cols:['F','R']},{slot:'BR',cols:['B','R']},
-    {slot:'BL',cols:['B','L']},{slot:'FL',cols:['F','L']}
-  ];
-  const MID_IDX={
-    'FR':['F',5,'R',3],'BR':['B',3,'R',5],'BL':['B',5,'L',3],'FL':['F',3,'L',5]
-  };
-  const U_SLOT_SIDE={UF:'F',UR:'R',UB:'B',UL:'L'};
-  const U_IDX_BY={F:1,R:1,B:1,L:1},U_UP_IDX={F:7,R:5,B:1,L:3};
-  const ORDER=['F','R','B','L'];
+        // Обновление цифр на карточках при смене устройств
+        function updatePrices() {
+            const prices = pricing[currentDevices];
+            
+            // 12 месяцев
+            document.getElementById('total-price-12').innerText = prices[12].total + '₽';
+            document.getElementById('monthly-price-12').innerText = prices[12].monthly + '₽/';
+            document.getElementById('old-price-12').innerText = prices[12].old ? prices[12].old + '₽' : '';
 
-  for(const cfg of MID){
-    for(let iter=0;iter<25;iter++){
-      const info=findEdge(cfg.cols[0],cfg.cols[1]);
-      if(!info)break;
-      const[fa,ia,fb,ib]=MID_IDX[cfg.slot];
-      if(f[FACES.indexOf(fa)*9+ia]===cfg.cols[0]&&f[FACES.indexOf(fb)*9+ib]===cfg.cols[1])break;
-      const s=info.slot;
-      if(s.startsWith('U')){
-        const sf=U_SLOT_SIDE[s];
-        const sideColor=f[FACES.indexOf(sf)*9+U_IDX_BY[sf]];
-        const centers={F:f[22],R:f[13],B:f[49],L:f[40]};
-        let tgt=-1;
-        for(let i=0;i<4;i++)if(centers[ORDER[i]]===sideColor)tgt=i;
-        if(tgt<0){apply('U');continue;}
-        const turns=(tgt-ORDER.indexOf(sf)+4)%4;
-        for(let i=0;i<turns;i++)apply('U');
-        const newSF=ORDER[tgt];
-        const upColor=f[0*9+U_UP_IDX[newSF]];
-        const rightF=ORDER[(tgt+1)%4];
-        const leftF=ORDER[(tgt+3)%4];
-        const rightColor=f[FACES.indexOf(rightF)*9+4];
-        if(upColor===rightColor){
-          applySeq(['U',rightF,'U\'',rightF+"'",'U\'',newSF+"'",'U',newSF]);
-        }else{
-          applySeq(['U\'',leftF+"'",'U',leftF,'U',newSF,'U\'',newSF+"'"]);
+            // 3 месяца
+            document.getElementById('total-price-3').innerText = prices[3].total + '₽';
+            document.getElementById('monthly-price-3').innerText = prices[3].monthly + '₽/';
+            document.getElementById('old-price-3').innerText = prices[3].old ? prices[3].old + '₽' : '';
+
+            // 1 месяц
+            document.getElementById('total-price-1').innerText = prices[1].total + '₽';
+            document.getElementById('monthly-price-1').innerText = prices[1].monthly + '₽/';
+            
+            updateButton();
         }
-      }else{
-        const sF=s[0],sR=s[1];
-        applySeq(['U',sR,'U\'',sR+"'",'U\'',sF+"'",'U',sF]);
-      }
-    }
-  }
 
-  // Жёлтый крест
-  const uC=f[4];
-  function hasCross(){return f[1]===uC&&f[3]===uC&&f[5]===uC&&f[7]===uC;}
-  for(let i=0;i<8&&!hasCross();i++)applySeq(['F','R','U','R\'','U\'','F\'']);
+        // Обновление текста главной кнопки
+        function updateButton() {
+            const price = pricing[currentDevices][currentPeriod].total;
+            document.getElementById('main-pay-btn').innerText = `Оплатить ${price} ₽`;
+        }
 
-  // Перестановка верхних рёбер
-  function edgesOK(){
-    return f[7]===uC&&f[19]===f[22]&&f[5]===uC&&f[10]===f[13]&&f[1]===uC&&f[46]===f[49]&&f[3]===uC&&f[37]===f[40];
-  }
-  for(let i=0;i<8&&!edgesOK();i++){
-    applySeq(['R','U','R\'','U','R','U2','R\'']);
-    apply('U');
-  }
-  for(let i=0;i<4;i++){if(edgesOK())break;apply('U');}
+        // Обработка нажатия на кнопку "Оплатить"
+        function pay() {
+            // Здесь мы отправляем данные в нашего бота
+            const data = {
+                action: "buy_subscription",
+                devices: currentDevices,
+                period: currentPeriod,
+                price: pricing[currentDevices][currentPeriod].total
+            };
 
-  // Углы верхние
-  function cornersPermOK(){
-    const cols=[[f[8],f[20],f[9]],[f[2],f[11],f[47]],[f[0],f[45],f[38]],[f[6],f[36],f[18]]];
-    const tg=[['U','F','R'],['U','R','B'],['U','B','L'],['U','L','F']];
-    for(let i=0;i<4;i++){const st=new Set(cols[i]);if(!tg[i].every(c=>st.has(c)))return false;}
-    return true;
-  }
-  for(let i=0;i<6&&!cornersPermOK();i++)applySeq(['U','R','U\'','L\'','U','R\'','U\'','L']);
-  for(let i=0;i<4;i++){
-    let safety=0;
-    while(safety<8){
-      if(f[8]==='U'&&f[20]==='F'&&f[9]==='R')break;
-      applySeq(['R\'','D\'','R','D']);
-      safety++;
-    }
-    apply('U');
-  }
-  for(let i=0;i<4;i++){if(f.every((c,idx)=>c===FACES[Math.floor(idx/9)]))break;apply('U');}
+            // Отправляем данные боту (в Python через tg.sendData)
+            tg.sendData(JSON.stringify(data));
+            
+            // Закрываем Mini App (опционально, бот сам пришлет ответ)
+            // tg.close(); 
+        }
 
-  return moves;
-}
-
-/* ============================================================
-   3D VIEWER
-   ============================================================ */
-const COLORS_3D={U:0xf5f5f5,D:0xffd93b,F:0x22c55e,B:0x2f6dff,R:0xe63946,L:0xff8c1a};
-
-class Viewer{
-  constructor(container){
-    this.el=container;
-    this.scene=new THREE.Scene();
-    this.camera=new THREE.PerspectiveCamera(45,1,0.1,100);
-    this.camera.position.set(4.5,4.5,4.5);
-    this.camera.lookAt(0,0,0);
-    this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-    container.appendChild(this.renderer.domElement);
-    this.scene.add(new THREE.AmbientLight(0xffffff,0.75));
-    const d1=new THREE.DirectionalLight(0xffffff,1.1);d1.position.set(5,8,6);this.scene.add(d1);
-    const d2=new THREE.DirectionalLight(0xffffff,0.4);d2.position.set(-5,-4,-6);this.scene.add(d2);
-    this.cubeGroup=new THREE.Group();
-    this.scene.add(this.cubeGroup);
-    this.meshes=[];
-    this._resize();
-    window.addEventListener('resize',()=>this._resize());
-    this.autoRotate=true;
-    this._animate();
-    this._bindDrag();
-  }
-  _resize(){const r=this.el.getBoundingClientRect();if(r.width===0||r.height===0)return;this.renderer.setSize(r.width,r.height);this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();}
-  _bindDrag(){
-    let dragging=false,lx=0,ly=0;
-    let ry=Math.PI/4,rx=Math.PI/6;
-    const apply=()=>this.cubeGroup.rotation.set(rx,ry,0,'YXZ');
-    this.el.addEventListener('pointerdown',e=>{dragging=true;lx=e.clientX;ly=e.clientY;this.autoRotate=false;this.el.setPointerCapture(e.pointerId);});
-    this.el.addEventListener('pointermove',e=>{
-      if(!dragging)return;
-      ry+=(e.clientX-lx)*0.01;
-      rx+=(e.clientY-ly)*0.01;
-      rx=Math.max(-1.3,Math.min(1.3,rx));
-      lx=e.clientX;ly=e.clientY;apply();
-    });
-    this.el.addEventListener('pointerup',()=>dragging=false);
-    apply();
-  }
-  buildFromCube(cube){
-    while(this.cubeGroup.children.length){
-      const c=this.cubeGroup.children.pop();
-      if(c.geometry)c.geometry.dispose();
-    }
-    this.meshes=[];
-    const geo=new THREE.BoxGeometry(0.96,0.96,0.96);
-    for(const k of cube.cubies){
-      const mats=[];
-      for(let oi=0;oi<6;oi++){
-        const col=k.colors[oi];
-        mats.push(new THREE.MeshStandardMaterial({color:col?(COLORS_3D[col]||0x222222):0x15151c,roughness:0.42,metalness:0.05}));
-      }
-      const mesh=new THREE.Mesh(geo,mats);
-      mesh.position.set(k.pos[0],k.pos[1],k.pos[2]);
-      this.cubeGroup.add(mesh);
-      this.meshes.push({mesh,cubie:k});
-    }
-  }
-  async animateMove(move){
-    const face=move[0],mod=move.slice(1);
-    const turns=mod==='2'?2:mod==="'"?-1:1;
-    const axisMap={U:1,D:1,R:0,L:0,F:2,B:2};
-    const layerMap={U:1,D:-1,R:1,L:-1,F:1,B:-1};
-    const axis=['x','y','z'][axisMap[face]];
-    const layer=layerMap[face];
-    const signs={U:-1,D:1,R:-1,L:1,F:-1,B:1};
-    const target=signs[face]*(Math.PI/2)*turns;
-    const pivot=new THREE.Object3D();
-    this.cubeGroup.add(pivot);
-    const inLayer=this.meshes.filter(m=>Math.round(m.mesh.position[axis])===layer);
-    for(const m of inLayer)pivot.attach(m.mesh);
-    const dur=260*Math.abs(turns);
-    const t0=performance.now();
-    await new Promise(resolve=>{
-      const tick=()=>{
-        const t=Math.min(1,(performance.now()-t0)/dur);
-        const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
-        pivot.rotation[axis]=target*e;
-        if(t<1)requestAnimationFrame(tick);else resolve();
-      };
-      tick();
-    });
-    for(const m of inLayer)this.cubeGroup.attach(m.mesh);
-    for(const m of this.meshes){
-      m.mesh.position.set(Math.round(m.mesh.position.x),Math.round(m.mesh.position.y),Math.round(m.mesh.position.z));
-    }
-    this.cubeGroup.remove(pivot);
-  }
-  _animate(){
-    requestAnimationFrame(()=>this._animate());
-    if(this.autoRotate)this.cubeGroup.rotation.y+=0.004;
-    this.renderer.render(this.scene,this.camera);
-  }
-}
-
-/* ============================================================
-   COLOR CLASSIFICATION
-   ============================================================ */
-function rgbToHsv(r,g,b){
-  r/=255;g/=255;b/=255;
-  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
-  let h=0;
-  if(d!==0){
-    if(max===r)h=((g-b)/d)%6;
-    else if(max===g)h=(b-r)/d+2;
-    else h=(r-g)/d+4;
-    h*=60;if(h<0)h+=360;
-  }
-  return[h,max===0?0:d/max,max];
-}
-const HUE_CENTERS={R:0,O:30,Y:55,G:120,B:220};
-function classifyHSV(r,g,b){
-  const[h,s,v]=rgbToHsv(r,g,b);
-  if(s<0.18&&v>0.5)return{c:'W',conf:0.9};
-  if(v<0.15)return{c:null,conf:0};
-  let best=null,bestD=1e9;
-  for(const[col,hue]of Object.entries(HUE_CENTERS)){
-    let d=Math.abs(h-hue);if(d>180)d=360-d;
-    if(d<bestD){bestD=d;best=col;}
-  }
-  const conf=Math.max(0,1-bestD/60);
-  return{c:best,conf};
-}
-
-/* ============================================================
-   APP
-   ============================================================ */
-const App={
-  state:{
-    scanned:{},currentFace:null,currentCapture:null,
-    solution:[],step:0,cube:null,editingIdx:-1,manualFaceEditor:null,
-    liveActive:false
-  },
-  video:null,stream:null,viewer:null,
-  order:['F','R','B','L','U','D'],
-  _canvas:null,_ctx:null,_lastLive:0,_rafId:null,_liveRes:null,
-
-  toast(msg,kind=''){
-    const t=document.getElementById('toast');
-    t.textContent=msg;t.className='toast on '+kind;
-    clearTimeout(this._tT);
-    this._tT=setTimeout(()=>t.className='toast '+kind,2600);
-  },
-  show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');},
-
-  // CAMERA
-  async startScan(){
-    this.state.scanned={};this.state.step=0;this.state.currentFace=null;
-    try{
-      this.stream=await navigator.mediaDevices.getUserMedia({
-        video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}
-      });
-      const v=document.getElementById('cam');
-      v.srcObject=this.stream;
-      await v.play();
-      document.getElementById('camWrap').classList.add('on');
-      this._buildLiveMini();
-      this.nextFace();
-      this._startLive();
-    }catch(e){
-      console.error(e);
-      let msg='Не удалось получить доступ к камере';
-      if(e.name==='NotAllowedError')msg='Вы запретили доступ к камере. Разрешите в настройках браузера.';
-      else if(e.name==='NotFoundError')msg='Камера не найдена на этом устройстве.';
-      else if(!navigator.mediaDevices)msg='Ваш браузер не поддерживает доступ к камере.';
-      this.toast(msg,'err');
-      setTimeout(()=>{if(confirm(msg+'\n\nПерейти к ручному вводу?'))this.openManual();},300);
-    }
-  },
-  stopScan(){
-    this._stopLive();
-    if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}
-    document.getElementById('camWrap').classList.remove('on');
-    this.show('s-home');
-  },
-  nextFace(){
-    const done=Object.keys(this.state.scanned);
-    const remaining=this.order.filter(f=>!done.includes(f));
-    if(remaining.length===0){
-      this._stopLive();
-      document.getElementById('camWrap').classList.remove('on');
-      if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}
-      this.finishScan();
-      return;
-    }
-    this.state.currentFace=remaining[0];
-    const total=this.order.length,num=total-remaining.length+1;
-    document.getElementById('camFaceChip').textContent=`Сторона ${num} из ${total} — ${this._faceName(this.state.currentFace)}`;
-    document.getElementById('camHint').textContent=this._holdInstruction(this.state.currentFace);
-  },
-  _faceName(f){
-    return{U:'Верхняя (U)',R:'Правая (R)',F:'Передняя (F)',D:'Нижняя (D)',L:'Левая (L)',B:'Задняя (B)'}[f]||f;
-  },
-  _holdInstruction(f){
-    return{
-      F:'Держите кубик передней гранью к камере, верх — сверху',
-      R:'Поверните кубик вправо, верх — сверху',
-      B:'Поверните кубик на 180°, верх — сверху',
-      L:'Поверните кубик влево, верх — сверху',
-      U:'Наклоните верхней гранью к камере, передняя — снизу',
-      D:'Переверните нижней гранью к камере, передняя — сверху'
-    }[f]||'Наведите грань в рамку';
-  },
-
-  // ===== REAL-TIME SAMPLING =====
-  _buildLiveMini(){
-    const el=document.getElementById('liveMini');
-    el.innerHTML='';
-    for(let i=0;i<9;i++){
-      const d=document.createElement('div');
-      d.className='none';
-      el.appendChild(d);
-    }
-  },
-  _startLive(){
-    this.state.liveActive=true;
-    this._lastLive=0;
-    const tick=()=>{
-      if(!this.state.liveActive)return;
-      this._rafId=requestAnimationFrame(tick);
-      const now=performance.now();
-      if(now-this._lastLive<150)return;
-      this._lastLive=now;
-      const res=this._sampleGrid();
-      if(res)this._applyLiveResult(res);
-    };
-    this._rafId=requestAnimationFrame(tick);
-  },
-  _stopLive(){
-    this.state.liveActive=false;
-    if(this._rafId){cancelAnimationFrame(this._rafId);this._rafId=null;}
-  },
-  _sampleGrid(){
-    const video=document.getElementById('cam');
-    if(!video||!video.videoWidth)return null;
-    const S=96;
-    if(!this._canvas){
-      this._canvas=document.createElement('canvas');
-      this._canvas.width=S;this._canvas.height=S;
-      this._ctx=this._canvas.getContext('2d',{willReadFrequently:true});
-    }
-    const ctx=this._ctx;
-    const rect=document.querySelector('.grid3').getBoundingClientRect();
-    const vRect=video.getBoundingClientRect();
-    const vAspect=video.videoWidth/video.videoHeight;
-    const dAspect=vRect.width/vRect.height;
-    const sx=video.videoWidth/vRect.width;
-    const sy=video.videoHeight/vRect.height;
-    let offX=0,offY=0;
-    if(vAspect>dAspect){const rw=vRect.height*vAspect;offX=(rw-vRect.width)/2*sx;}
-    else{const rh=vRect.width/vAspect;offY=(rh-vRect.height)/2*sy;}
-    const srcX=(rect.left-vRect.left)*sx+offX;
-    const srcY=(rect.top-vRect.top)*sy+offY;
-    const srcW=rect.width*sx;
-    const srcH=rect.height*sy;
-    try{
-      ctx.drawImage(video,srcX,srcY,srcW,srcH,0,0,S,S);
-    }catch(e){return null;}
-    const colors=[],confs=[];let sumConf=0;
-    for(let r=0;r<3;r++)for(let c=0;c<3;c++){
-      const cx=Math.floor((c+0.5)/3*S);
-      const cy=Math.floor((r+0.5)/3*S);
-      const half=4;
-      const img=ctx.getImageData(cx-half,cy-half,half*2,half*2).data;
-      let sr=0,sg=0,sb=0,n=0;
-      for(let i=0;i<img.length;i+=4){sr+=img[i];sg+=img[i+1];sb+=img[i+2];n++;}
-      const res=classifyHSV(sr/n,sg/n,sb/n);
-      colors.push(res.c);confs.push(res.conf);sumConf+=res.conf;
-    }
-    return{colors,confs,avgConf:sumConf/9};
-  },
-  _applyLiveResult(res){
-    this._liveRes=res;
-    const el=document.getElementById('liveMini');
-    for(let i=0;i<9;i++){
-      const d=el.children[i];
-      let cls='';
-      if(res.colors[i])cls=COLOR_CSS[res.colors[i]];
-      else cls='none';
-      if(res.confs[i]<0.4)cls+=' gray';
-      d.className=cls;
-    }
-    document.getElementById('liveConf').textContent=Math.round(res.avgConf*100)+'%';
-    document.getElementById('camConfChip').textContent='Уверенность '+Math.round(res.avgConf*100)+'%';
-  },
-
-  // Пользователь нажал "Дальше" или "Правка"
-  proceed(){
-    if(!this._liveRes){this.toast('Камера ещё не готова','err');return;}
-    const center=this._liveRes.colors[4];
-    if(!center){this.toast('Не вижу центральный стикер','err');return;}
-    const expected=this.state.currentFace;
-    const expColor=EXPECTED_CENTER[expected];
-    if(center!==expColor){
-      this.toast(`Центр должен быть ${COLOR_NAME[expColor]}, вижу ${COLOR_NAME[center]}`,'err');
-      return;
-    }
-    // дубликаты
-    for(const[f,data]of Object.entries(this.state.scanned)){
-      if(f!==expected&&data.colors[4]===center){
-        this.toast(`Цвет ${COLOR_NAME[center]} уже использован`,'err');
-        return;
-      }
-    }
-    // Открываем экран подтверждения/правки
-    this.state.currentCapture={
-      colors:this._liveRes.colors.slice(),
-      confs:this._liveRes.confs.slice(),
-      avgConf:this._liveRes.avgConf
-    };
-    this._stopLive();
-    this._renderConfirm();
-  },
-  retake(){
-    document.getElementById('camWrap').classList.add('on');
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
-    if(this.stream&&this.state.liveActive===false){
-      this._startLive();
-    }
-  },
-  _renderConfirm(){
-    const cap=this.state.currentCapture;
-    if(!cap){this.retake();return;}
-    const grid=document.getElementById('confirmGrid');
-    grid.innerHTML='';
-    for(let i=0;i<9;i++){
-      const d=document.createElement('div');
-      const c=cap.colors[i];
-      d.className=c?COLOR_CSS[c]:'none';
-      if(cap.confs[i]<0.4)d.classList.add('gray');
-      d.style.cursor='pointer';
-      d.onclick=()=>App._openPalette(i);
-      grid.appendChild(d);
-    }
-    document.getElementById('confValue').textContent=Math.round(cap.avgConf*100)+'%';
-    document.getElementById('confirmTitle').textContent=this._faceName(this.state.currentFace);
-    this.show('s-confirm');
-  },
-  _openPalette(gridIdx){
-    this.state.editingIdx=gridIdx;
-    const pal=document.getElementById('palette');
-    pal.innerHTML='';
-    for(const c of COLORS){
-      const b=document.createElement('div');
-      b.className='pal '+COLOR_CSS[c];
-      b.onclick=()=>App._setColor(c);
-      pal.appendChild(b);
-    }
-    document.getElementById('manualSub').textContent='Клетка #'+(gridIdx+1);
-    document.getElementById('manualModal').classList.add('on');
-  },
-  closeManual(){document.getElementById('manualModal').classList.remove('on');},
-  _setColor(c){
-    if(this.state.editingIdx<0)return;
-    if(this.state.currentCapture){
-      this.state.currentCapture.colors[this.state.editingIdx]=c;
-      this.state.currentCapture.confs[this.state.editingIdx]=1;
-      this.closeManual();
-      this._renderConfirm();
-    }else if(this.state.manualFaceEditor){
-      this.state.scanned[this.state.manualFaceEditor].colors[this.state.editingIdx]=c;
-      this.closeManual();
-      this._renderVerify();
-    }
-  },
-  saveFace(){
-    const cap=this.state.currentCapture;
-    if(!cap)return;
-    const center=cap.colors[4];
-    for(const[f,data]of Object.entries(this.state.scanned)){
-      if(f!==this.state.currentFace&&data.colors[4]===center){
-        this.toast('Этот цвет уже использован для другой грани','err');
-        return;
-      }
-    }
-    this.state.scanned[this.state.currentFace]={
-      colors:cap.colors.slice(),
-      conf:cap.confs.slice()
-    };
-    this.state.currentCapture=null;
-    this.toast('✓ '+this._faceName(this.state.currentFace)+' сохранена','ok');
-    document.getElementById('camWrap').classList.add('on');
-    this.nextFace();
-    if(this.state.liveActive===false&&this.stream){
-      this._startLive();
-    }
-  },
-
-  // MANUAL
-  openManual(){
-    this.state.scanned={};
-    for(const f of FACES)this.state.scanned[f]={colors:new Array(9).fill(null),conf:new Array(9).fill(0)};
-    this._renderVerify();
-    this.show('s-verify');
-  },
-
-  // VERIFY
-  finishScan(){this._renderVerify();this.show('s-verify');},
-  _renderVerify(){
-    const fr=document.getElementById('verifyFaces');
-    fr.innerHTML='';
-    for(const f of FACES){
-      const d=this.state.scanned[f];
-      const chip=document.createElement('div');
-      chip.className='face-chip'+(d?'':' done');
-      chip.innerHTML=`<div class="letter">${f}</div><div class="label">${d?'✓':'—'}</div>`;
-      chip.onclick=()=>App._editFace(f);
-      fr.appendChild(chip);
-    }
-    const cnt={W:0,Y:0,R:0,O:0,B:0,G:0};
-    for(const f of FACES){
-      const d=this.state.scanned[f];
-      if(!d)continue;
-      for(const c of d.colors)if(c)cnt[c]++;
-    }
-    document.getElementById('cntW').textContent=cnt.W;
-    document.getElementById('cntY').textContent=cnt.Y;
-    document.getElementById('cntR').textContent=cnt.R;
-    document.getElementById('cntO').textContent=cnt.O;
-    document.getElementById('cntB').textContent=cnt.B;
-    document.getElementById('cntG').textContent=cnt.G;
-    const allDone=FACES.every(f=>this.state.scanned[f]&&this.state.scanned[f].colors.every(c=>c));
-    const validCounts=COLORS.every(c=>cnt[c]===9);
-    const btn=document.getElementById('btnSolve');
-    const msg=document.getElementById('verifyMsg');
-    if(!allDone){
-      msg.textContent='Не все стороны заполнены. Нажмите на чип грани для правки.';
-      msg.style.color='var(--warn)';
-      btn.disabled=true;
-    }else if(!validCounts){
-      msg.textContent='Каждого цвета должно быть ровно 9. Проверьте грани.';
-      msg.style.color='var(--err)';
-      btn.disabled=true;
-    }else{
-      msg.textContent='✓ Кубик успешно отсканирован.';
-      msg.style.color='var(--ok)';
-      btn.disabled=false;
-    }
-  },
-  _editFace(f){
-    this.state.manualFaceEditor=f;
-    const d=this.state.scanned[f];
-    this.state.currentCapture={
-      colors:d.colors.slice(),
-      confs:d.colors.map(c=>c?1:0),
-      avgConf:1
-    };
-    this.state.currentFace=f;
-    this._renderConfirm();
-  },
-
-  // SOLVE
-  solve(){
-    const f=new Array(54).fill(null);
-    for(let fi=0;fi<6;fi++){
-      const data=this.state.scanned[FACES[fi]];
-      if(!data)continue;
-      for(let i=0;i<9;i++)f[fi*9+i]=data.colors[i];
-    }
-    for(let fi=0;fi<6;fi++){
-      const centerColor=f[fi*9+4];
-      const expected=EXPECTED_CENTER[FACES[fi]];
-      if(centerColor!==expected){
-        this.toast(`Центр грани ${FACES[fi]} должен быть ${COLOR_NAME[expected]}`,'err');
-        return;
-      }
-    }
-    const cnt={};
-    for(const c of f)cnt[c]=(cnt[c]||0)+1;
-    for(const c of COLORS)if(cnt[c]!==9){this.toast('Неправильное количество цветов','err');return;}
-
-    this.show('s-solve');
-    const cube=faceletsToCube(f);
-    let solution;
-    try{solution=solveCube(f.slice());}
-    catch(err){console.error(err);this.toast('Ошибка solver: '+err.message,'err');this.show('s-verify');return;}
-
-    if(!solution||solution.length===0){this.toast('Не удалось решить кубик','err');this.show('s-verify');return;}
-
-    this.state.solution=solution;
-    this.state.step=0;
-    this.state.cube=cube;
-    if(!this.viewer)this.viewer=new Viewer(document.getElementById('viewer'));
-    requestAnimationFrame(()=>{
-      this.viewer._resize();
-      this.viewer.buildFromCube(cube);
-    });
-    document.getElementById('solveInfo').textContent='Решение: '+solution.length+' ходов';
-    this._updateStepUI();
-    // AI подсказка
-    aiService.tip(`кубик решён, ${solution.length} ходов, пользователь начинает сборку`).then(t=>{
-      if(t)document.getElementById('aiTip').textContent='🤖 '+t;
-    });
-  },
-  _updateStepUI(){
-    const sol=this.state.solution,step=this.state.step;
-    document.getElementById('progressBar').style.width=(step/sol.length*100)+'%';
-    const mv=document.getElementById('stepMove'),desc=document.getElementById('stepDesc'),next=document.getElementById('nextBtn');
-    if(step>=sol.length){
-      mv.textContent='✓';
-      desc.textContent='Все ходы выполнены. Кубик должен быть собран!';
-      next.textContent='Проверить результат';
-      return;
-    }
-    const m=sol[step];
-    mv.textContent=m.replace("'",'′');
-    desc.textContent=moveDescription(m);
-    next.textContent='Следующий шаг →';
-    // AI подсказка на каждом шаге (кэшируется)
-    aiService.tip(`шаг ${step+1} из ${sol.length}, ход ${m}`).then(t=>{
-      if(t)document.getElementById('aiTip').textContent='🤖 '+t;
-    });
-  },
-  async nextStep(){
-    const sol=this.state.solution;
-    if(this.state.step>=sol.length){
-      document.getElementById('doneInfo').textContent=`Вы сделали ${sol.length} ходов`;
-      this.show('s-done');
-      return;
-    }
-    const m=sol[this.state.step];
-    this.state.step++;
-    if(this.viewer){
-      await this.viewer.animateMove(m);
-    }
-    this.state.cube.move(m);
-    this._updateStepUI();
-  },
-  async prevStep(){
-    if(this.state.step<=0)return;
-    this.state.step--;
-    const cube=faceletsToCube(this._originalFacelets());
-    for(let i=0;i<this.state.step;i++)cube.move(this.state.solution[i]);
-    this.state.cube=cube;
-    if(this.viewer){
-      this.viewer.autoRotate=false;
-      this.viewer.buildFromCube(cube);
-    }
-    this._updateStepUI();
-  },
-  _originalFacelets(){
-    const f=new Array(54).fill(null);
-    for(let fi=0;fi<6;fi++){
-      const data=this.state.scanned[FACES[fi]];
-      if(!data)continue;
-      for(let i=0;i<9;i++)f[fi*9+i]=data.colors[i];
-    }
-    return f;
-  },
-  reset(){
-    this._stopLive();
-    if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}
-    document.getElementById('camWrap').classList.remove('on');
-    this.state.scanned={};
-    this.state.solution=[];
-    this.state.step=0;
-    this.state.cube=null;
-    this.state.currentCapture=null;
-    this.state.currentFace=null;
-    document.getElementById('aiTip').textContent='';
-    this.show('s-home');
-  }
-};
-
-function moveDescription(m){
-  const face=m[0],mod=m.slice(1);
-  const names={U:'верхнюю',R:'правую',F:'переднюю',D:'нижнюю',L:'левую',B:'заднюю'};
-  const n=names[face]||face;
-  if(mod==="'")return`Поверните ${n} грань против часовой стрелки.`;
-  if(mod==='2')return`Поверните ${n} грань на 180°.`;
-  return`Поверните ${n} грань по часовой стрелке.`;
-}
-
-window.App=App;
-window.addEventListener('resize',()=>App.viewer&&App.viewer._resize());
-
-console.log('%cRubik AI','color:#7c5cff;font-size:16px;font-weight:bold');
-console.log('Gemini API:',aiService.enabled?'ключ указан':'ключ отсутствует');
-</script>
+        // Инициализация при загрузке
+        updatePrices();
+    </script>
 </body>
 </html>
