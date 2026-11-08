@@ -18,56 +18,66 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Запрещаем скролл */
+        }
+
         body {
-            /* Темный градиентный фон */
-            background: radial-gradient(circle at 50% 0%, #1c2b4a 0%, #090d16 100%);
+            /* Градиент от черного к темно-синему и светло-голубому */
+            background: linear-gradient(180deg, #000000 0%, #0a192f 40%, #0066ff 100%);
             color: #ffffff;
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
-            padding-bottom: 140px; /* Место для нижней кнопки */
+            justify-content: space-between; /* Распределяем контент равномерно */
+            padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
         }
 
         /* --- АНИМАЦИИ --- */
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes float {
-            0% { transform: translateY(0px) drop-shadow(0 20px 30px rgba(6, 182, 212, 0.4)); }
-            50% { transform: translateY(-10px) drop-shadow(0 30px 40px rgba(6, 182, 212, 0.6)); }
-            100% { transform: translateY(0px) drop-shadow(0 20px 30px rgba(6, 182, 212, 0.4)); }
+            0% { transform: translateY(0px) drop-shadow(0 15px 25px rgba(6, 182, 212, 0.3)); }
+            50% { transform: translateY(-8px) drop-shadow(0 25px 35px rgba(6, 182, 212, 0.6)); }
+            100% { transform: translateY(0px) drop-shadow(0 15px 25px rgba(6, 182, 212, 0.3)); }
         }
 
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
-            50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); }
-            100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+        /* Анимация свечения и затухания обводки */
+        @keyframes pulseBorder {
+            0% { 
+                border-color: #60a5fa; 
+                box-shadow: 0 0 10px rgba(59, 130, 246, 0.8), inset 0 0 15px rgba(59, 130, 246, 0.3); 
+            }
+            100% { 
+                border-color: #3b82f6; 
+                box-shadow: 0 0 25px rgba(59, 130, 246, 0), inset 0 0 5px rgba(59, 130, 246, 0); 
+            }
         }
 
         /* --- ВЕРХНЯЯ ЧАСТЬ (ЗАГОЛОВКИ) --- */
         .header {
-            padding: 30px 20px 10px;
-            text-align: left;
+            text-align: center;
             animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .header h1 {
-            font-size: 34px;
+            font-size: 24px; /* Уменьшили, чтобы влезло */
             font-weight: 800;
-            line-height: 1.1;
+            line-height: 1.2;
             letter-spacing: -0.5px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .header h1 span {
-            color: #3b82f6; /* Синий акцент */
+            color: #60a5fa; /* Светло-синий акцент */
         }
 
         .header p {
-            font-size: 14px;
+            font-size: 13px;
             color: #a1a1aa;
             font-weight: 600;
         }
@@ -76,14 +86,13 @@
         .logo-container {
             display: flex;
             justify-content: center;
-            margin: 10px 0 20px; /* Уменьшили отступы, так как лого стал больше */
-            opacity: 0; /* Скрыто до анимации */
+            margin: 5px 0;
+            opacity: 0;
             animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
         }
 
         .logo-img {
-            width: 220px; /* УВЕЛИЧИЛИ РАЗМЕР ЩИТА */
-            max-width: 85%; /* Защита от вылезания за края на узких экранах */
+            width: 150px; /* Уменьшили, чтобы не было скролла */
             height: auto;
             object-fit: contain;
             animation: float 4s ease-in-out infinite;
@@ -92,10 +101,10 @@
         /* --- ПЕРЕКЛЮЧАТЕЛЬ УСТРОЙСТВ --- */
         .device-toggle {
             display: flex;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 5px;
-            margin: 0 20px 25px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 4px;
+            margin: 10px 0 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             opacity: 0;
             animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
@@ -103,38 +112,37 @@
 
         .device-btn {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #a1a1aa;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .device-btn.active {
-            background: rgba(59, 130, 246, 0.2);
+            background: rgba(59, 130, 246, 0.3);
             color: #ffffff;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
             border: 1px solid rgba(59, 130, 246, 0.5);
         }
 
         /* --- КАРТОЧКИ ТАРИФОВ --- */
         .plans-container {
-            padding: 0 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px; /* Уменьшили отступы между карточками */
         }
 
         .plan-card {
             background: rgba(255, 255, 255, 0.06);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 20px;
-            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 14px 18px; /* Уменьшили внутренние отступы */
             position: relative;
             cursor: pointer;
             display: flex;
@@ -142,12 +150,10 @@
             align-items: center;
             overflow: hidden;
             opacity: 0;
-            /* Плавный переход для теней и трансформаций */
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Мягкая базовая тень */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
 
-        /* Задержки появления для карточек */
         #plan-12 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; }
         #plan-3 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; }
         #plan-1 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards; }
@@ -156,21 +162,21 @@
             transform: scale(0.97);
         }
 
+        /* ТО САМОЕ СВЕЧЕНИЕ И ЗАТУХАНИЕ */
         .plan-card.selected {
             border: 2px solid #3b82f6;
             background: rgba(59, 130, 246, 0.15);
-            animation: pulseGlow 2s infinite; /* Добавлена пульсация */
+            animation: pulseBorder 1.5s infinite alternate ease-in-out; /* Пульсация */
         }
 
-        /* Плашки "Лучший выбор" и "Популярный" */
         .badge {
             position: absolute;
             top: 0;
             right: 0;
-            padding: 6px 16px;
-            font-size: 11px;
+            padding: 5px 12px;
+            font-size: 10px;
             font-weight: 700;
-            border-bottom-left-radius: 16px;
+            border-bottom-left-radius: 12px;
             box-shadow: -2px 2px 10px rgba(0,0,0,0.2);
         }
 
@@ -187,11 +193,11 @@
         .plan-info {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 3px;
         }
 
         .plan-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             color: #e2e8f0;
         }
@@ -199,13 +205,13 @@
         .plan-price-total {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 20px;
+            gap: 8px;
+            font-size: 18px;
             font-weight: 700;
         }
 
         .old-price {
-            font-size: 14px;
+            font-size: 13px;
             color: #71717a;
             text-decoration: line-through;
             font-weight: 400;
@@ -216,27 +222,21 @@
         }
 
         .price-monthly-val {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 800;
         }
 
         .price-monthly-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #a1a1aa;
         }
 
         /* --- НИЖНЯЯ ПАНЕЛЬ С КНОПКОЙ --- */
         .bottom-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 15px 20px 25px;
-            background: linear-gradient(to top, #090d16 85%, transparent);
             display: flex;
             flex-direction: column;
             gap: 12px;
-            z-index: 10;
+            margin-top: 15px;
             opacity: 0;
             animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
         }
@@ -244,7 +244,7 @@
         .cancel-text {
             text-align: center;
             font-size: 12px;
-            color: #a1a1aa;
+            color: #d4d4d8;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -262,19 +262,18 @@
             color: #000000;
             border: none;
             border-radius: 16px;
-            padding: 20px;
-            font-size: 18px;
+            padding: 16px;
+            font-size: 17px;
             font-weight: 800;
             width: 100%;
             cursor: pointer;
-            /* Мягкая тень для кнопки */
             box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .pay-btn:active {
             background: #e2e8f0;
-            transform: scale(0.96); /* Чуть сильнее сжимается при нажатии */
+            transform: scale(0.96);
             box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
         }
     </style>
@@ -283,13 +282,12 @@
 
     <!-- Заголовок -->
     <div class="header">
-        <h1>VPN, который<br>не придётся <span>менять.</span></h1>
+        <h1>VPN после которого<br>вы забудете о <span>любых ограничениях!</span></h1>
         <p id="subtitle-devices">Все тарифы = 2 устройства.</p>
     </div>
 
     <!-- Логотип -->
     <div class="logo-container">
-        <!-- Твой файл logo.PNG -->
         <img src="logo.PNG" alt="MOROF VPN Logo" class="logo-img">
     </div>
 
@@ -358,16 +356,13 @@
     </div>
 
     <script>
-        // Инициализация Telegram Web App
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
+        tg.expand();
         tg.ready();
 
-        // Настройки цветов шапки Telegram под наш темный дизайн
-        tg.setHeaderColor('#090d16');
-        tg.setBackgroundColor('#090d16');
+        tg.setHeaderColor('#000000');
+        tg.setBackgroundColor('#000000');
 
-        // Данные о ценах
         const pricing = {
             2: {
                 1: { total: 199, monthly: 199, old: null },
@@ -381,81 +376,63 @@
             }
         };
 
-        // Текущее состояние
         let currentDevices = 2;
         let currentPeriod = 12;
 
-        // Тактильный отклик (вибрация)
         function hapticFeedback(type = 'light') {
             if (tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred(type);
             }
         }
 
-        // Функция переключения устройств
         function changeDevices(count) {
-            hapticFeedback('light'); // Легкая вибрация
+            hapticFeedback('light');
             currentDevices = count;
             
-            // Меняем активную кнопку
             document.getElementById('btn-dev-2').classList.remove('active');
             document.getElementById('btn-dev-5').classList.remove('active');
             document.getElementById(`btn-dev-${count}`).classList.add('active');
             
-            // Меняем подзаголовок
             document.getElementById('subtitle-devices').innerText = `Все тарифы = ${count} устройства.`;
 
-            // Обновляем цены на карточках
             updatePrices();
         }
 
-        // Функция выбора тарифа
         function selectPlan(period, elementId) {
-            hapticFeedback('light'); // Легкая вибрация
+            hapticFeedback('light');
             currentPeriod = period;
             
-            // Снимаем выделение со всех карточек
             document.querySelectorAll('.plan-card').forEach(el => el.classList.remove('selected'));
-            
-            // Выделяем выбранную
             document.getElementById(elementId).classList.add('selected');
             
-            // Обновляем текст на большой кнопке
             updateButton();
         }
 
-        // Обновление цифр на карточках при смене устройств
         function updatePrices() {
             const prices = pricing[currentDevices];
             
-            // 12 месяцев
             document.getElementById('total-price-12').innerText = prices[12].total + '₽';
             document.getElementById('monthly-price-12').innerText = prices[12].monthly + '₽/';
             document.getElementById('old-price-12').innerText = prices[12].old ? prices[12].old + '₽' : '';
 
-            // 3 месяца
             document.getElementById('total-price-3').innerText = prices[3].total + '₽';
             document.getElementById('monthly-price-3').innerText = prices[3].monthly + '₽/';
             document.getElementById('old-price-3').innerText = prices[3].old ? prices[3].old + '₽' : '';
 
-            // 1 месяц
             document.getElementById('total-price-1').innerText = prices[1].total + '₽';
             document.getElementById('monthly-price-1').innerText = prices[1].monthly + '₽/';
             
             updateButton();
         }
 
-        // Обновление текста главной кнопки
         function updateButton() {
             const price = pricing[currentDevices][currentPeriod].total;
             document.getElementById('main-pay-btn').innerText = `Оплатить ${price} ₽`;
         }
 
-        // Обработка нажатия на кнопку "Оплатить"
         function pay() {
-            hapticFeedback('heavy'); // Сильная вибрация при оплате
+            hapticFeedback('heavy');
             
-            // Отправляем данные боту (в Python через tg.sendData)
             const data = {
                 action: "buy_subscription",
                 devices: currentDevices,
@@ -464,11 +441,8 @@
             };
 
             tg.sendData(JSON.stringify(data));
-            
-            // Telegram сам закроет окно при отправке данных (если настроено в боте)
         }
 
-        // Инициализация при загрузке
         updatePrices();
     </script>
 </body>
