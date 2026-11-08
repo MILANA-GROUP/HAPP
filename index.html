@@ -76,13 +76,14 @@
         .logo-container {
             display: flex;
             justify-content: center;
-            margin: 20px 0 30px;
+            margin: 10px 0 20px; /* Уменьшили отступы, так как лого стал больше */
             opacity: 0; /* Скрыто до анимации */
             animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
         }
 
         .logo-img {
-            width: 140px; /* Размер подогнан под твой 3D-щит */
+            width: 220px; /* УВЕЛИЧИЛИ РАЗМЕР ЩИТА */
+            max-width: 85%; /* Защита от вылезания за края на узких экранах */
             height: auto;
             object-fit: contain;
             animation: float 4s ease-in-out infinite;
