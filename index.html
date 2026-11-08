@@ -16,41 +16,65 @@ html,body{height:100%;width:100%;overflow:hidden;background:#02050f}
 body{font-family:var(--font);color:#fff;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;-webkit-user-select:none;user-select:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
 
-/* Фон по референсу: чёрно-синий верх, бирюзовое свечение слева, голубой низ */
+/* Фон */
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:
 radial-gradient(80% 34% at -14% 69%,rgba(90,218,245,.9),rgba(56,150,225,.4) 42%,transparent 72%),
 radial-gradient(70% 22% at 50% 27%,rgba(34,70,190,.32),transparent 72%),
 radial-gradient(130% 24% at 50% 106%,rgba(130,214,222,.5),transparent 70%),
 linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86%,#3f93a8 100%)}
 
-/* Без прокрутки: JS подгоняет масштаб под высоту экрана */
+/* Главный контейнер приложения */
 .app{position:relative;z-index:1;height:100%;overflow:hidden;overscroll-behavior:none}
 .app::-webkit-scrollbar{display:none}
-.wrap{position:absolute;top:0;left:50%;width:min(calc(100% / var(--k,1)),520px);height:calc(100% / var(--k,1));transform:translateX(-50%) scale(var(--k,1));transform-origin:50% 0;display:flex;flex-direction:column;justify-content:space-between;gap:14px;padding:calc(12px + env(safe-area-inset-top,0px)) 18px calc(16px + env(safe-area-inset-bottom,0px))}
-.middle{display:flex;flex-direction:column;gap:16px}
 
+/* Контейнер для экранов (для слайд-анимации) */
+.screens-container{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden}
+
+/* Общие стили для каждого экрана */
+.screen{
+    position:absolute;
+    top:0;left:0;width:100%;height:100%;
+    display:flex;flex-direction:column;justify-content:space-between;
+    padding:calc(12px + env(safe-area-inset-top,0px)) 18px calc(16px + env(safe-area-inset-bottom,0px));
+    transition:transform .7s cubic-bezier(0.16, 1, 0.3, 1), opacity .6s ease;
+    will-change:transform,opacity;
+}
+
+/* Экраны: 1 - Главный, 2 - Оплата */
+.screen-main{z-index:1}
+.screen-payment{z-index:2;transform:translateX(100%);opacity:0;pointer-events:none;background:transparent}
+
+/* СОСТОЯНИЕ ПЕРЕХОДА К ОПЛАТЕ */
+.screens-container.payment-mode .screen-main{
+    transform:translateX(-30%); /* Уезжает чуть влево для эффекта параллакса */
+    opacity:0;
+    pointer-events:none;
+}
+.screens-container.payment-mode .screen-payment{
+    transform:translateX(0);
+    opacity:1;
+    pointer-events:auto;
+}
+
+/* Анимации появления базовых элементов */
 @keyframes rise{from{opacity:0;transform:translateY(16px)}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes glow{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
 @keyframes halo{0%,100%{filter:opacity(.25)}50%{filter:opacity(1)}}
 @keyframes tick{from{opacity:0;transform:translateY(8px)}}
+
 .enter{animation:rise .8s var(--ease) var(--d,0s) backwards}
+.middle{display:flex;flex-direction:column;gap:16px}
 
-/* Анимация смены раздела (направление задаёт JS) */
-.swap{will-change:transform,opacity;transition:transform .55s var(--ease),opacity .45s ease}
-.swap.out{opacity:0;transition:transform .21s cubic-bezier(.4,0,1,1),opacity .21s ease-in}
-
-/* Заголовок */
+/* --- СТИЛИ ГЛАВНОГО ЭКРАНА --- */
 .header h1{font-size:clamp(20px,6.6vw,30px);font-weight:800;line-height:1.14;letter-spacing:-.02em;text-wrap:balance;overflow-wrap:anywhere}
 .acc{color:var(--cyan)}
 .header p{margin-top:10px;font-size:12px;font-weight:600;line-height:1.3}
 
-/* Логотип */
 .logo-container{position:relative;display:flex;align-items:center;justify-content:center;flex:1 1 0;min-height:56px}
 .logo-container::before{content:"";position:absolute;width:62%;max-width:240px;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,rgba(48,112,255,.4),transparent);animation:glow 4s ease-in-out infinite}
 .logo-img{position:relative;height:min(100%,170px);width:auto;max-width:60%;object-fit:contain;filter:drop-shadow(0 16px 22px rgba(10,40,170,.55));animation:float 4s ease-in-out infinite}
 
-/* Переключатель устройств со скользящим бегунком */
 .device-toggle{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:18px;background:rgba(6,16,52,.45);border:1px solid rgba(255,255,255,.16);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px rgba(0,10,50,.3)}
 .device-toggle::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:14px;background:linear-gradient(180deg,#fff,#dbe9ff);box-shadow:0 6px 18px rgba(80,170,255,.4);transform:translateX(var(--shift,0%));transition:transform .5s var(--ease)}
 .device-toggle[data-active="5"]{--shift:100%}
@@ -58,23 +82,19 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
 .device-btn.active{color:#08174a}
 .device-btn:active{transform:scale(.95)}
 
-/* Карточки тарифов: вкладка-название слева, бейдж справа */
 .plans-container{display:flex;flex-direction:column;gap:20px;padding-top:12px}
 .plan-card{position:relative;display:grid;grid-template-rows:auto 1fr;min-height:86px;padding:0 18px 12px;border-radius:26px;border:1.5px solid rgba(255,255,255,.26);cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.07));-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);box-shadow:0 14px 30px rgba(0,8,40,.35),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -16px 26px rgba(10,40,150,.16);transition:transform .35s var(--ease)}
 .plan-card:active{transform:scale(.975)}
 .plan-card:focus-visible{outline:2px solid #fff;outline-offset:3px}
-/* Выбранное состояние — отдельные слои: гаснут медленно (.8s), зажигаются быстро (.35s) */
 .plan-card::before{content:"";position:absolute;inset:-1.5px;z-index:-1;border-radius:inherit;pointer-events:none;border:1.5px solid rgba(255,255,255,.95);background:linear-gradient(180deg,rgba(16,44,138,.9),rgba(8,24,88,.94));box-shadow:0 0 0 1px rgba(255,255,255,.2),inset 0 1px 0 rgba(255,255,255,.4);opacity:0;transition:opacity .8s ease-out}
 .plan-card::after{content:"";position:absolute;inset:-2px;border-radius:inherit;pointer-events:none;box-shadow:0 0 30px 3px rgba(125,205,255,.6);opacity:0;transition:opacity .8s ease-out;animation:halo 2.4s ease-in-out infinite}
 .plan-card.selected::before,.plan-card.selected::after{opacity:1;transition-duration:.35s}
-
 
 .plan-title{justify-self:start;margin-left:-18px;padding:8px 24px 8px 20px;font-size:12px;font-weight:600;line-height:1.25;white-space:nowrap;border-radius:24px 0 18px 0;background:rgba(3,12,48,.34);border-right:1px solid rgba(255,255,255,.2);border-bottom:1px solid rgba(255,255,255,.2)}
 .badge{position:absolute;right:-1.5px;top:-14px;z-index:2;padding:7px 14px 9px;border-radius:16px 16px 0 0;font-size:10px;font-weight:700;line-height:1.2;white-space:nowrap;color:#06185a;box-shadow:0 -4px 16px rgba(120,195,255,.3)}
 .badge-best{background:linear-gradient(180deg,#fff,#e6efff)}
 .badge-popular{background:linear-gradient(180deg,#7be3ff,#4cc6f4)}
 
-/* Цены живут в своей строке: ни заголовок, ни бейдж на них не налезают */
 .plan-body{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:6px;min-width:0}
 .plan-price-total{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 9px;min-width:0;font-size:17px;font-weight:700;line-height:1.15}
 .old-price{font-size:11px;font-weight:500;color:rgba(255,255,255,.56);text-decoration:line-through;text-decoration-thickness:1.5px}
@@ -82,18 +102,64 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
 .price-monthly-val{font-size:18px;font-weight:700;white-space:nowrap}
 .price-monthly-label{margin-top:3px;font-size:13px;font-weight:700;white-space:nowrap}
 
-/* Нижняя панель */
 .bottom-panel{margin-top:2px}
 .cancel-text{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:-24px;padding:11px 12px 32px;border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.14);border-bottom:0;background:linear-gradient(180deg,rgba(10,30,72,.72),rgba(22,58,98,.55));-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);font-size:11px;font-weight:400;line-height:1.3;text-align:center;color:rgba(255,255,255,.92)}
 .cancel-text svg{flex:none;width:16px;height:16px;fill:var(--cyan)}
 .pay-btn{position:relative;z-index:1;display:block;width:100%;min-height:58px;padding:16px 18px;border-radius:22px;font-size:clamp(14px,4.4vw,17px);font-weight:700;line-height:1.2;color:#10308f;background:linear-gradient(180deg,#fff,#eaf2ff);box-shadow:0 14px 30px rgba(0,20,90,.38),inset 0 -2px 0 rgba(110,150,255,.25);transition:transform .25s var(--ease),box-shadow .25s var(--ease),filter .25s}
 .pay-btn:active{transform:scale(.965);filter:brightness(.94);box-shadow:0 6px 16px rgba(0,20,90,.3),inset 0 -2px 0 rgba(110,150,255,.25)}
-#pay-label{display:inline-block}
-.tick{animation:tick .4s var(--ease)}
 
+/* --- СТИЛИ ЭКРАНА ОПЛАТЫ --- */
+.payment-header{opacity:0;transform:translateY(-10px);transition:all .5s var(--ease)}
+.screens-container.payment-mode .payment-header{opacity:1;transform:translateY(0);transition-delay:.15s}
+
+.back-btn{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,.7);font-weight:600;font-size:14px;padding:10px 0;transition:color .2s}
+.back-btn:active{color:#fff}
+.back-btn svg{width:20px;height:20px;fill:currentColor}
+
+.payment-content{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:20px}
+.payment-title{font-size:22px;font-weight:800;margin-bottom:24px;text-align:center;opacity:0;transform:translateY(15px);transition:all .5s var(--ease)}
+.screens-container.payment-mode .payment-title{opacity:1;transform:translateY(0);transition-delay:.2s}
+
+.payment-methods{display:flex;flex-direction:column;gap:16px}
+
+.pay-method-card{
+    background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.05));
+    border:1.5px solid rgba(255,255,255,.2);
+    border-radius:22px;
+    padding:20px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    cursor:pointer;
+    box-shadow:0 10px 25px rgba(0,10,40,.2), inset 0 1px 0 rgba(255,255,255,.2);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    transition:transform .25s var(--ease), background .25s, border-color .25s;
+    opacity:0;
+    transform:translateY(20px);
+}
+.screens-container.payment-mode .pay-method-card:nth-child(1){opacity:1;transform:translateY(0);transition:all .6s var(--ease);transition-delay:.3s}
+.screens-container.payment-mode .pay-method-card:nth-child(2){opacity:1;transform:translateY(0);transition:all .6s var(--ease);transition-delay:.4s}
+
+.pay-method-card:active{transform:scale(.96) !important;background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4)}
+
+.icon-box{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.1);display:flex;justify-content:center;align-items:center;color:var(--cyan);box-shadow:inset 0 1px 3px rgba(0,0,0,.3), 0 5px 15px rgba(79,210,247,.15)}
+.icon-box svg{width:26px;height:26px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.pay-method-text{font-size:16px;font-weight:700;letter-spacing:-.01em}
+
+/* Нижняя панель оплаты */
+.payment-bottom{opacity:0;transform:translateY(15px);transition:all .5s var(--ease);display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.screens-container.payment-mode .payment-bottom{opacity:1;transform:translateY(0);transition-delay:.5s}
+
+.payment-total-text{text-align:center;font-size:14px;color:rgba(255,255,255,.8);margin-bottom:5px}
+.payment-total-amount{font-size:24px;font-weight:800;color:#fff;text-shadow:0 2px 10px rgba(79,210,247,.4)}
+
+/* Адаптив */
 @media (max-height:700px){
   .plan-card{min-height:76px}
   .header h1{font-size:clamp(20px,6.1vw,26px)}
+  .logo-img{max-height:120px}
+  .payment-title{margin-bottom:15px}
+  .pay-method-card{padding:16px}
 }
 @media (max-width:350px){
   .plan-card{padding:0 14px 10px}
@@ -110,92 +176,140 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
 <body>
 <div class="bg"></div>
 
-<main class="app"><div class="wrap">
+<main class="app">
+    <div class="screens-container" id="screens-container">
+        
+        <!-- ================= ЭКРАН 1: ГЛАВНЫЙ ================= -->
+        <div class="screen screen-main">
+            <!-- Заголовок -->
+            <div class="header enter">
+                <h1><span class="acc">VPN</span> после которого вы забудете о <span class="acc">любых ограничениях!</span></h1>
+                <p class="swap" id="subtitle-devices">Все тарифы = 2 устройства.</p>
+            </div>
 
-    <!-- Заголовок -->
-    <div class="header enter">
-        <h1><span class="acc">VPN</span> после которого вы забудете о <span class="acc">любых ограничениях!</span></h1>
-        <p class="swap" id="subtitle-devices">Все тарифы = 2 устройства.</p>
-    </div>
+            <!-- Логотип -->
+            <div class="logo-container enter" style="--d:.1s">
+                <img src="logo.PNG" alt="MOROF VPN Logo" class="logo-img">
+            </div>
 
-    <!-- Логотип -->
-    <div class="logo-container enter" style="--d:.1s">
-        <img src="logo.PNG" alt="MOROF VPN Logo" class="logo-img">
-    </div>
+            <div class="middle">
+                <!-- Переключатель устройств -->
+                <div class="device-toggle enter" style="--d:.2s" data-active="2" role="group">
+                    <button type="button" class="device-btn active" onclick="changeDevices(2)" id="btn-dev-2">2 устройства</button>
+                    <button type="button" class="device-btn" onclick="changeDevices(5)" id="btn-dev-5">5 устройств</button>
+                </div>
 
-    <div class="middle">
-        <!-- Переключатель устройств -->
-        <div class="device-toggle enter" style="--d:.2s" data-active="2" role="group">
-            <button type="button" class="device-btn active" onclick="changeDevices(2)" id="btn-dev-2">2 устройства</button>
-            <button type="button" class="device-btn" onclick="changeDevices(5)" id="btn-dev-5">5 устройств</button>
-        </div>
-
-        <!-- Карточки тарифов -->
-        <div class="plans-container">
-            <!-- 12 месяцев -->
-            <div class="plan-slot swap enter" style="--d:.3s">
-                <div class="plan-card selected" onclick="selectPlan(12, 'plan-12')" id="plan-12" role="button" tabindex="0">
-                    <div class="badge badge-best">Лучший выбор</div>
-                    <div class="plan-title">12 месяцев</div>
-                    <div class="plan-body">
-                        <div class="plan-price-total">
-                            <span class="old-price" id="old-price-12">2989₽</span>
-                            <span id="total-price-12">1590₽</span>
+                <!-- Карточки тарифов -->
+                <div class="plans-container">
+                    <!-- 12 месяцев -->
+                    <div class="plan-slot swap enter" style="--d:.3s">
+                        <div class="plan-card selected" onclick="selectPlan(12, 'plan-12')" id="plan-12" role="button" tabindex="0">
+                            <div class="badge badge-best">Лучший выбор</div>
+                            <div class="plan-title">12 месяцев</div>
+                            <div class="plan-body">
+                                <div class="plan-price-total">
+                                    <span class="old-price" id="old-price-12">2989₽</span>
+                                    <span id="total-price-12">1590₽</span>
+                                </div>
+                                <div class="plan-price-monthly">
+                                    <div class="price-monthly-val" id="monthly-price-12">132₽/</div>
+                                    <div class="price-monthly-label">месяц</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="plan-price-monthly">
-                            <div class="price-monthly-val" id="monthly-price-12">132₽/</div>
-                            <div class="price-monthly-label">месяц</div>
+                    </div>
+
+                    <!-- 3 месяца -->
+                    <div class="plan-slot swap enter" style="--d:.4s">
+                        <div class="plan-card" onclick="selectPlan(3, 'plan-3')" id="plan-3" role="button" tabindex="0">
+                            <div class="badge badge-popular">Популярный</div>
+                            <div class="plan-title">3 месяца</div>
+                            <div class="plan-body">
+                                <div class="plan-price-total">
+                                    <span class="old-price" id="old-price-3">747₽</span>
+                                    <span id="total-price-3">499₽</span>
+                                </div>
+                                <div class="plan-price-monthly">
+                                    <div class="price-monthly-val" id="monthly-price-3">166₽/</div>
+                                    <div class="price-monthly-label">месяц</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 1 месяц -->
+                    <div class="plan-slot swap enter" style="--d:.5s">
+                        <div class="plan-card" onclick="selectPlan(1, 'plan-1')" id="plan-1" role="button" tabindex="0">
+                            <div class="plan-title">1 месяц</div>
+                            <div class="plan-body">
+                                <div class="plan-price-total">
+                                    <span id="total-price-1">199₽</span>
+                                </div>
+                                <div class="plan-price-monthly">
+                                    <div class="price-monthly-val" id="monthly-price-1">199₽/</div>
+                                    <div class="price-monthly-label">месяц</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 3 месяца -->
-            <div class="plan-slot swap enter" style="--d:.4s">
-                <div class="plan-card" onclick="selectPlan(3, 'plan-3')" id="plan-3" role="button" tabindex="0">
-                    <div class="badge badge-popular">Популярный</div>
-                    <div class="plan-title">3 месяца</div>
-                    <div class="plan-body">
-                        <div class="plan-price-total">
-                            <span class="old-price" id="old-price-3">747₽</span>
-                            <span id="total-price-3">499₽</span>
+            <!-- Нижняя панель с кнопкой -->
+            <div class="bottom-panel enter" style="--d:.6s">
+                <div class="cancel-text">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    Можно отменить в любое время
+                </div>
+                <button type="button" class="pay-btn" onclick="openPaymentScreen()" id="main-pay-btn"><span id="pay-label">Оплатить 1590 ₽</span></button>
+            </div>
+        </div>
+
+        <!-- ================= ЭКРАН 2: ОПЛАТА ================= -->
+        <div class="screen screen-payment">
+            <div class="payment-header">
+                <button class="back-btn" onclick="closePaymentScreen()">
+                    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                    Назад
+                </button>
+            </div>
+
+            <div class="payment-content">
+                <h2 class="payment-title">Выберите способ оплаты</h2>
+                
+                <div class="payment-methods">
+                    <!-- Банковская карта -->
+                    <button class="pay-method-card" onclick="selectPaymentMethod('card')">
+                        <div class="icon-box">
+                            <!-- Иконка банковской карты -->
+                            <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line><line x1="5" y1="15" x2="9" y2="15"></line></svg>
                         </div>
-                        <div class="plan-price-monthly">
-                            <div class="price-monthly-val" id="monthly-price-3">166₽/</div>
-                            <div class="price-monthly-label">месяц</div>
+                        <span class="pay-method-text">Банковская карта</span>
+                    </button>
+
+                    <!-- СБП -->
+                    <button class="pay-method-card" onclick="selectPaymentMethod('sbp')">
+                        <div class="icon-box">
+                            <!-- Премиальная иконка СБП (стилизованный символ мгновенного перевода) -->
+                            <svg viewBox="0 0 24 24">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                            </svg>
                         </div>
-                    </div>
+                        <span class="pay-method-text">СБП</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- 1 месяц -->
-            <div class="plan-slot swap enter" style="--d:.5s">
-                <div class="plan-card" onclick="selectPlan(1, 'plan-1')" id="plan-1" role="button" tabindex="0">
-                    <div class="plan-title">1 месяц</div>
-                    <div class="plan-body">
-                        <div class="plan-price-total">
-                            <span id="total-price-1">199₽</span>
-                        </div>
-                        <div class="plan-price-monthly">
-                            <div class="price-monthly-val" id="monthly-price-1">199₽/</div>
-                            <div class="price-monthly-label">месяц</div>
-                        </div>
-                    </div>
+            <div class="payment-bottom">
+                <div class="payment-total-text">
+                    К оплате: <br>
+                    <span class="payment-total-amount" id="payment-total-display">1590 ₽</span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Нижняя панель с кнопкой -->
-    <div class="bottom-panel enter" style="--d:.6s">
-        <div class="cancel-text">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-            Можно отменить в любое время
-        </div>
-        <button type="button" class="pay-btn" onclick="pay()" id="main-pay-btn"><span id="pay-label">Оплатить 1590 ₽</span></button>
     </div>
-
-</div></main>
+</main>
 
 <script>
     const tg = (window.Telegram && window.Telegram.WebApp) || null;
@@ -234,8 +348,7 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
     const $ = id => document.getElementById(id);
     const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-    // Тактильная отдача: Telegram HapticFeedback -> vibrate (если есть) -> тишина без ошибок
-    // kind: 'light' | 'medium' | 'heavy' | 'soft' | 'rigid' | 'select'
+    // Тактильная отдача
     function hapticFeedback(kind = 'light') {
         try {
             if (tgSupports('6.1') && tg.HapticFeedback) {
@@ -253,8 +366,7 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
         document.querySelector('.device-toggle').dataset.active = String(currentDevices);
     }
 
-    // Направленная смена раздела: dir = 1 (вперёд) — старый блок уходит вниз, новый приходит сверху;
-    // dir = -1 (назад) — наоборот. Любое новое нажатие плавно перехватывает текущую анимацию.
+    // Анимация смены тарифов (Внутри главного экрана)
     function swapSection(dir) {
         clearTimeout(swapTimer);
         if (reduceMotion) { render(); return; }
@@ -270,7 +382,7 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
                 el.style.transition = 'none';
                 el.style.transform = `translate3d(0,${-dir * 24}px,0)`;
             });
-            void document.body.offsetWidth; // зафиксировать стартовую позицию без анимации
+            void document.body.offsetWidth;
             els.forEach((el, i) => {
                 el.style.transition = '';
                 el.style.transitionDelay = (i * 45) + 'ms';
@@ -292,9 +404,7 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
     function selectPlan(period, elementId) {
         hapticFeedback('light');
         currentPeriod = period;
-
         document.querySelectorAll('.plan-card').forEach(el => el.classList.toggle('selected', el.id === elementId));
-
         updateButton();
     }
 
@@ -305,7 +415,6 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
 
     function updatePrices() {
         const prices = pricing[currentDevices];
-
         $('total-price-12').innerText = prices[12].total + '₽';
         $('monthly-price-12').innerText = prices[12].monthly + '₽/';
         $('old-price-12').innerText = prices[12].old ? prices[12].old + '₽' : '';
@@ -316,7 +425,6 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
 
         $('total-price-1').innerText = prices[1].total + '₽';
         $('monthly-price-1').innerText = prices[1].monthly + '₽/';
-
         updateButton();
     }
 
@@ -332,20 +440,42 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
         }
     }
 
-    function pay() {
+    // === ЛОГИКА ПЕРЕХОДА НА ЭКРАН ОПЛАТЫ ===
+    
+    function openPaymentScreen() {
         hapticFeedback('medium');
-
-        const data = {
-            action: "buy_subscription",
-            devices: currentDevices,
-            period: currentPeriod,
-            price: pricing[currentDevices][currentPeriod].total
-        };
-
-        try { if (tg) tg.sendData(JSON.stringify(data)); } catch (e) { console.warn(e); }
+        
+        // Обновляем сумму на экране оплаты
+        const totalPrice = pricing[currentDevices][currentPeriod].total;
+        document.getElementById('payment-total-display').innerText = `${totalPrice} ₽`;
+        
+        // Запускаем CSS-анимацию слайда
+        document.getElementById('screens-container').classList.add('payment-mode');
     }
 
-    // Клавиатура: Enter / Пробел на карточке тарифа
+    function closePaymentScreen() {
+        hapticFeedback('light');
+        // Обратная анимация
+        document.getElementById('screens-container').classList.remove('payment-mode');
+    }
+
+    function selectPaymentMethod(method) {
+        hapticFeedback('heavy'); // Сильная вибрация при выборе метода оплаты
+        
+        // Небольшая задержка, чтобы пользователь увидел нажатие кнопки перед тем, как Mini App закроется
+        setTimeout(() => {
+            const data = {
+                action: "buy_subscription",
+                devices: currentDevices,
+                period: currentPeriod,
+                price: pricing[currentDevices][currentPeriod].total,
+                payment_method: method
+            };
+            try { if (tg) tg.sendData(JSON.stringify(data)); } catch (e) { console.warn(e); }
+        }, 200);
+    }
+
+    // Клавиатура
     document.addEventListener('keydown', e => {
         if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('plan-card')) {
             e.preventDefault();
@@ -355,17 +485,16 @@ linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86
 
     updatePrices();
 
-    // Без прокрутки: если контент не помещается по высоте, весь интерфейс равномерно уменьшается
     function fitToScreen() {
-        const wrap = document.querySelector('.wrap');
-        const last = document.querySelector('.bottom-panel');
-        const pad = parseFloat(getComputedStyle(wrap).paddingBottom) || 0;
-        const overflow = () => last.offsetTop + last.offsetHeight + pad > wrap.clientHeight + 0.5;
+        const screenMain = document.querySelector('.screen-main');
+        const last = document.querySelector('.screen-main .bottom-panel');
+        const pad = parseFloat(getComputedStyle(screenMain).paddingBottom) || 0;
+        const overflow = () => last.offsetTop + last.offsetHeight + pad > screenMain.clientHeight + 0.5;
         let k = 1;
-        wrap.style.setProperty('--k', k);
+        document.documentElement.style.setProperty('--k', k);
         for (let i = 0; i < 30 && k > 0.5 && overflow(); i++) {
             k = Math.max(0.5, k - 0.02);
-            wrap.style.setProperty('--k', k.toFixed(3));
+            document.documentElement.style.setProperty('--k', k.toFixed(3));
         }
     }
     window.addEventListener('resize', fitToScreen);
