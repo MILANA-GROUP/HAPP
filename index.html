@@ -1,449 +1,356 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOROF VPN</title>
-    <!-- Подключаем скрипт Telegram Mini Apps -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        /* --- БАЗОВЫЕ СТИЛИ И ШРИФТЫ --- */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>MOROF VPN</title>
+<!-- Подключаем скрипт Telegram Mini Apps -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#4fd2f7;--ease:cubic-bezier(.16,1,.3,1);--font:'Unbounded','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;width:100%;overflow:hidden;background:#02050f}
+body{font-family:var(--font);color:#fff;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+/* Фон по референсу: чёрно-синий верх, бирюзовое свечение слева, голубой низ */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+radial-gradient(80% 34% at -14% 69%,rgba(90,218,245,.9),rgba(56,150,225,.4) 42%,transparent 72%),
+radial-gradient(70% 22% at 50% 27%,rgba(34,70,190,.32),transparent 72%),
+radial-gradient(130% 24% at 50% 106%,rgba(130,214,222,.5),transparent 70%),
+linear-gradient(180deg,#02040c 0%,#040b26 30%,#0a2266 52%,#1d4f9f 70%,#2f7aa8 86%,#3f93a8 100%)}
 
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden; /* Запрещаем скролл */
-        }
+/* Скролл-контейнер: на низких экранах ничего не обрезается */
+.app{position:relative;z-index:1;height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none}
+.app::-webkit-scrollbar{display:none}
+.wrap{min-height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;justify-content:space-between;gap:14px;padding:calc(12px + env(safe-area-inset-top,0px)) 18px calc(16px + env(safe-area-inset-bottom,0px))}
+.middle{display:flex;flex-direction:column;gap:16px}
 
-        body {
-            /* Градиент от черного к темно-синему и светло-голубому */
-            background: linear-gradient(180deg, #000000 0%, #0a192f 40%, #0066ff 100%);
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; /* Распределяем контент равномерно */
-            padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
-        }
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes glow{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+@keyframes halo{0%,100%{opacity:.2}50%{opacity:.95}}
+@keyframes tick{from{opacity:0;transform:translateY(8px)}}
+.enter{animation:rise .8s var(--ease) var(--d,0s) backwards}
 
-        /* --- АНИМАЦИИ --- */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+/* Анимация смены раздела (направление задаёт JS) */
+.swap{will-change:transform,opacity;transition:transform .55s var(--ease),opacity .45s ease}
+.swap.out{opacity:0;transition:transform .21s cubic-bezier(.4,0,1,1),opacity .21s ease-in}
 
-        @keyframes float {
-            0% { transform: translateY(0px) drop-shadow(0 15px 25px rgba(6, 182, 212, 0.3)); }
-            50% { transform: translateY(-8px) drop-shadow(0 25px 35px rgba(6, 182, 212, 0.6)); }
-            100% { transform: translateY(0px) drop-shadow(0 15px 25px rgba(6, 182, 212, 0.3)); }
-        }
+/* Заголовок */
+.header h1{font-size:clamp(20px,6.6vw,30px);font-weight:800;line-height:1.14;letter-spacing:-.02em;text-wrap:balance;overflow-wrap:anywhere}
+.acc{color:var(--cyan)}
+.header p{margin-top:10px;font-size:12px;font-weight:600;line-height:1.3}
 
-        /* Анимация свечения и затухания обводки */
-        @keyframes pulseBorder {
-            0% { 
-                border-color: #60a5fa; 
-                box-shadow: 0 0 10px rgba(59, 130, 246, 0.8), inset 0 0 15px rgba(59, 130, 246, 0.3); 
-            }
-            100% { 
-                border-color: #3b82f6; 
-                box-shadow: 0 0 25px rgba(59, 130, 246, 0), inset 0 0 5px rgba(59, 130, 246, 0); 
-            }
-        }
+/* Логотип */
+.logo-container{position:relative;display:grid;place-items:center}
+.logo-container::before{content:"";position:absolute;width:62%;max-width:240px;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,rgba(48,112,255,.4),transparent);animation:glow 4s ease-in-out infinite}
+.logo-img{position:relative;height:clamp(84px,17vh,148px);width:auto;max-width:60%;object-fit:contain;filter:drop-shadow(0 16px 22px rgba(10,40,170,.55));animation:float 4s ease-in-out infinite}
 
-        /* --- ВЕРХНЯЯ ЧАСТЬ (ЗАГОЛОВКИ) --- */
-        .header {
-            text-align: center;
-            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+/* Переключатель устройств со скользящим бегунком */
+.device-toggle{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:18px;background:rgba(6,16,52,.45);border:1px solid rgba(255,255,255,.16);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px rgba(0,10,50,.3)}
+.device-toggle::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:14px;background:linear-gradient(180deg,#fff,#dbe9ff);box-shadow:0 6px 18px rgba(80,170,255,.4);transform:translateX(var(--shift,0%));transition:transform .5s var(--ease)}
+.device-toggle[data-active="5"]{--shift:100%}
+.device-btn{position:relative;z-index:1;min-width:0;padding:11px 8px;border-radius:14px;font-size:12px;font-weight:600;line-height:1.25;color:rgba(255,255,255,.68);transition:color .35s var(--ease),transform .25s var(--ease)}
+.device-btn.active{color:#08174a}
+.device-btn:active{transform:scale(.95)}
 
-        .header h1 {
-            font-size: 24px; /* Уменьшили, чтобы влезло */
-            font-weight: 800;
-            line-height: 1.2;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-        }
-        
-        .header h1 span {
-            color: #60a5fa; /* Светло-синий акцент */
-        }
+/* Карточки тарифов: вкладка-название слева, бейдж справа */
+.plans-container{display:flex;flex-direction:column;gap:20px;padding-top:12px}
+.plan-card{position:relative;display:grid;grid-template-rows:auto 1fr;min-height:86px;padding:0 18px 12px;border-radius:26px;border:1.5px solid rgba(255,255,255,.26);cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.07));-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);box-shadow:0 14px 30px rgba(0,8,40,.35),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -16px 26px rgba(10,40,150,.16);transition:transform .35s var(--ease),border-color .4s,background .4s,box-shadow .4s}
+.plan-card:active{transform:scale(.975)}
+.plan-card:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.plan-card::after{content:"";position:absolute;inset:-2px;border-radius:inherit;pointer-events:none;box-shadow:0 0 30px 3px rgba(125,205,255,.6);opacity:0}
+.plan-card.selected{border-color:rgba(255,255,255,.95);background:linear-gradient(180deg,rgba(16,44,138,.88),rgba(8,24,88,.92));box-shadow:0 0 0 1px rgba(255,255,255,.2),0 16px 34px rgba(0,8,40,.5),inset 0 1px 0 rgba(255,255,255,.4)}
+.plan-card.selected::after{animation:halo 2.4s ease-in-out infinite}
 
-        .header p {
-            font-size: 13px;
-            color: #a1a1aa;
-            font-weight: 600;
-        }
+.plan-title{justify-self:start;margin-left:-18px;padding:8px 24px 8px 20px;font-size:12px;font-weight:600;line-height:1.25;white-space:nowrap;border-radius:24px 0 18px 0;background:rgba(3,12,48,.34);border-right:1px solid rgba(255,255,255,.2);border-bottom:1px solid rgba(255,255,255,.2)}
+.badge{position:absolute;right:-1.5px;top:-14px;z-index:2;padding:7px 14px 9px;border-radius:16px 16px 0 0;font-size:10px;font-weight:700;line-height:1.2;white-space:nowrap;color:#06185a;box-shadow:0 -4px 16px rgba(120,195,255,.3)}
+.badge-best{background:linear-gradient(180deg,#fff,#e6efff)}
+.badge-popular{background:linear-gradient(180deg,#7be3ff,#4cc6f4)}
 
-        /* --- ЛОГОТИП (КАРТИНКА) --- */
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            margin: 5px 0;
-            opacity: 0;
-            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
-        }
+/* Цены живут в своей строке: ни заголовок, ни бейдж на них не налезают */
+.plan-body{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:6px;min-width:0}
+.plan-price-total{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 9px;min-width:0;font-size:17px;font-weight:700;line-height:1.15}
+.old-price{font-size:11px;font-weight:500;color:rgba(255,255,255,.56);text-decoration:line-through;text-decoration-thickness:1.5px}
+.plan-price-monthly{flex:none;text-align:right;line-height:1.1}
+.price-monthly-val{font-size:18px;font-weight:700;white-space:nowrap}
+.price-monthly-label{margin-top:3px;font-size:13px;font-weight:700;white-space:nowrap}
 
-        .logo-img {
-            width: 150px; /* Уменьшили, чтобы не было скролла */
-            height: auto;
-            object-fit: contain;
-            animation: float 4s ease-in-out infinite;
-        }
+/* Нижняя панель */
+.bottom-panel{margin-top:2px}
+.cancel-text{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:-24px;padding:11px 12px 32px;border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.14);border-bottom:0;background:linear-gradient(180deg,rgba(10,30,72,.72),rgba(22,58,98,.55));-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);font-size:11px;font-weight:400;line-height:1.3;text-align:center;color:rgba(255,255,255,.92)}
+.cancel-text svg{flex:none;width:16px;height:16px;fill:var(--cyan)}
+.pay-btn{position:relative;z-index:1;display:block;width:100%;min-height:58px;padding:16px 18px;border-radius:22px;font-size:clamp(14px,4.4vw,17px);font-weight:700;line-height:1.2;color:#10308f;background:linear-gradient(180deg,#fff,#eaf2ff);box-shadow:0 14px 30px rgba(0,20,90,.38),inset 0 -2px 0 rgba(110,150,255,.25);transition:transform .25s var(--ease),box-shadow .25s var(--ease),filter .25s}
+.pay-btn:active{transform:scale(.965);filter:brightness(.94);box-shadow:0 6px 16px rgba(0,20,90,.3),inset 0 -2px 0 rgba(110,150,255,.25)}
+#pay-label{display:inline-block}
+.tick{animation:tick .4s var(--ease)}
 
-        /* --- ПЕРЕКЛЮЧАТЕЛЬ УСТРОЙСТВ --- */
-        .device-toggle {
-            display: flex;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 14px;
-            padding: 4px;
-            margin: 10px 0 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            opacity: 0;
-            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
-        }
-
-        .device-btn {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: 600;
-            color: #a1a1aa;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .device-btn.active {
-            background: rgba(59, 130, 246, 0.3);
-            color: #ffffff;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-            border: 1px solid rgba(59, 130, 246, 0.5);
-        }
-
-        /* --- КАРТОЧКИ ТАРИФОВ --- */
-        .plans-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Уменьшили отступы между карточками */
-        }
-
-        .plan-card {
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            padding: 14px 18px; /* Уменьшили внутренние отступы */
-            position: relative;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            overflow: hidden;
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        }
-
-        #plan-12 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; }
-        #plan-3 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; }
-        #plan-1 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards; }
-
-        .plan-card:active {
-            transform: scale(0.97);
-        }
-
-        /* ТО САМОЕ СВЕЧЕНИЕ И ЗАТУХАНИЕ */
-        .plan-card.selected {
-            border: 2px solid #3b82f6;
-            background: rgba(59, 130, 246, 0.15);
-            animation: pulseBorder 1.5s infinite alternate ease-in-out; /* Пульсация */
-        }
-
-        .badge {
-            position: absolute;
-            top: 0;
-            right: 0;
-            padding: 5px 12px;
-            font-size: 10px;
-            font-weight: 700;
-            border-bottom-left-radius: 12px;
-            box-shadow: -2px 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .badge-best {
-            background: #ffffff;
-            color: #000000;
-        }
-
-        .badge-popular {
-            background: #06b6d4;
-            color: #ffffff;
-        }
-
-        .plan-info {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .plan-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: #e2e8f0;
-        }
-
-        .plan-price-total {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .old-price {
-            font-size: 13px;
-            color: #71717a;
-            text-decoration: line-through;
-            font-weight: 400;
-        }
-
-        .plan-price-monthly {
-            text-align: right;
-        }
-
-        .price-monthly-val {
-            font-size: 20px;
-            font-weight: 800;
-        }
-
-        .price-monthly-label {
-            font-size: 11px;
-            color: #a1a1aa;
-        }
-
-        /* --- НИЖНЯЯ ПАНЕЛЬ С КНОПКОЙ --- */
-        .bottom-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 15px;
-            opacity: 0;
-            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
-        }
-
-        .cancel-text {
-            text-align: center;
-            font-size: 12px;
-            color: #d4d4d8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .cancel-text svg {
-            width: 14px;
-            height: 14px;
-            fill: #06b6d4;
-        }
-
-        .pay-btn {
-            background: #ffffff;
-            color: #000000;
-            border: none;
-            border-radius: 16px;
-            padding: 16px;
-            font-size: 17px;
-            font-weight: 800;
-            width: 100%;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .pay-btn:active {
-            background: #e2e8f0;
-            transform: scale(0.96);
-            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
-        }
-    </style>
+@media (max-height:700px){
+  .logo-img{height:clamp(64px,14vh,110px)}
+  .plan-card{min-height:76px}
+  .header h1{font-size:clamp(20px,6.1vw,26px)}
+}
+@media (max-width:350px){
+  .plan-card{padding:0 14px 10px}
+  .plan-title{font-size:11px;margin-left:-14px;padding:7px 18px 7px 16px}
+  .badge{font-size:9px;padding:6px 10px 8px}
+  .plan-price-total{font-size:15px}
+  .price-monthly-val{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
 </head>
 <body>
+<div class="bg"></div>
+
+<main class="app"><div class="wrap">
 
     <!-- Заголовок -->
-    <div class="header">
-        <h1>VPN после которого<br>вы забудете о <span>любых ограничениях!</span></h1>
-        <p id="subtitle-devices">Все тарифы = 2 устройства.</p>
+    <div class="header enter">
+        <h1><span class="acc">VPN</span> после которого вы забудете о <span class="acc">любых ограничениях!</span></h1>
+        <p class="swap" id="subtitle-devices">Все тарифы = 2 устройства.</p>
     </div>
 
     <!-- Логотип -->
-    <div class="logo-container">
+    <div class="logo-container enter" style="--d:.1s">
         <img src="logo.PNG" alt="MOROF VPN Logo" class="logo-img">
     </div>
 
-    <!-- Переключатель устройств -->
-    <div class="device-toggle">
-        <div class="device-btn active" onclick="changeDevices(2)" id="btn-dev-2">2 устройства</div>
-        <div class="device-btn" onclick="changeDevices(5)" id="btn-dev-5">5 устройств</div>
-    </div>
-
-    <!-- Карточки тарифов -->
-    <div class="plans-container">
-        <!-- 12 месяцев -->
-        <div class="plan-card selected" onclick="selectPlan(12, 'plan-12')" id="plan-12">
-            <div class="badge badge-best">Лучший выбор</div>
-            <div class="plan-info">
-                <div class="plan-title">12 месяцев</div>
-                <div class="plan-price-total">
-                    <span class="old-price" id="old-price-12">2989₽</span>
-                    <span id="total-price-12">1590₽</span>
-                </div>
-            </div>
-            <div class="plan-price-monthly">
-                <div class="price-monthly-val" id="monthly-price-12">132₽/</div>
-                <div class="price-monthly-label">месяц</div>
-            </div>
+    <div class="middle">
+        <!-- Переключатель устройств -->
+        <div class="device-toggle enter" style="--d:.2s" data-active="2" role="group">
+            <button type="button" class="device-btn active" onclick="changeDevices(2)" id="btn-dev-2">2 устройства</button>
+            <button type="button" class="device-btn" onclick="changeDevices(5)" id="btn-dev-5">5 устройств</button>
         </div>
 
-        <!-- 3 месяца -->
-        <div class="plan-card" onclick="selectPlan(3, 'plan-3')" id="plan-3">
-            <div class="badge badge-popular">Популярный</div>
-            <div class="plan-info">
-                <div class="plan-title">3 месяца</div>
-                <div class="plan-price-total">
-                    <span class="old-price" id="old-price-3">747₽</span>
-                    <span id="total-price-3">499₽</span>
+        <!-- Карточки тарифов -->
+        <div class="plans-container">
+            <!-- 12 месяцев -->
+            <div class="plan-slot swap enter" style="--d:.3s">
+                <div class="plan-card selected" onclick="selectPlan(12, 'plan-12')" id="plan-12" role="button" tabindex="0">
+                    <div class="badge badge-best">Лучший выбор</div>
+                    <div class="plan-title">12 месяцев</div>
+                    <div class="plan-body">
+                        <div class="plan-price-total">
+                            <span class="old-price" id="old-price-12">2989₽</span>
+                            <span id="total-price-12">1590₽</span>
+                        </div>
+                        <div class="plan-price-monthly">
+                            <div class="price-monthly-val" id="monthly-price-12">132₽/</div>
+                            <div class="price-monthly-label">месяц</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="plan-price-monthly">
-                <div class="price-monthly-val" id="monthly-price-3">166₽/</div>
-                <div class="price-monthly-label">месяц</div>
-            </div>
-        </div>
 
-        <!-- 1 месяц -->
-        <div class="plan-card" onclick="selectPlan(1, 'plan-1')" id="plan-1">
-            <div class="plan-info">
-                <div class="plan-title">1 месяц</div>
-                <div class="plan-price-total">
-                    <span id="total-price-1">199₽</span>
+            <!-- 3 месяца -->
+            <div class="plan-slot swap enter" style="--d:.4s">
+                <div class="plan-card" onclick="selectPlan(3, 'plan-3')" id="plan-3" role="button" tabindex="0">
+                    <div class="badge badge-popular">Популярный</div>
+                    <div class="plan-title">3 месяца</div>
+                    <div class="plan-body">
+                        <div class="plan-price-total">
+                            <span class="old-price" id="old-price-3">747₽</span>
+                            <span id="total-price-3">499₽</span>
+                        </div>
+                        <div class="plan-price-monthly">
+                            <div class="price-monthly-val" id="monthly-price-3">166₽/</div>
+                            <div class="price-monthly-label">месяц</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="plan-price-monthly">
-                <div class="price-monthly-val" id="monthly-price-1">199₽/</div>
-                <div class="price-monthly-label">месяц</div>
+
+            <!-- 1 месяц -->
+            <div class="plan-slot swap enter" style="--d:.5s">
+                <div class="plan-card" onclick="selectPlan(1, 'plan-1')" id="plan-1" role="button" tabindex="0">
+                    <div class="plan-title">1 месяц</div>
+                    <div class="plan-body">
+                        <div class="plan-price-total">
+                            <span id="total-price-1">199₽</span>
+                        </div>
+                        <div class="plan-price-monthly">
+                            <div class="price-monthly-val" id="monthly-price-1">199₽/</div>
+                            <div class="price-monthly-label">месяц</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Нижняя панель с кнопкой -->
-    <div class="bottom-panel">
+    <div class="bottom-panel enter" style="--d:.6s">
         <div class="cancel-text">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
             Можно отменить в любое время
         </div>
-        <button class="pay-btn" onclick="pay()" id="main-pay-btn">Оплатить 1590 ₽</button>
+        <button type="button" class="pay-btn" onclick="pay()" id="main-pay-btn"><span id="pay-label">Оплатить 1590 ₽</span></button>
     </div>
 
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+</div></main>
 
-        tg.setHeaderColor('#000000');
-        tg.setBackgroundColor('#000000');
+<script>
+    const tg = (window.Telegram && window.Telegram.WebApp) || null;
+    const tgSupports = v => { try { return !!tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast(v); } catch (e) { return false; } };
 
-        const pricing = {
-            2: {
-                1: { total: 199, monthly: 199, old: null },
-                3: { total: 499, monthly: 166, old: 747 },
-                12: { total: 1590, monthly: 132, old: 2989 }
-            },
-            5: {
-                1: { total: 259, monthly: 259, old: null },
-                3: { total: 649, monthly: 216, old: 897 },
-                12: { total: 2090, monthly: 174, old: 3589 }
+    try {
+        if (tg) {
+            tg.expand();
+            tg.ready();
+            if (tgSupports('6.1')) {
+                tg.setHeaderColor('#02050f');
+                tg.setBackgroundColor('#02050f');
             }
+        }
+    } catch (e) {}
+
+    const pricing = {
+        2: {
+            1: { total: 199, monthly: 199, old: null },
+            3: { total: 499, monthly: 166, old: 747 },
+            12: { total: 1590, monthly: 132, old: 2989 }
+        },
+        5: {
+            1: { total: 259, monthly: 259, old: null },
+            3: { total: 649, monthly: 216, old: 897 },
+            12: { total: 2090, monthly: 174, old: 3589 }
+        }
+    };
+
+    let currentDevices = 2;
+    let currentPeriod = 12;
+    let swapTimer = 0;
+
+    const $ = id => document.getElementById(id);
+    const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+    // Тактильная отдача: Telegram HapticFeedback -> vibrate (если есть) -> тишина без ошибок
+    // kind: 'light' | 'medium' | 'heavy' | 'soft' | 'rigid' | 'select'
+    function hapticFeedback(kind = 'light') {
+        try {
+            if (tgSupports('6.1') && tg.HapticFeedback) {
+                if (kind === 'select') tg.HapticFeedback.selectionChanged();
+                else tg.HapticFeedback.impactOccurred(kind);
+                return;
+            }
+            if (typeof navigator.vibrate === 'function') navigator.vibrate(kind === 'medium' || kind === 'heavy' ? 18 : 9);
+        } catch (e) {}
+    }
+
+    function syncToggle() {
+        $('btn-dev-2').classList.toggle('active', currentDevices === 2);
+        $('btn-dev-5').classList.toggle('active', currentDevices === 5);
+        document.querySelector('.device-toggle').dataset.active = String(currentDevices);
+    }
+
+    // Направленная смена раздела: dir = 1 (вперёд) — старый блок уходит вниз, новый приходит сверху;
+    // dir = -1 (назад) — наоборот. Любое новое нажатие плавно перехватывает текущую анимацию.
+    function swapSection(dir) {
+        clearTimeout(swapTimer);
+        if (reduceMotion) { render(); return; }
+        const els = Array.from(document.querySelectorAll('.swap'));
+        els.forEach(el => {
+            el.style.transitionDelay = '0ms';
+            el.classList.add('out');
+            el.style.transform = `translate3d(0,${dir * 24}px,0)`;
+        });
+        swapTimer = setTimeout(() => {
+            render();
+            els.forEach(el => {
+                el.style.transition = 'none';
+                el.style.transform = `translate3d(0,${-dir * 24}px,0)`;
+            });
+            void document.body.offsetWidth; // зафиксировать стартовую позицию без анимации
+            els.forEach((el, i) => {
+                el.style.transition = '';
+                el.style.transitionDelay = (i * 45) + 'ms';
+                el.classList.remove('out');
+                el.style.transform = 'translate3d(0,0,0)';
+            });
+        }, 220);
+    }
+
+    function changeDevices(count) {
+        if (count === currentDevices) { hapticFeedback('light'); return; }
+        hapticFeedback('select');
+        const dir = count > currentDevices ? 1 : -1;
+        currentDevices = count;
+        syncToggle();
+        swapSection(dir);
+    }
+
+    function selectPlan(period, elementId) {
+        hapticFeedback('light');
+        currentPeriod = period;
+
+        document.querySelectorAll('.plan-card').forEach(el => el.classList.toggle('selected', el.id === elementId));
+
+        updateButton();
+    }
+
+    function render() {
+        $('subtitle-devices').innerText = `Все тарифы = ${currentDevices} устройства.`;
+        updatePrices();
+    }
+
+    function updatePrices() {
+        const prices = pricing[currentDevices];
+
+        $('total-price-12').innerText = prices[12].total + '₽';
+        $('monthly-price-12').innerText = prices[12].monthly + '₽/';
+        $('old-price-12').innerText = prices[12].old ? prices[12].old + '₽' : '';
+
+        $('total-price-3').innerText = prices[3].total + '₽';
+        $('monthly-price-3').innerText = prices[3].monthly + '₽/';
+        $('old-price-3').innerText = prices[3].old ? prices[3].old + '₽' : '';
+
+        $('total-price-1').innerText = prices[1].total + '₽';
+        $('monthly-price-1').innerText = prices[1].monthly + '₽/';
+
+        updateButton();
+    }
+
+    function updateButton() {
+        const price = pricing[currentDevices][currentPeriod].total;
+        const label = $('pay-label');
+        const text = `Оплатить ${price} ₽`;
+        if (label.textContent !== text) {
+            label.textContent = text;
+            label.classList.remove('tick');
+            void label.offsetWidth;
+            label.classList.add('tick');
+        }
+    }
+
+    function pay() {
+        hapticFeedback('medium');
+
+        const data = {
+            action: "buy_subscription",
+            devices: currentDevices,
+            period: currentPeriod,
+            price: pricing[currentDevices][currentPeriod].total
         };
 
-        let currentDevices = 2;
-        let currentPeriod = 12;
+        try { if (tg) tg.sendData(JSON.stringify(data)); } catch (e) { console.warn(e); }
+    }
 
-        function hapticFeedback(type = 'light') {
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred(type);
-            }
+    // Клавиатура: Enter / Пробел на карточке тарифа
+    document.addEventListener('keydown', e => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('plan-card')) {
+            e.preventDefault();
+            e.target.click();
         }
+    });
 
-        function changeDevices(count) {
-            hapticFeedback('light');
-            currentDevices = count;
-            
-            document.getElementById('btn-dev-2').classList.remove('active');
-            document.getElementById('btn-dev-5').classList.remove('active');
-            document.getElementById(`btn-dev-${count}`).classList.add('active');
-            
-            document.getElementById('subtitle-devices').innerText = `Все тарифы = ${count} устройства.`;
-
-            updatePrices();
-        }
-
-        function selectPlan(period, elementId) {
-            hapticFeedback('light');
-            currentPeriod = period;
-            
-            document.querySelectorAll('.plan-card').forEach(el => el.classList.remove('selected'));
-            document.getElementById(elementId).classList.add('selected');
-            
-            updateButton();
-        }
-
-        function updatePrices() {
-            const prices = pricing[currentDevices];
-            
-            document.getElementById('total-price-12').innerText = prices[12].total + '₽';
-            document.getElementById('monthly-price-12').innerText = prices[12].monthly + '₽/';
-            document.getElementById('old-price-12').innerText = prices[12].old ? prices[12].old + '₽' : '';
-
-            document.getElementById('total-price-3').innerText = prices[3].total + '₽';
-            document.getElementById('monthly-price-3').innerText = prices[3].monthly + '₽/';
-            document.getElementById('old-price-3').innerText = prices[3].old ? prices[3].old + '₽' : '';
-
-            document.getElementById('total-price-1').innerText = prices[1].total + '₽';
-            document.getElementById('monthly-price-1').innerText = prices[1].monthly + '₽/';
-            
-            updateButton();
-        }
-
-        function updateButton() {
-            const price = pricing[currentDevices][currentPeriod].total;
-            document.getElementById('main-pay-btn').innerText = `Оплатить ${price} ₽`;
-        }
-
-        function pay() {
-            hapticFeedback('heavy');
-            
-            const data = {
-                action: "buy_subscription",
-                devices: currentDevices,
-                period: currentPeriod,
-                price: pricing[currentDevices][currentPeriod].total
-            };
-
-            tg.sendData(JSON.stringify(data));
-        }
-
-        updatePrices();
-    </script>
+    updatePrices();
+</script>
 </body>
 </html>
